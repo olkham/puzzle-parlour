@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Layer Cake</title>
+<meta name="description" content="Sort the mixed-up sponge layers so every stand holds a cake of one flavour.">
+<meta name="theme-color" content="#fdeef0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b1216" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Layer Cake">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fdeef0;
+  --card:#fffafa;
+  --card-edge:#f2d3d9;
+  --ink:#3d2330;
+  --muted:#8e6878;
+  --accent:#e2557e;
+  --accent-ink:#ffffff;
+  --heart:#e5484d;
+  --star:#f2b233;
+  --gridink:#3d2330;
+  --mini:#ffd5e1;
+  --shadow:0 10px 28px rgba(120,40,70,.14);
+  --scrim:rgba(40,12,24,.5);
+  --counter:#f7dfe3;
+  --counter-edge:#ecc4cc;
+  --plate:#ffffff;
+  --plate-edge:#d9c4cb;
+  --cream:#fff8ee;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#1b1216;
+    --card:#271a20;
+    --card-edge:#452e38;
+    --ink:#fbeaf0;
+    --muted:#c0a0ad;
+    --accent:#ff7aa0;
+    --accent-ink:#2a0c17;
+    --heart:#ff6b86;
+    --star:#f6c35b;
+    --gridink:#0c0709;
+    --mini:#5a2a3c;
+    --shadow:0 10px 28px rgba(0,0,0,.5);
+    --scrim:rgba(8,3,5,.72);
+    --counter:#2c1d24;
+    --counter-edge:#4a3240;
+    --plate:#e9e1e4;
+    --plate-edge:#9a8890;
+    --cream:#fff3e3;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1b1216;--card:#271a20;--card-edge:#452e38;--ink:#fbeaf0;--muted:#c0a0ad;--accent:#ff7aa0;--accent-ink:#2a0c17;--heart:#ff6b86;--star:#f6c35b;
+  --gridink:#0c0709;--mini:#5a2a3c;--shadow:0 10px 28px rgba(0,0,0,.5);--scrim:rgba(8,3,5,.72);--counter:#2c1d24;--counter-edge:#4a3240;
+  --plate:#e9e1e4;--plate-edge:#9a8890;--cream:#fff3e3;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Fredoka',ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+a.btn{text-decoration:none;color:inherit}
+svg{display:block}
+
+.app{
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* header */
+.top{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:8px}
+.top-left{display:flex;gap:6px}
+.top-left .icon-btn{width:44px;height:44px;border-radius:14px}
+.top-left .icon-btn svg{width:21px;height:21px}
+.icon-btn{
+  width:48px;height:48px;border-radius:16px;flex:none;
+  background:var(--card);border:2px solid var(--card-edge);
+  display:grid;place-items:center;padding:0;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.title{text-align:center;line-height:1.05;min-width:0}
+.title h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.title p{margin:3px 0 0;font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* status row */
+.status{display:flex;align-items:center;justify-content:space-between;padding:0 4px;min-height:34px;gap:10px}
+.lives{display:flex;gap:6px}
+.lives svg{width:30px;height:30px;overflow:visible}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:1.6;stroke-linejoin:round;transition:fill .2s}
+.heart.lost path{fill:none;stroke:var(--muted);opacity:.55}
+.lives .heart.pop{animation:heartpop .5s ease}
+@keyframes heartpop{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+.count{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.count small{font-size:14px;color:var(--muted);font-weight:500;margin-right:6px}
+.star path{fill:var(--star);stroke:var(--star);stroke-width:1.4;stroke-linejoin:round}
+.star.off path{fill:none;stroke:var(--muted);opacity:.5}
+
+/* control hints */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how > div{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:16px;
+  padding:8px 10px;font-size:14px;font-weight:500;line-height:1.15;color:var(--muted);
+}
+.how b{color:var(--ink);font-weight:600;display:block}
+.how .mini{flex:none;width:34px;height:34px;border-radius:10px;background:var(--mini);display:grid;place-items:center;border:2px solid var(--gridink)}
+.how .mini svg{width:70%;height:70%}
+
+/* footer */
+.foot{display:flex;gap:10px;margin-top:auto}
+.btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 14px;border-radius:16px;
+  background:var(--card);border:2px solid var(--card-edge);
+  font-size:16px;font-weight:600;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn[hidden]{display:none}
+.foot .btn{font-size:15px;gap:6px;padding:0 10px}
+.foot .btn svg{width:18px;height:18px}
+.btn .tag{font-size:12px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.switch{width:38px;height:22px;border-radius:99px;background:var(--card-edge);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s,background .2s}
+.btn[aria-pressed="true"] .switch{background:var(--accent)}
+.btn[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-ink)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;place-items:center;padding:16px;z-index:10}
+.scrim.open{display:grid}
+.sheet{
+  width:100%;max-width:380px;max-height:86dvh;overflow:auto;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:26px;
+  padding:22px 20px 20px;box-shadow:var(--shadow);text-align:center;
+  animation:sheetin .28s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes sheetin{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:32px;font-weight:700;line-height:1.05}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:17px;line-height:1.3}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sheet .art{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center}
+.sheet .art svg{width:100%;height:100%;overflow:visible}
+.sheet .badge-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.sheet .badge-row svg{width:30px;height:30px}
+.sheet .logo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 4px}
+.sheet .logo svg{width:44px;height:44px}
+.rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:flex;flex-direction:column;gap:12px}
+.rules li{display:flex;gap:12px;align-items:center;font-size:17px;line-height:1.25}
+.rules .mini{flex:none;width:40px;height:40px;border-radius:12px;background:var(--mini);border:2.5px solid var(--gridink);display:grid;place-items:center}
+.rules .mini svg{width:74%;height:74%}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lv{
+  position:relative;padding:8px 0 7px;border-radius:14px;background:var(--bg);
+  border:2px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;min-height:66px;
+}
+.lv b{font-size:22px;font-weight:600}
+.lv small{font-size:12px;color:var(--muted);font-weight:500}
+.lv.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.lv.done{background:var(--card)}
+.lv .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;border:2px solid var(--card)}
+.lv .ok svg{width:11px;height:11px}
+.lv .mh{display:flex;gap:2px;margin-top:3px;height:10px}
+.lv .mh svg{width:10px;height:10px}
+.lv .mh .heart path,.lv .mh .star path{stroke:none}
+.lv .mh .lost path,.lv .mh .off path{fill:var(--card-edge);opacity:1}
+.pager{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.pager span{font-size:19px;font-weight:600}
+.pager .icon-btn{width:44px;height:44px;border-radius:14px}
+.spin{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--card-edge);border-top-color:var(--accent);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 74px);
+  transform:translate(-50%,16px);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:15px;font-weight:500;line-height:1.25;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;
+  width:max-content;max-width:min(88vw,420px);text-align:center;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:370px){
+  .top{gap:6px;grid-template-columns:auto 1fr 42px}
+  .top-left{gap:4px}
+  .top-left .icon-btn{width:40px;height:40px;border-radius:13px}
+  .top > .icon-btn{width:42px;height:42px;border-radius:14px}
+  .title h1{font-size:23px}
+  .foot{gap:8px}
+}
+@media (max-width:340px){
+  .title h1{font-size:19px}
+  .title p{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+.status .stars-now{display:flex;gap:4px}
+.status .stars-now svg{width:28px;height:28px}
+.count{text-align:right;line-height:1.05}
+.count .sub{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
+
+.counter-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%}
+.counter{
+  position:relative;width:100%;border-radius:24px;background:var(--counter);
+  box-shadow:0 0 0 2px var(--counter-edge),var(--shadow);touch-action:manipulation;
+}
+.stand{position:absolute;border-radius:14px;cursor:pointer}
+.stand .plate{
+  position:absolute;left:-8%;right:-8%;bottom:0;height:var(--plateH);border-radius:50%/60%;
+  background:linear-gradient(var(--plate),var(--plate) 55%,var(--plate-edge));box-shadow:0 3px 6px rgba(80,30,50,.22);
+}
+.stand .foot{position:absolute;left:30%;right:30%;bottom:calc(var(--plateH) * -.9);height:calc(var(--plateH) * 1.1);border-radius:0 0 40% 40%;background:linear-gradient(90deg,var(--plate-edge),var(--plate) 45%,var(--plate-edge))}
+.stand .slot{position:absolute;left:0;right:0;bottom:var(--plateH);top:0;border-radius:12px;transition:background .2s}
+.stand.sel .slot{background:rgba(255,255,255,.35)}
+.stand.done{cursor:default}
+.stand.nope{animation:nope .35s ease}
+@keyframes nope{25%{transform:translateX(-6px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.stand.hint .slot{box-shadow:0 0 0 3px var(--accent);animation:hintp 1s ease-in-out 3}
+@keyframes hintp{50%{box-shadow:0 0 0 5px var(--accent),0 0 16px var(--accent)}}
+
+.layer{
+  position:absolute;border-radius:calc(var(--lh) * .32);pointer-events:none;
+  transition:left .28s cubic-bezier(.3,.9,.4,1),top .28s cubic-bezier(.3,.9,.4,1);
+  box-shadow:inset 0 calc(var(--lh) * -.16) 0 rgba(0,0,0,.12),inset 0 calc(var(--lh) * .1) 0 rgba(255,255,255,.28);
+  background-color:var(--fc);
+}
+.layer::after{content:"";position:absolute;left:4%;right:4%;top:-3px;height:5px;border-radius:5px;background:var(--cream);opacity:.95}
+.layer.f0{--fc:#f78fb3;background-image:radial-gradient(circle,#ffe58a 0 1.4px,transparent 2px);background-size:11px 9px}
+.layer.f1{--fc:#7b4a2e;background-image:radial-gradient(circle,#3b2012 0 2px,transparent 2.5px);background-size:13px 11px}
+.layer.f2{--fc:#f3dfae;background-image:radial-gradient(circle,#6b4a2a 0 .9px,transparent 1.3px);background-size:9px 8px}
+.layer.f3{--fc:#86c463;background-image:linear-gradient(90deg,rgba(255,255,255,.25) 0 2px,transparent 2px);background-size:12px 100%}
+.layer.f4{--fc:#6c6fd1;background-image:radial-gradient(circle,#383aa0 0 2.4px,transparent 3px);background-size:14px 12px}
+.layer.f5{--fc:#f6d04d;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.4) 0 2px,transparent 2px 9px)}
+.layer.f6{--fc:#f3913f;background-image:radial-gradient(circle,rgba(255,255,255,.55) 0 1.4px,transparent 2px);background-size:10px 9px}
+.layer.f7{--fc:#69d0b9;background-image:radial-gradient(circle,#2b2b2b 0 1.8px,transparent 2.3px);background-size:12px 10px}
+.layer.f8{--fc:#c43546;background-image:radial-gradient(circle,#fff3e3 0 1.6px,transparent 2.1px);background-size:15px 11px}
+.layer.f9{--fc:#69b9f0;background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.35) 0 3px,transparent 3px 10px)}
+.layer.f10{--fc:#c98a3d;background-image:repeating-linear-gradient(0deg,rgba(255,240,200,.45) 0 2px,transparent 2px 7px)}
+.layer.f11{--fc:#b48bd8;background-image:radial-gradient(circle,#7a4fb0 0 1.5px,transparent 2px);background-size:9px 12px}
+.layer.mystery{--fc:#d8c3b5;background-image:none}
+.layer.mystery::before{content:"?";position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:calc(var(--lh) * .62);color:rgba(80,50,40,.55)}
+.layer.reveal{animation:reveal .4s ease}
+@keyframes reveal{0%{filter:brightness(1.6)}100%{filter:none}}
+
+.topper{position:absolute;pointer-events:none;transform-origin:50% 100%;animation:topper .5s cubic-bezier(.2,1.6,.4,1) both}
+.topper svg{width:100%;height:100%;overflow:visible}
+@keyframes topper{from{transform:scale(0) translateY(10px)}to{transform:none}}
+.sprinkle{position:absolute;width:6px;height:12px;border-radius:3px;pointer-events:none;animation:fall 1.5s cubic-bezier(.3,.6,.6,1) forwards}
+@keyframes fall{from{transform:translateY(-30px) rotate(0)}to{transform:translateY(var(--fy)) rotate(var(--fr));opacity:0}}
+.btn .tag{background:var(--accent);color:var(--accent-ink)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-left">
+      <button class="icon-btn" id="btnLevels" aria-label="Choose level">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMusic" aria-label="Turn music on" aria-pressed="false"><span id="musicIcon"></span></button>
+      <button class="icon-btn" id="btnSfx" aria-label="Turn sound effects on" aria-pressed="false"><span id="sfxIcon"></span></button>
+    </div>
+    <div class="title"><h1 id="lvTitle">Level 1</h1><p id="lvSub">&nbsp;</p></div>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 16.9v.1"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-label="Rating and moves">
+    <div class="stars-now" id="starsNow" aria-live="polite"></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <div class="counter-wrap" id="counterWrap">
+    <div class="counter" id="counter" role="application" aria-label="Cake stands. Tap a stand to pick up its top layers, then tap another stand to place them."></div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <button class="btn" id="btnRestart"><span id="restartIcon"></span><span id="restartLabel">Restart</span></button>
+    <button class="btn" id="btnUndo"><span id="undoIcon"></span><span>Undo</span></button>
+    <button class="btn" id="btnExtra" aria-label="Add a spare stand (once per level)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 18h16M7 18v-3h10v3M12 4v7M8.5 7.5h7"/></svg><span>Stand</span></button>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+const GAME = { id: 'layer-cake', seed: 909 };
+/* =====================================================================
+   Shared shell: saves, seeded randomness, icons, live-synthesised audio,
+   modals, toasts and the level picker. The game code below plugs into it
+   through the GAME object and a loadLevel(idx) function.
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const scrim = $('#scrim');
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/* ---------- saved progress (private to this browser) ---------- */
+const STORE_KEY = GAME.id + '-v1';
+let save = Object.assign({ done: {}, seenHelp: false, level: 0 }, GAME.saveDefaults || {});
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
+} catch (e) {}
+if (!save.done || typeof save.done !== 'object') save.done = {};
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- seeded randomness, so level N is the same puzzle on every device ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleArr(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function seedFor(idx, salt) {
+  let h = (0x9e3779b9 ^ (GAME.seed || 0)) >>> 0;
+  h = Math.imul(h ^ (idx + 1), 0x85ebca6b); h ^= h >>> 13;
+  h = Math.imul(h ^ ((salt || 0) + 0x27d4eb2f), 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+}
+const pickOne = (arr, rnd) => arr[Math.floor(rnd() * arr.length)];
+
+/* ---------- icons ---------- */
+const ICON = {
+  tick: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.4 2.4 4.6-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C12 20.6 3.2 15.4 3.2 9.2C3.2 6.4 5.3 4.4 7.9 4.4C9.7 4.4 11.2 5.4 12 6.8C12.8 5.4 14.3 4.4 16.1 4.4C18.7 4.4 20.8 6.4 20.8 9.2C20.8 15.4 12 20.6 12 20.6Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  hint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21.2h4"/><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.6.5.9 1.2.9 2V16.6h6v-.3c0-.8.3-1.5.9-2A6.4 6.4 0 0 0 12 2.8z"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  musicOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>',
+  musicOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke-width="2.4"/></svg>',
+  sfxOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/></svg>',
+  sfxOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none" opacity=".45"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0" opacity=".45"/><path d="M5.5 5.5l13 13" stroke-width="2.6"/></svg>'
+};
+function heartsHTML(left, max, cls) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<span class="heart' + (k >= left ? ' lost' : '') + (cls && k === left ? ' ' + cls : '') + '">' + ICON.heart + '</span>';
+  return h;
+}
+function starsHTML(n, max) {
+  let h = '';
+  for (let k = 0; k < (max || 3); k++) h += '<span class="star' + (k >= n ? ' off' : '') + '">' + ICON.star + '</span>';
+  return h;
+}
+
+/* =====================================================================
+   Audio. There are no sound files: every note is built from oscillators,
+   filters and envelopes. Music and sound effects are separate toggles,
+   both off by default and remembered between visits.
+   ===================================================================== */
+const MUSIC_KEY = GAME.id + '-music-v1', SFX_KEY = GAME.id + '-sfx-v1';
+let musicOn = false, sfxOn = false;
+try { musicOn = localStorage.getItem(MUSIC_KEY) === '1'; sfxOn = localStorage.getItem(SFX_KEY) === '1'; } catch (e) {}
+let actx = null, master = null, musicBus = null, sfxBus = null, noiseBuf = null;
+let schedTimer = null, ambientStop = null;
+
+function ensureAudio() {
+  if (actx) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  try { actx = new AC(); } catch (e) { return false; }
+  master = actx.createGain(); master.gain.value = 0.42; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = 0.85; musicBus.connect(master);
+  sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+  return true;
+}
+const NOTE_FREQ = {};
+function noteFreq(note) {
+  if (!note) return 0;
+  if (typeof note === 'number') return note;
+  if (NOTE_FREQ[note]) return NOTE_FREQ[note];
+  const m = /^([A-G])(#|b)?(\d)$/.exec(note);
+  if (!m) return 0;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (NOTE_FREQ[note] = 440 * Math.pow(2, (base + (parseInt(m[3], 10) - 4) * 12 - 9) / 12));
+}
+/* one synth voice: oscillator -> (optional lowpass) -> envelope -> bus */
+function tone(t, f, o) {
+  o = o || {};
+  if (!f) return;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  const a = o.a || 0.006, hold = o.hold || 0, dur = o.dur || 0.25, vol = o.vol == null ? 0.15 : o.vol;
+  const end = t + a + hold + dur;
+  osc.type = o.type || 'triangle';
+  osc.frequency.setValueAtTime(f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + (o.glide || a + hold + dur));
+  if (o.vib) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.vibRate || 5.5; lg.gain.value = f * o.vib;
+    l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end + 0.05);
+  }
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  if (hold) g.gain.setValueAtTime(vol, t + a + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  let node = osc;
+  if (o.lp) {
+    const fl = actx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp;
+    if (o.q) fl.Q.value = o.q;
+    osc.connect(fl); node = fl;
+  }
+  node.connect(g); g.connect(o.bus || sfxBus);
+  osc.start(t); osc.stop(end + 0.05);
+}
+/* a burst of filtered noise: shakers, splashes, rustles */
+function noise(t, o) {
+  o = o || {};
+  if (!noiseBuf) {
+    const len = actx.sampleRate;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = actx.createBufferSource(); src.buffer = noiseBuf;
+  const fl = actx.createBiquadFilter(); fl.type = o.ftype || 'bandpass';
+  const dur = o.dur || 0.08, vol = o.vol || 0.1, a = o.a || 0.003;
+  fl.frequency.setValueAtTime(o.f || 2000, t);
+  if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + a + dur);
+  fl.Q.value = o.q || 1;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dur);
+  src.connect(fl); fl.connect(g); g.connect(o.bus || sfxBus);
+  src.start(t, Math.random() * 0.5); src.stop(t + a + dur + 0.05);
+}
+
+/* instruments for the background music */
+const INST = {
+  pluck: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.008, dur: Math.min(d * 0.9, 0.35), vol: v || 0.16, bus: musicBus }),
+  bell: (t, f, d, v) => {
+    v = v || 0.11;
+    tone(t, f, { type: 'sine', a: 0.004, dur: Math.min(d * 1.8, 1.2), vol: v, bus: musicBus });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: Math.min(d, 0.45), vol: v * 0.32, bus: musicBus });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.12, vol: v * 0.12, bus: musicBus });
+  },
+  marimba: (t, f, d, v) => {
+    v = v || 0.17;
+    tone(t, f, { type: 'sine', a: 0.003, dur: Math.min(d * 0.85, 0.5), vol: v, bus: musicBus });
+    tone(t, f * 3.98, { type: 'sine', a: 0.002, dur: 0.07, vol: v * 0.22, bus: musicBus });
+  },
+  flute: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.06, hold: d * 0.45, dur: d * 0.55 + 0.08, vol: v || 0.1, vib: 0.006, vibRate: 5, bus: musicBus }),
+  reed: (t, f, d, v) => tone(t, f, { type: 'square', a: 0.02, hold: d * 0.35, dur: d * 0.5, vol: v || 0.045, lp: 1500, bus: musicBus }),
+  harp: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.004, dur: Math.min(d * 2.5, 1.3), vol: v || 0.08, lp: 2400, bus: musicBus }),
+  bass: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.02, dur: d, vol: v || 0.13, bus: musicBus }),
+  wbass: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.01, dur: Math.min(d * 0.9, 0.55), vol: v || 0.15, lp: 650, bus: musicBus }),
+  hat: (t, v) => noise(t, { f: 8000, q: 0.7, dur: 0.03, vol: v || 0.025, ftype: 'highpass', bus: musicBus }),
+  shaker: (t, v) => noise(t, { f: 5500, q: 1.2, dur: 0.06, vol: v || 0.03, bus: musicBus }),
+  knock: (t, v) => tone(t, 190, { type: 'sine', to: 120, a: 0.002, dur: 0.08, vol: v || 0.08, bus: musicBus })
+};
+/* "E5:.5 - G5:1" -> [{n:'E5', d:.5}, {n:null, d:1}, ...] ("-" or "r" is a rest, default length 1 beat) */
+function track(str) {
+  return str.trim().split(/\s+/).map((tok) => {
+    const p = tok.split(':');
+    return { n: p[0] === '-' || p[0] === 'r' ? null : p[0], d: p[1] ? parseFloat(p[1]) : 1 };
+  });
+}
+function scheduler() {
+  const M = GAME.music, beat = 60 / M.tempo, until = actx.currentTime + 0.2;
+  for (const tr of M.tracks) {
+    let guard = 0;
+    while (tr.next < until && guard++ < 64) {
+      const s = tr.seq[tr.i];
+      const dur = s.d * beat;
+      if (s.n) {
+        if (tr.perc) tr.inst(tr.next, tr.vol, s.n);
+        else tr.inst(tr.next, noteFreq(s.n), dur * (tr.len || 1), tr.vol);
+      }
+      tr.next += dur;
+      tr.i = (tr.i + 1) % tr.seq.length;
+    }
+  }
+}
+function setMusic(on, fromUser) {
+  musicOn = on;
+  try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnMusic');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  $('#musicIcon').innerHTML = on ? ICON.musicOn : ICON.musicOff;
+  if (on && fromUser && ensureAudio() && actx.state === 'suspended') actx.resume();
+  clearInterval(schedTimer); schedTimer = null;
+  if (ambientStop) { try { ambientStop(); } catch (e) {} ambientStop = null; }
+  if (on && actx) {
+    const t0 = actx.currentTime + 0.06;
+    for (const tr of GAME.music.tracks) { tr.next = t0; tr.i = 0; }
+    if (GAME.music.ambient) ambientStop = GAME.music.ambient();
+    schedTimer = setInterval(scheduler, 25);
+  }
+}
+function setSfx(on) {
+  sfxOn = on;
+  try { localStorage.setItem(SFX_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnSfx');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn sound effects off' : 'Turn sound effects on');
+  $('#sfxIcon').innerHTML = on ? ICON.sfxOn : ICON.sfxOff;
+  if (on && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+/* play a named sound effect from GAME.sfx (or the shared ones below) if effects are on */
+function sfx(name, a, b) {
+  if (!sfxOn || !ensureAudio()) return;
+  if (actx.state === 'suspended') actx.resume();
+  const fn = (GAME.sfx && GAME.sfx[name]) || SFX[name];
+  if (fn) fn(actx.currentTime + 0.012, a, b);
+}
+/* sound effects every game can use */
+const SFX = {
+  warn(t) {
+    tone(t, 330, { type: 'square', a: 0.004, dur: 0.07, vol: 0.06, lp: 1800 });
+    tone(t + 0.09, 247, { type: 'square', a: 0.004, dur: 0.12, vol: 0.06, lp: 1500 });
+  },
+  fail(t) {
+    [['G4', 0.22], ['F#4', 0.22], ['F4', 0.22], ['E4', 0.6]].forEach(([n, d], i) => {
+      const f = noteFreq(n);
+      tone(t, f * 1.03, { type: 'sawtooth', to: f * 0.97, a: 0.02, dur: d, vol: i === 3 ? 0.17 : 0.14, lp: 1100 });
+      t += d;
+    });
+  },
+  win(t) {
+    let x = t;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.16, vol: 0.22 }); x += 0.085; });
+    const c = x + 0.02;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.03, dur: 0.7, vol: 0.1, lp: 3000 }));
+    tone(c, noteFreq('C7'), { type: 'sine', to: noteFreq('E7'), glide: 0.5, a: 0.05, dur: 0.55, vol: 0.07 });
+  },
+  tap(t) { tone(t, 880, { type: 'sine', to: 660, a: 0.002, dur: 0.05, vol: 0.06 }); },
+  bonk(t) { tone(t, 180, { type: 'triangle', to: 110, a: 0.003, dur: 0.14, vol: 0.14 }); },
+  chime(t, step) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const f = noteFreq('C5') * Math.pow(2, scale[Math.min(scale.length - 1, Math.max(0, step || 0))] / 12);
+    tone(t, f, { type: 'sine', a: 0.004, dur: 0.5, vol: 0.13 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.2, vol: 0.04 });
+  }
+};
+/* browsers only allow audio after a tap, so the first tap resumes music left on last visit */
+function primeAudioOnce() {
+  document.removeEventListener('pointerdown', primeAudioOnce, true);
+  if (musicOn) setMusic(true, true);
+  else if (sfxOn && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+document.addEventListener('pointerdown', primeAudioOnce, true);
+document.addEventListener('visibilitychange', () => {
+  if (!actx) return;
+  if (document.hidden) actx.suspend();
+  else if (musicOn || sfxOn) actx.resume();
+});
+
+/* ---------- little helpers ---------- */
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+let toastTimer = 0, toastEl = null;
+function toast(msg, ms) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2200);
+}
+/* a button that asks "Confirm?" before throwing away progress */
+function armConfirm(btn, labelEl, label, isBusy, go) {
+  let armed = 0;
+  btn.addEventListener('click', () => {
+    if (isBusy() && !armed) {
+      labelEl.textContent = 'Confirm?';
+      armed = setTimeout(() => { labelEl.textContent = label; armed = 0; }, 2200);
+      return;
+    }
+    clearTimeout(armed); armed = 0; labelEl.textContent = label;
+    go();
+  });
+  return () => { clearTimeout(armed); armed = 0; labelEl.textContent = label; };
+}
+
+/* ---------- modal plumbing ---------- */
+let modalLocked = false;
+function openModal(html, locked) {
+  modalLocked = !!locked;
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true">' + html + '</div>';
+  scrim.classList.add('open');
+}
+function closeModal() { modalLocked = false; scrim.classList.remove('open'); scrim.innerHTML = ''; }
+function modalOpen() { return scrim.classList.contains('open'); }
+scrim.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) { if (e.target === scrim && !modalLocked) closeModal(); return; }
+  const act = a.dataset.act;
+  if (act === 'close') closeModal();
+  else if (act === 'levels') showLevels();
+  else if (act === 'page') showLevels(+a.dataset.page);
+  else if (act === 'pick') loadLevel(+a.dataset.level);
+  else if (act === 'next') loadLevel(curLevel() + 1);
+  else if (act === 'retry') loadLevel(curLevel());
+  else if (GAME.actions && GAME.actions[act]) GAME.actions[act](a);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOpen() && !modalLocked) closeModal(); });
+
+/* opened from the Puzzle Parlour launcher? then offer a way back to it */
+let FROM_PARLOUR = false;
+try {
+  if (location.hash === '#parlour') sessionStorage.setItem('parlour', '1');
+  FROM_PARLOUR = location.hash === '#parlour' || sessionStorage.getItem('parlour') === '1';
+} catch (e) { FROM_PARLOUR = location.hash === '#parlour'; }
+
+/* ---------- level picker: pages of 20, with each finished level's best result ---------- */
+const PAGE = 20;
+function curLevel() { return (typeof G !== 'undefined' && G) ? G.idx : (save.level || 0); }
+function showLevels(page) {
+  const cur = curLevel();
+  const total = GAME.total || Infinity;
+  if (typeof page !== 'number') page = Math.floor(cur / PAGE);
+  const first = page * PAGE, last = Math.min(first + PAGE, total);
+  let h = '<h2>Levels</h2><div class="pager">' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Earlier levels">' + ICON.chevL + '</button>' +
+    '<span>' + (first + 1) + '–' + last + '</span>' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page + 1) + '"' + (last >= total ? ' disabled' : '') + ' aria-label="Later levels">' + ICON.chevR + '</button>' +
+    '</div><div class="levels">';
+  for (let i = first; i < last; i++) {
+    const done = hasOwn(save.done, i);
+    const label = GAME.levelLabel(i);
+    h += '<button class="lv' + (done ? ' done' : '') + (i === cur ? ' cur' : '') + '" data-act="pick" data-level="' + i +
+      '" aria-label="Level ' + (i + 1) + ', ' + label + (done ? ', completed' : '') + '">' +
+      (done ? '<span class="ok">' + ICON.tick + '</span>' : '') +
+      (GAME.levelTile ? GAME.levelTile(i, done) : '<b>' + (i + 1) + '</b><small>' + label + '</small>') +
+      '<span class="mh">' + (done ? GAME.levelBadge(save.done[i], i) : '') + '</span>' +
+      '</button>';
+  }
+  h += '</div><div class="stack"><button class="btn" data-act="close">Close</button>' +
+    (FROM_PARLOUR ? '<a class="btn" href="../index.html#parlour">All Puzzle Parlour games</a>' : '') + '</div>';
+  openModal(h);
+}
+
+/* installed on a home screen, keep working offline (only on a real web host, never inside a frame) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.self === window.top) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- header buttons ---------- */
+function shellBoot() {
+  $('#btnLevels').addEventListener('click', () => showLevels());
+  $('#btnMusic').addEventListener('click', () => setMusic(!musicOn, true));
+  $('#btnSfx').addEventListener('click', () => setSfx(!sfxOn));
+  $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
+  setMusic(musicOn, false);
+  setSfx(sfxOn);
+}
+
+/* ---------- Layer Cake rules: stands hold up to CAP layers; move the top run onto a matching top or an empty stand ---------- */
+const CAP = 4;
+
+function topRun(s) {
+  if (!s.length) return 0;
+  const f = s[s.length - 1];
+  let n = 1;
+  while (n < s.length && s[s.length - 1 - n] === f) n++;
+  return n;
+}
+function isDone(s) { return s.length === CAP && topRun(s) === CAP; }
+function canMove(st, i, j) {
+  if (i === j) return false;
+  const a = st[i], b = st[j];
+  if (!a.length || b.length >= CAP || isDone(a)) return false;
+  if (b.length && b[b.length - 1] !== a[a.length - 1]) return false;
+  return true;
+}
+/* how many layers a move carries: the whole matching run, or as many as fit */
+function moveCount(st, i, j) { return Math.min(topRun(st[i]), CAP - st[j].length); }
+function applyMove(st, i, j) {
+  const n = moveCount(st, i, j);
+  for (let k = 0; k < n; k++) st[j].push(st[i].pop());
+  return n;
+}
+function allSorted(st) { return st.every((s) => !s.length || isDone(s)); }
+
+/* Depth-first search with memory. Returns a list of moves [[from,to],...] or null (unsolvable or too big). */
+function solveCake(stands, budget) {
+  const st = stands.map((s) => s.slice());
+  const seen = new Set();
+  const path = [];
+  const key = () => st.map((s) => s.join(',')).sort().join('|');
+  let nodes = 0;
+  function useful(i, j) {
+    const a = st[i], b = st[j];
+    if (!b.length && topRun(a) === a.length) return false; /* moving a whole tidy stand into an empty one */
+    return true;
+  }
+  function dfs() {
+    if (allSorted(st)) return true;
+    const k = key();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    if (++nodes > budget) throw 0;
+    const moves = [];
+    for (let i = 0; i < st.length; i++) for (let j = 0; j < st.length; j++) {
+      if (!canMove(st, i, j) || !useful(i, j)) continue;
+      /* finishing a cake or stacking onto a matching top first, empty stands last */
+      const n = moveCount(st, i, j);
+      const score = (st[j].length + n === CAP && (!st[j].length || st[j][0] === st[i][st[i].length - 1]) ? 0 : 1) + (st[j].length ? 0 : 2) + (n < topRun(st[i]) ? 1 : 0);
+      moves.push([score, i, j]);
+    }
+    moves.sort((a, b) => a[0] - b[0]);
+    for (const [, i, j] of moves) {
+      const n = applyMove(st, i, j);
+      path.push([i, j]);
+      if (dfs()) return true;
+      path.pop();
+      for (let x = 0; x < n; x++) st[i].push(st[j].pop());
+    }
+    return false;
+  }
+  try { return dfs() ? path.slice() : null; } catch (e) { return null; }
+}
+
+/* deal a level: n flavours, `empty` spare stands; never starts with a finished cake */
+function dealCake(n, empty, rnd) {
+  for (let tries = 0; tries < 200; tries++) {
+    const pool = [];
+    for (let f = 0; f < n; f++) for (let k = 0; k < CAP; k++) pool.push(f);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    const st = [];
+    for (let s = 0; s < n; s++) st.push(pool.slice(s * CAP, s * CAP + CAP));
+    for (let e = 0; e < empty; e++) st.push([]);
+    if (st.some((s) => s.length === CAP && topRun(s) >= 3)) continue;
+    let pairs = 0;
+    for (const s of st) for (let k = 1; k < s.length; k++) if (s[k] === s[k - 1]) pairs++;
+    if (pairs > Math.ceil(n * 0.6)) continue;
+    const sol = solveCake(st, 60000);
+    if (sol) return { stands: st, sol };
+  }
+  return null;
+}
+
+if (typeof module !== 'undefined') module.exports = { CAP, topRun, isDone, canMove, moveCount, applyMove, allSorted, solveCake, dealCake };
+
+const FLAVOURS = ['strawberry', 'chocolate', 'vanilla', 'matcha', 'blueberry', 'lemon', 'orange', 'mint choc', 'red velvet', 'bubblegum', 'caramel', 'taro'];
+const FCOL = ['#f78fb3', '#7b4a2e', '#f3dfae', '#86c463', '#6c6fd1', '#f6d04d', '#f3913f', '#69d0b9', '#c43546', '#69b9f0', '#c98a3d', '#b48bd8'];
+const CAKE = '<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="56" rx="26" ry="5" fill="#fff" stroke="#d9c4cb" stroke-width="2"/><rect x="12" y="38" width="40" height="15" rx="5" fill="#f78fb3"/><rect x="12" y="24" width="40" height="15" rx="5" fill="#7b4a2e"/><path d="M12 38h40M12 24h40" stroke="#fff8ee" stroke-width="3"/><path d="M10 25c0-6 4-8 8-8h28c4 0 8 2 8 8 0 3-3 3-4 1-1 3-4 3-5 0-1 3-4 3-5 0-1 3-4 3-5 0-1 3-4 3-5 0-1 3-4 3-5 0-1 3-4 3-5 0-1 2-4 2-4-1z" fill="#fff8ee"/><circle cx="32" cy="13" r="5.5" fill="#e5484d"/><path d="M32 8q2-6 7-6" stroke="#2f7d4a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+function topperSVG(f) {
+  return '<svg viewBox="0 0 40 26" aria-hidden="true"><path d="M2 20c0-7 4-10 9-10h18c5 0 9 3 9 10 0 2-2 3-3 1-1 3-4 3-5 0-1 3-4 3-5 0-1 3-4 3-5 0-1 3-4 3-5 0-1 3-4 3-5 0-1 2-3 1-3-1z" fill="#fff8ee" stroke="rgba(0,0,0,.08)"/>' +
+    '<circle cx="20" cy="7" r="5" fill="#e5484d"/><circle cx="18.5" cy="5.5" r="1.4" fill="#fff" opacity=".7"/><path d="M20 2q2-3 6-2" stroke="#2f7d4a" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
+    '<rect x="8" y="13" width="2" height="5" rx="1" fill="' + FCOL[(f + 3) % 12] + '" transform="rotate(30 9 15)"/><rect x="29" y="13" width="2" height="5" rx="1" fill="' + FCOL[(f + 6) % 12] + '" transform="rotate(-25 30 15)"/></svg>';
+}
+
+/* ---------- levels: more flavours as you go; some "mystery" bakes hide the lower layers ---------- */
+function plan(idx) {
+  const steps = [[1, 2, 1], [2, 3, 2], [5, 4, 2], [10, 5, 2], [20, 6, 2], [35, 7, 2], [55, 8, 2], [80, 9, 2], [110, 10, 2], [150, 11, 2]];
+  let n = 12, e = 2;
+  for (const [upto, nn, ee] of steps) if (idx < upto) { n = nn; e = ee; break; }
+  const mystery = idx >= 12 && idx % 7 === 5;
+  return { n, e, mystery };
+}
+const levelCache = {};
+function getLevel(idx) {
+  if (levelCache[idx]) return levelCache[idx];
+  const P = plan(idx);
+  const rnd = mulberry32(seedFor(idx, 1));
+  let d = null;
+  for (let salt = 0; !d && salt < 20; salt++) d = dealCake(P.n, P.e, salt ? mulberry32(seedFor(idx, 50 + salt)) : rnd);
+  const L = { n: P.n, mystery: P.mystery, stands: d.stands, par: d.sol.length };
+  /* flavour colours vary from level to level */
+  const order = shuffleArr([...Array(12).keys()], mulberry32(seedFor(idx, 2)));
+  L.stands = L.stands.map((s) => s.map((f) => order[f]));
+  return (levelCache[idx] = L);
+}
+GAME.total = Infinity;
+GAME.levelLabel = (i) => plan(i).n + ' flavours' + (plan(i).mystery ? ' ?' : '');
+GAME.levelBadge = (stars) => starsHTML(stars);
+
+/* ---------- state ---------- */
+let G = null;
+let winTimer = 0, saveTimer = 0, hintTimer = 0;
+const counter = $('#counter');
+let geo = null;
+
+function loadLevel(idx) {
+  idx = Math.max(0, idx | 0);
+  startLevel(idx, getLevel(idx));
+  setTimeout(() => getLevel(idx + 1), 400);
+}
+function startLevel(idx, L) {
+  clearTimeout(winTimer); clearTimeout(hintTimer);
+  if (disarmRestart) disarmRestart();
+  $('#restartIcon').innerHTML = ICON.restart;
+  let id = 0;
+  G = { idx, L, stands: L.stands.map((s) => s.map((f, k) => ({ id: id++, f, hidden: L.mystery && k < s.length - 1 }))),
+        sel: -1, moves: 0, history: [], extra: false, won: false, par: L.par, els: {}, toppers: {} };
+  if (save.cur && save.cur.i === idx && Array.isArray(save.cur.s)) {
+    try {
+      const byId = {}; G.stands.flat().forEach((l) => { byId[l.id] = l; });
+      const restored = save.cur.s.map((s) => s.map((x) => Object.assign(byId[x[0]], { hidden: !!x[1] })));
+      if (restored.flat().length === G.stands.flat().length) {
+        G.stands = restored; G.moves = save.cur.m | 0; G.extra = !!save.cur.e;
+        G.history = Array.isArray(save.cur.h) ? save.cur.h : [];
+      }
+    } catch (e) {}
+  }
+  save.level = idx; persist();
+  $('#lvTitle').textContent = 'Level ' + (idx + 1);
+  $('#lvSub').textContent = L.n + ' flavours' + (L.mystery ? ' · mystery' : '');
+  build();
+  closeModal();
+}
+
+/* ---------- layout: stands in one or two rows on the counter ---------- */
+function computeGeo() {
+  const S = G.stands.length;
+  const rows = S <= 6 ? 1 : 2, per = Math.ceil(S / rows);
+  const W = Math.min($('#counterWrap').clientWidth, 452);
+  const pad = 14, gap = per >= 7 ? 9 : 14;
+  const top = $('#counterWrap').getBoundingClientRect().top + window.scrollY;
+  const availH = Math.max(260, window.innerHeight - top - $('#foot').offsetHeight - 40);
+  let sw = Math.min(70, (W - pad * 2 - gap * (per - 1)) / per);
+  let lh = sw * 0.44;
+  /* each row: lift room + CAP layers + plate */
+  const rowH = () => lh * 1.5 + lh * CAP + sw * 0.22 + 22;
+  while (rows * rowH() + pad * 2 > availH && sw > 30) { sw -= 2; lh = sw * 0.44; }
+  const plateH = Math.max(8, sw * 0.2);
+  const rh = rowH();
+  return { S, rows, per, W, pad, gap, sw, lh, plateH, rh, H: rows * rh + pad * 2 - 8 };
+}
+function standXY(s) {
+  const r = Math.floor(s / geo.per), inRow = r === geo.rows - 1 ? geo.S - geo.per * r : geo.per;
+  const c = s - r * geo.per;
+  const rowW = inRow * geo.sw + (inRow - 1) * geo.gap;
+  return { x: (geo.W - rowW) / 2 + c * (geo.sw + geo.gap), y: geo.pad + r * geo.rh + geo.lh * 1.5 };
+}
+function layerXY(s, k, lifted) {
+  const p = standXY(s);
+  return { x: p.x + geo.sw * 0.06, y: p.y + (CAP - 1 - k) * geo.lh - (lifted ? geo.lh * 1.2 : 0) };
+}
+function build() {
+  geo = computeGeo();
+  counter.innerHTML = '';
+  counter.style.height = geo.H + 'px';
+  counter.style.width = geo.W + 'px';
+  counter.style.setProperty('--lh', geo.lh + 'px');
+  counter.style.setProperty('--plateH', geo.plateH + 'px');
+  G.standEls = G.stands.map((_, s) => {
+    const d = document.createElement('div');
+    d.className = 'stand';
+    const p = standXY(s);
+    d.style.left = p.x + 'px'; d.style.top = p.y + 'px';
+    d.style.width = geo.sw + 'px'; d.style.height = (CAP * geo.lh + geo.plateH) + 'px';
+    d.innerHTML = '<div class="slot"></div><div class="foot"></div><div class="plate"></div>';
+    d.dataset.s = s;
+    d.setAttribute('role', 'button');
+    d.tabIndex = 0;
+    counter.appendChild(d);
+    return d;
+  });
+  G.els = {}; G.toppers = {};
+  G.stands.forEach((st, s) => st.forEach((l, k) => {
+    const e = document.createElement('div');
+    e.style.width = geo.sw * 0.88 + 'px';
+    e.style.height = geo.lh * 0.94 + 'px';
+    counter.appendChild(e);
+    G.els[l.id] = e;
+  }));
+  render(true);
+}
+function render(instant) {
+  G.stands.forEach((st, s) => {
+    st.forEach((l, k) => {
+      const e = G.els[l.id];
+      if (!l.hidden && e.classList.contains('mystery')) { e.classList.add('reveal'); }
+      e.className = 'layer ' + (l.hidden ? 'mystery' : 'f' + l.f) + (e.classList.contains('reveal') && !l.hidden ? ' reveal' : '');
+      const run = s === G.sel ? topRun(st.map((x) => x.f)) : 0;
+      const p = layerXY(s, k, s === G.sel && k >= st.length - run);
+      if (instant) e.style.transition = 'none';
+      e.style.left = p.x + 'px'; e.style.top = p.y + 'px';
+      if (instant) { void e.offsetWidth; e.style.transition = ''; }
+    });
+    const el = G.standEls[s];
+    const done = isDone(st.map((x) => x.f));
+    el.classList.toggle('sel', s === G.sel);
+    el.classList.toggle('done', done);
+    el.setAttribute('aria-label', 'Stand ' + (s + 1) + ': ' + (st.length ? st.map((l) => (l.hidden ? 'unknown' : FLAVOURS[l.f])).join(', ') : 'empty') + (done ? ', finished cake' : ''));
+    if (done && !G.toppers[s]) {
+      const t = document.createElement('div');
+      t.className = 'topper';
+      const p = layerXY(s, CAP - 1);
+      t.style.left = (p.x - geo.sw * 0.08) + 'px'; t.style.top = (p.y - geo.lh * 0.95) + 'px';
+      t.style.width = geo.sw * 1.04 + 'px'; t.style.height = geo.lh * 1.25 + 'px';
+      t.innerHTML = topperSVG(st[0].f);
+      if (instant) t.style.animation = 'none';
+      counter.appendChild(t);
+      G.toppers[s] = t;
+    } else if (!done && G.toppers[s]) { G.toppers[s].remove(); delete G.toppers[s]; }
+  });
+  const stars = starsNow();
+  $('#starsNow').innerHTML = starsHTML(stars);
+  $('#starsNow').setAttribute('aria-label', stars + ' stars so far');
+  $('#count').innerHTML = '<small>Moves</small>' + G.moves + '<span class="sub">par ' + G.par + '</span>';
+  $('#btnUndo').disabled = !G.history.length || G.won;
+  $('#btnExtra').disabled = G.extra || G.won;
+}
+function starsNow() {
+  let s = G.moves <= G.par ? 3 : G.moves <= Math.ceil(G.par * 1.35) ? 2 : 1;
+  if (G.extra) s = Math.min(s, 2);
+  return s;
+}
+window.addEventListener('resize', () => { if (G) build(); });
+
+/* ---------- input: tap a stand to lift its top layers, tap another to set them down ---------- */
+function flavours(s) { return G.stands[s].map((l) => l.f); }
+function tapStand(s) {
+  if (!G || G.won) return;
+  clearHint();
+  const st = G.stands[s];
+  if (G.sel < 0) {
+    if (!st.length || isDone(flavours(s))) { nope(s); return; }
+    G.sel = s; sfx('pick'); render(); return;
+  }
+  if (G.sel === s) { G.sel = -1; sfx('drop'); render(); return; }
+  const from = G.sel;
+  const fl = G.stands.map((x) => x.map((l) => l.f));
+  if (!canMove(fl, from, s)) { G.sel = -1; render(); nope(s); return; }
+  G.history.push(snapshot());
+  if (G.history.length > 200) G.history.shift();
+  const n = moveCount(fl, from, s);
+  const moving = [];
+  for (let k = 0; k < n; k++) moving.unshift(G.stands[from].pop());
+  for (const l of moving) G.stands[s].push(l);
+  /* the newly exposed layer is revealed */
+  const src = G.stands[from];
+  if (src.length && src[src.length - 1].hidden) src[src.length - 1].hidden = false;
+  G.moves++; G.sel = -1;
+  /* a finished cake shows all its layers */
+  if (isDone(flavours(s))) for (const l of G.stands[s]) l.hidden = false;
+  arc(moving, from, s);
+  render();
+  sfx('place', n);
+  if (isDone(flavours(s))) { sfx('done'); haptic(25); }
+  queueSave();
+  if (G.stands.every((x) => !x.length || isDone(x.map((l) => l.f)))) win();
+  else if (!anyMove()) toast(G.extra ? 'No moves left — try Undo or Restart.' : 'No moves left — Undo, or add a spare stand.', 2600);
+}
+/* moving layers hop up and over in a little arc */
+function arc(layers, from, to) {
+  layers.forEach((l, i) => {
+    const e = G.els[l.id];
+    const k = G.stands[to].indexOf(l);
+    const a = layerXY(from, G.stands[from].length + i, true), b = layerXY(to, k);
+    const midY = Math.min(a.y, b.y) - geo.lh * 1.2;
+    e.style.transition = 'none';
+    e.style.left = b.x + 'px'; e.style.top = b.y + 'px';
+    if (e.animate) {
+      e.animate([
+        { transform: 'translate(' + (a.x - b.x) + 'px,' + (a.y - b.y) + 'px)' },
+        { transform: 'translate(' + ((a.x - b.x) * 0.45) + 'px,' + (midY - b.y) + 'px)', offset: 0.45 },
+        { transform: 'translate(0,0)' }
+      ], { duration: 340 + i * 40, easing: 'cubic-bezier(.3,.8,.4,1)' });
+    }
+    requestAnimationFrame(() => { e.style.transition = ''; });
+  });
+}
+function nope(s) {
+  const el = G.standEls[s];
+  el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope');
+  sfx('bonk');
+}
+function anyMove() {
+  const fl = G.stands.map((x) => x.map((l) => l.f));
+  for (let i = 0; i < fl.length; i++) for (let j = 0; j < fl.length; j++) {
+    if (!canMove(fl, i, j)) continue;
+    if (!fl[j].length && topRun(fl[i]) === fl[i].length) continue;
+    return true;
+  }
+  return false;
+}
+counter.addEventListener('click', (e) => {
+  const st = e.target.closest('.stand');
+  if (st) tapStand(+st.dataset.s);
+  else if (G && G.sel >= 0) { G.sel = -1; render(); }
+});
+counter.addEventListener('keydown', (e) => {
+  const st = e.target.closest('.stand');
+  if (st && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); tapStand(+st.dataset.s); }
+});
+
+function snapshot() { return G.stands.map((s) => s.map((l) => [l.id, l.hidden ? 1 : 0])); }
+function restore(snap) {
+  const byId = {}; G.stands.flat().forEach((l) => { byId[l.id] = l; });
+  G.stands = snap.map((s) => s.map(([id, h]) => Object.assign(byId[id], { hidden: !!h })));
+  while (G.stands.length < G.standEls.length) G.stands.push([]);
+}
+$('#btnUndo').addEventListener('click', () => {
+  if (!G || G.won || !G.history.length) return;
+  restore(G.history.pop());
+  G.moves = Math.max(0, G.moves - 1); G.sel = -1;
+  render(); queueSave(); sfx('drop');
+});
+$('#btnExtra').addEventListener('click', () => {
+  if (!G || G.won || G.extra) return;
+  G.extra = true; G.sel = -1;
+  G.stands.push([]);
+  G.history = G.history.map((h) => h.concat([[]]));
+  build(); queueSave(); sfx('whoosh');
+  toast('A spare stand! That caps this level at two stars.');
+});
+function clearHint() { clearTimeout(hintTimer); for (const e of counter.querySelectorAll('.hint')) e.classList.remove('hint'); }
+
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!G || G.won) { if (save.cur) { delete save.cur; persist(); } return; }
+    save.cur = { i: G.idx, s: snapshot(), m: G.moves, e: G.extra, h: G.history.slice(-60) };
+    persist();
+  }, 250);
+}
+
+/* ---------- winning ---------- */
+const WIN_TITLES = ['Sweet success!', 'Piece of cake!', 'Baked to perfection!', 'Icing on top!', 'Bake-tacular!'];
+function win() {
+  G.won = true;
+  for (const l of G.stands.flat()) l.hidden = false;
+  const stars = starsNow();
+  save.done[G.idx] = Math.max(save.done[G.idx] || 0, stars);
+  delete save.cur;
+  persist();
+  $('#restartLabel').textContent = 'Next';
+  $('#restartIcon').innerHTML = ICON.chevR;
+  render();
+  for (let i = 0; i < 46; i++) {
+    const sp = document.createElement('div');
+    sp.className = 'sprinkle';
+    sp.style.left = Math.random() * 100 + '%';
+    sp.style.top = Math.random() * 30 + '%';
+    sp.style.background = FCOL[i % 12];
+    sp.style.setProperty('--fy', (120 + Math.random() * 220) + 'px');
+    sp.style.setProperty('--fr', (Math.random() * 720 - 360) + 'deg');
+    sp.style.animationDelay = (Math.random() * 0.4) + 's';
+    counter.appendChild(sp);
+  }
+  setTimeout(() => sfx('win'), 250);
+  winTimer = setTimeout(() => showWin(stars), 1500);
+}
+function showWin(stars) {
+  openModal(
+    '<div class="art">' + CAKE + '</div>' +
+    '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
+    '<p>' + G.L.n + ' cakes baked in ' + G.moves + ' moves' + (G.moves <= G.par ? ' — on par!' : '. Par is ' + G.par + '.') + '</p>' +
+    '<div class="badge-row">' + starsHTML(stars) + '</div>' +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="next">Next bake</button>' +
+    '<button class="btn" data-act="levels">Choose level</button>' +
+    '<button class="btn" data-act="retry">Play again</button>' +
+    '</div>'
+  );
+}
+
+GAME.showHelp = () => {
+  const lay = (f) => '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="4" fill="' + FCOL[f] + '"/><path d="M4 7h16" stroke="#fff8ee" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  openModal(
+    '<div class="logo"><svg viewBox="0 0 64 64">' + CAKE.replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg><h2>Layer Cake</h2></div>' +
+    '<p>The bakery\'s sponges are all mixed up!</p>' +
+    '<ul class="rules">' +
+    '<li><span class="mini">' + lay(0) + '</span><span>Tap a stand to lift its top layer, then tap another stand to set it down.</span></li>' +
+    '<li><span class="mini">' + lay(1) + '</span><span>A layer can only go on the same flavour, or on an empty stand.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 40 26">' + topperSVG(0).replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg></span><span>Stack four of a flavour to finish a cake. Finish every cake to win.</span></li>' +
+    '<li><span class="mini"><span class="star">' + ICON.star + '</span></span><span>Bake in par moves for three stars. The spare stand costs one.</span></li>' +
+    '</ul>' +
+    '<p style="font-size:15px;margin-top:-4px">Matching layers on top move together. In mystery bakes, lower layers stay hidden until they\'re uncovered.</p>' +
+    '<div class="stack"><button class="btn primary" data-act="close">Start baking</button></div>'
+  );
+};
+
+/* ---------- music: a jazzy little bakery swing ---------- */
+GAME.music = {
+  tempo: 112,
+  tracks: [
+    { inst: INST.pluck, vol: 0.15, seq: track('C5:.66 D5:.34 F5 A5:.66 G5:.34 F5 D5:.66 F5:.34 G5:2 - Bb4:.66 D5:.34 F5 Bb5:.66 A5:.34 G5 A5:2 F5 - ' +
+      'C6:.66 Bb5:.34 A5 G5:.66 F5:.34 D5 E5:.66 F5:.34 G5 C5:2 D5:.66 E5:.34 F5 A5:.66 G5:.34 E5 F5:2 -:2') },
+    { inst: INST.wbass, vol: 0.14, seq: track('F2 A2 C3 A2 Bb2 D3 F3 D3 G2 Bb2 D3 Bb2 F2 A2 C3 E3 D3 C3 Bb2 A2 C3 E3 G3 E3 G2 A2 Bb2 B2 C3 A2 F2 -') },
+    { inst: INST.hat, perc: true, vol: 0.022, seq: track(Array(32).fill('x:.66 x:.34').join(' ')) }
+  ]
+};
+GAME.sfx = {
+  pick(t) { tone(t, 520, { type: 'sine', to: 780, a: 0.004, dur: 0.09, vol: 0.09 }); },
+  drop(t) { tone(t, 700, { type: 'sine', to: 480, a: 0.004, dur: 0.09, vol: 0.07 }); },
+  place(t, n) {
+    tone(t + 0.12, 300, { type: 'sine', to: 170, a: 0.004, dur: 0.12, vol: 0.14 });
+    noise(t + 0.12, { f: 900, q: 1, dur: 0.05, vol: 0.04 });
+    for (let k = 1; k < (n || 1); k++) tone(t + 0.12 + k * 0.05, 330 + k * 40, { type: 'sine', to: 200, a: 0.004, dur: 0.08, vol: 0.08 });
+  },
+  done(t) { SFX.chime(t + 0.2, 5); SFX.chime(t + 0.3, 7); tone(t + 0.4, 2093, { type: 'sine', a: 0.003, dur: 0.4, vol: 0.04 }); },
+  whoosh(t) { noise(t, { f: 600, to: 3000, q: 0.7, dur: 0.3, vol: 0.06 }); },
+  bonk: SFX.bonk
+};
+
+/* ---------- boot ---------- */
+$('#undoIcon').innerHTML = ICON.undo;
+$('#restartIcon').innerHTML = ICON.restart;
+const disarmRestart = armConfirm($('#btnRestart'), $('#restartLabel'), 'Restart',
+  () => G && !G.won && G.moves > 0,
+  () => {
+    if (G.won) { loadLevel(G.idx + 1); return; }
+    delete save.cur; persist();
+    startLevel(G.idx, G.L);
+  });
+shellBoot();
+loadLevel(save.level || 0);
+if (!save.seenHelp) { GAME.showHelp(); save.seenHelp = true; persist(); }
+</script>
+</body>
+</html>

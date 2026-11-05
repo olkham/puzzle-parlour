@@ -1,0 +1,35 @@
+{
+  "name": "Puzzle Parlour",
+  "short_name": "Puzzle Parlour",
+  "description": "Five cosy puzzle games: Thread Count, Bee Line, Log Jam, Layer Cake and Green Thumb.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1ecf8",
+  "theme_color": "#f1ecf8",
+  "categories": [
+    "games",
+    "entertainment"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

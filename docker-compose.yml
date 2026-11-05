@@ -1,0 +1,21 @@
+# Serve Puzzle Parlour with nginx, no Python needed:
+#   docker compose up -d        then open http://localhost:8080
+#   PORT=9000 docker compose up -d   to use another port
+#   docker compose down         to stop
+# The game folders are mounted read-only, so edits show up on reload.
+services:
+  puzzle-parlour:
+    image: nginx:1.27-alpine
+    ports:
+      - "${PORT:-8080}:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+      - ./manifest.json:/usr/share/nginx/html/manifest.json:ro
+      - ./sw.js:/usr/share/nginx/html/sw.js:ro
+      - ./icons:/usr/share/nginx/html/icons:ro
+      - ./thread-count:/usr/share/nginx/html/thread-count:ro
+      - ./bee-line:/usr/share/nginx/html/bee-line:ro
+      - ./log-jam:/usr/share/nginx/html/log-jam:ro
+      - ./layer-cake:/usr/share/nginx/html/layer-cake:ro
+      - ./green-thumb:/usr/share/nginx/html/green-thumb:ro
+    restart: unless-stopped

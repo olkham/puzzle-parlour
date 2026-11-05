@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Log Jam</title>
+<meta name="description" content="Slide the floating logs to clear a channel so the duckling's raft can drift home.">
+<meta name="theme-color" content="#e6f2e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111a14" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Log Jam">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e6f2e4;
+  --card:#f8fcf6;
+  --card-edge:#c9dfc4;
+  --ink:#1f3324;
+  --muted:#5f7a63;
+  --accent:#2f8f5b;
+  --accent-ink:#ffffff;
+  --heart:#e5484d;
+  --star:#f2b233;
+  --gridink:#1f3324;
+  --mini:#cdeccf;
+  --shadow:0 10px 28px rgba(20,60,30,.16);
+  --scrim:rgba(10,30,15,.5);
+  --grass:#7cc26a;
+  --grass-dark:#5fa553;
+  --water:#58b3df;
+  --water-deep:#3a8fc4;
+  --ripple:rgba(255,255,255,.22);
+  --cellline:rgba(255,255,255,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111a14;
+    --card:#18241b;
+    --card-edge:#2c4232;
+    --ink:#e7f4e8;
+    --muted:#9ab9a0;
+    --accent:#4cc283;
+    --accent-ink:#0b2415;
+    --heart:#ff6b86;
+    --star:#f6c35b;
+    --gridink:#08100a;
+    --mini:#24442d;
+    --shadow:0 10px 28px rgba(0,0,0,.5);
+    --scrim:rgba(2,8,4,.72);
+    --grass:#3f7a3a;
+    --grass-dark:#2f6230;
+    --water:#24618a;
+    --water-deep:#1b4b6d;
+    --ripple:rgba(255,255,255,.12);
+    --cellline:rgba(255,255,255,.07);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111a14;--card:#18241b;--card-edge:#2c4232;--ink:#e7f4e8;--muted:#9ab9a0;--accent:#4cc283;--accent-ink:#0b2415;--heart:#ff6b86;
+  --star:#f6c35b;--gridink:#08100a;--mini:#24442d;--shadow:0 10px 28px rgba(0,0,0,.5);--scrim:rgba(2,8,4,.72);--grass:#3f7a3a;
+  --grass-dark:#2f6230;--water:#24618a;--water-deep:#1b4b6d;--ripple:rgba(255,255,255,.12);--cellline:rgba(255,255,255,.07);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Fredoka',ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+a.btn{text-decoration:none;color:inherit}
+svg{display:block}
+
+.app{
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* header */
+.top{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:8px}
+.top-left{display:flex;gap:6px}
+.top-left .icon-btn{width:44px;height:44px;border-radius:14px}
+.top-left .icon-btn svg{width:21px;height:21px}
+.icon-btn{
+  width:48px;height:48px;border-radius:16px;flex:none;
+  background:var(--card);border:2px solid var(--card-edge);
+  display:grid;place-items:center;padding:0;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.title{text-align:center;line-height:1.05;min-width:0}
+.title h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.title p{margin:3px 0 0;font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* status row */
+.status{display:flex;align-items:center;justify-content:space-between;padding:0 4px;min-height:34px;gap:10px}
+.lives{display:flex;gap:6px}
+.lives svg{width:30px;height:30px;overflow:visible}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:1.6;stroke-linejoin:round;transition:fill .2s}
+.heart.lost path{fill:none;stroke:var(--muted);opacity:.55}
+.lives .heart.pop{animation:heartpop .5s ease}
+@keyframes heartpop{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+.count{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.count small{font-size:14px;color:var(--muted);font-weight:500;margin-right:6px}
+.star path{fill:var(--star);stroke:var(--star);stroke-width:1.4;stroke-linejoin:round}
+.star.off path{fill:none;stroke:var(--muted);opacity:.5}
+
+/* control hints */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how > div{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:16px;
+  padding:8px 10px;font-size:14px;font-weight:500;line-height:1.15;color:var(--muted);
+}
+.how b{color:var(--ink);font-weight:600;display:block}
+.how .mini{flex:none;width:34px;height:34px;border-radius:10px;background:var(--mini);display:grid;place-items:center;border:2px solid var(--gridink)}
+.how .mini svg{width:70%;height:70%}
+
+/* footer */
+.foot{display:flex;gap:10px;margin-top:auto}
+.btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 14px;border-radius:16px;
+  background:var(--card);border:2px solid var(--card-edge);
+  font-size:16px;font-weight:600;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn[hidden]{display:none}
+.foot .btn{font-size:15px;gap:6px;padding:0 10px}
+.foot .btn svg{width:18px;height:18px}
+.btn .tag{font-size:12px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.switch{width:38px;height:22px;border-radius:99px;background:var(--card-edge);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s,background .2s}
+.btn[aria-pressed="true"] .switch{background:var(--accent)}
+.btn[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-ink)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;place-items:center;padding:16px;z-index:10}
+.scrim.open{display:grid}
+.sheet{
+  width:100%;max-width:380px;max-height:86dvh;overflow:auto;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:26px;
+  padding:22px 20px 20px;box-shadow:var(--shadow);text-align:center;
+  animation:sheetin .28s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes sheetin{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:32px;font-weight:700;line-height:1.05}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:17px;line-height:1.3}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sheet .art{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center}
+.sheet .art svg{width:100%;height:100%;overflow:visible}
+.sheet .badge-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.sheet .badge-row svg{width:30px;height:30px}
+.sheet .logo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 4px}
+.sheet .logo svg{width:44px;height:44px}
+.rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:flex;flex-direction:column;gap:12px}
+.rules li{display:flex;gap:12px;align-items:center;font-size:17px;line-height:1.25}
+.rules .mini{flex:none;width:40px;height:40px;border-radius:12px;background:var(--mini);border:2.5px solid var(--gridink);display:grid;place-items:center}
+.rules .mini svg{width:74%;height:74%}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lv{
+  position:relative;padding:8px 0 7px;border-radius:14px;background:var(--bg);
+  border:2px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;min-height:66px;
+}
+.lv b{font-size:22px;font-weight:600}
+.lv small{font-size:12px;color:var(--muted);font-weight:500}
+.lv.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.lv.done{background:var(--card)}
+.lv .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;border:2px solid var(--card)}
+.lv .ok svg{width:11px;height:11px}
+.lv .mh{display:flex;gap:2px;margin-top:3px;height:10px}
+.lv .mh svg{width:10px;height:10px}
+.lv .mh .heart path,.lv .mh .star path{stroke:none}
+.lv .mh .lost path,.lv .mh .off path{fill:var(--card-edge);opacity:1}
+.pager{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.pager span{font-size:19px;font-weight:600}
+.pager .icon-btn{width:44px;height:44px;border-radius:14px}
+.spin{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--card-edge);border-top-color:var(--accent);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 74px);
+  transform:translate(-50%,16px);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:15px;font-weight:500;line-height:1.25;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;
+  width:max-content;max-width:min(88vw,420px);text-align:center;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:370px){
+  .top{gap:6px;grid-template-columns:auto 1fr 42px}
+  .top-left{gap:4px}
+  .top-left .icon-btn{width:40px;height:40px;border-radius:13px}
+  .top > .icon-btn{width:42px;height:42px;border-radius:14px}
+  .title h1{font-size:23px}
+  .foot{gap:8px}
+}
+@media (max-width:340px){
+  .title h1{font-size:19px}
+  .title p{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+.status .stars-now{display:flex;gap:4px}
+.status .stars-now svg{width:28px;height:28px}
+.count{text-align:right;line-height:1.05}
+.count .sub{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
+
+/* ---------- the river, framed by grassy banks with a gap on the right ---------- */
+.pond-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%}
+.bank{
+  position:relative;width:100%;max-width:420px;aspect-ratio:1/1;border-radius:26px;padding:var(--bw);
+  background-color:var(--grass);
+  background-image:radial-gradient(circle at 20% 30%,var(--grass-dark) 0 2px,transparent 3px),radial-gradient(circle at 70% 65%,var(--grass-dark) 0 2px,transparent 3px);
+  background-size:26px 26px,34px 34px;box-shadow:var(--shadow);
+}
+.river{
+  position:relative;width:100%;height:100%;border-radius:12px;overflow:visible;
+  background:linear-gradient(160deg,var(--water),var(--water-deep));
+  box-shadow:inset 0 3px 10px rgba(0,30,60,.25);
+  touch-action:none;
+}
+.river::before{
+  content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;
+  background-image:linear-gradient(var(--cellline) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--cellline) 1.5px,transparent 1.5px);
+  background-size:calc(100% / 6) calc(100% / 6);
+}
+.ripples{position:absolute;inset:0;border-radius:12px;overflow:hidden;pointer-events:none}
+.ripples::before{
+  content:"";position:absolute;inset:-20%;
+  background-image:radial-gradient(ellipse 30px 6px at 30% 40%,var(--ripple) 40%,transparent 70%),radial-gradient(ellipse 22px 5px at 75% 20%,var(--ripple) 40%,transparent 70%),radial-gradient(ellipse 26px 5px at 60% 80%,var(--ripple) 40%,transparent 70%);
+  background-size:120px 90px;animation:drift 9s linear infinite;
+}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(120px)}}
+.gap{
+  position:absolute;right:0;width:var(--bw);height:calc((100% - 2 * var(--bw)) / 6);
+  background:linear-gradient(160deg,var(--water),var(--water-deep));
+  display:grid;place-items:center;border-radius:0 6px 6px 0;
+}
+.gap svg{width:70%;height:70%;opacity:.85;animation:nudge 1.4s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateX(3px)}}
+
+/* ---------- logs, raft and rocks ---------- */
+.piece{position:absolute;padding:calc(var(--cell) * .07);transition:left .16s ease,top .16s ease;touch-action:none;cursor:grab;outline:none}
+.piece.dragging{transition:none;cursor:grabbing;z-index:5}
+.piece.dragging .body{filter:brightness(1.08);box-shadow:0 8px 16px rgba(0,20,40,.35)}
+.piece:focus-visible .body{outline:3px solid #fff;outline-offset:2px}
+.piece .body{position:relative;width:100%;height:100%;border-radius:calc(var(--cell) * .5);box-shadow:0 4px 8px rgba(0,30,50,.3)}
+.log .body{background-color:var(--wood)}
+.log.h .body{background-image:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,0) 35%,rgba(0,0,0,0) 60%,rgba(0,0,0,.28)),repeating-linear-gradient(90deg,transparent 0 9px,var(--grain) 9px 11px,transparent 11px 23px)}
+.log.v .body{background-image:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,0) 35%,rgba(0,0,0,0) 60%,rgba(0,0,0,.28)),repeating-linear-gradient(0deg,transparent 0 9px,var(--grain) 9px 11px,transparent 11px 23px)}
+.log .body::before,.log .body::after{
+  content:"";position:absolute;border-radius:50%;
+  background:repeating-radial-gradient(circle,var(--ring) 0 2px,var(--endc) 2px 5px);
+  box-shadow:inset 0 0 0 2px var(--grain);
+}
+.log.h .body::before,.log.h .body::after{top:8%;bottom:8%;aspect-ratio:1/1.1}
+.log.h .body::before{left:3%}.log.h .body::after{right:3%}
+.log.v .body::before,.log.v .body::after{left:8%;right:8%;aspect-ratio:1.1/1}
+.log.v .body::before{top:3%}.log.v .body::after{bottom:3%}
+.birch .body{--grain:rgba(40,30,30,.55)}
+.birch.h .body{background-image:linear-gradient(rgba(255,255,255,.3),rgba(0,0,0,0) 50%,rgba(0,0,0,.18)),repeating-linear-gradient(90deg,transparent 0 13px,var(--grain) 13px 17px,transparent 17px 31px)}
+.birch.v .body{background-image:linear-gradient(90deg,rgba(255,255,255,.3),rgba(0,0,0,0) 50%,rgba(0,0,0,.18)),repeating-linear-gradient(0deg,transparent 0 13px,var(--grain) 13px 17px,transparent 17px 31px)}
+.raft .body{
+  background-color:#e0b46f;
+  background-image:linear-gradient(rgba(255,255,255,.25),rgba(0,0,0,0) 40%,rgba(0,0,0,.2)),repeating-linear-gradient(90deg,#d9a75c 0 calc(var(--cell)*.3),#a7743a calc(var(--cell)*.3) calc(var(--cell)*.33));
+  border-radius:calc(var(--cell) * .2);
+}
+.raft .body::before,.raft .body::after{content:"";position:absolute;top:-3%;bottom:-3%;width:7%;background:#f3e2b8;border-radius:3px;box-shadow:0 0 0 1px rgba(120,80,30,.4)}
+.raft .body::before{left:16%}.raft .body::after{right:16%}
+.raft .duck{position:absolute;left:50%;top:50%;width:84%;transform:translate(-50%,-62%);pointer-events:none}
+.raft.bob .duck{animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translate(-50%,-68%) rotate(-3deg)}}
+.raft.sail{transition:left 1s cubic-bezier(.45,0,.7,1),opacity .35s ease .7s !important;opacity:0}
+.rock{cursor:default}
+.rock .body{
+  border-radius:44% 56% 48% 52% / 52% 44% 56% 48%;
+  background:radial-gradient(circle at 34% 30%,#d9dde2 0 10%,#a7adb5 32%,#7d838c 70%,#666b73);
+  box-shadow:0 4px 8px rgba(0,20,40,.35);
+}
+.rock .body::after{content:"";position:absolute;left:18%;bottom:14%;width:34%;height:22%;border-radius:50%;background:rgba(110,160,80,.75)}
+.piece.hinting .body{animation:hintpulse .9s ease-in-out 3}
+@keyframes hintpulse{50%{box-shadow:0 0 0 4px #fff,0 0 18px 6px rgba(255,255,255,.8)}}
+.ghost{position:absolute;padding:calc(var(--cell) * .07);pointer-events:none;transition:opacity .3s}
+.ghost .body{width:100%;height:100%;border-radius:calc(var(--cell) * .5);border:3px dashed rgba(255,255,255,.9);background:rgba(255,255,255,.18)}
+.splash{position:absolute;pointer-events:none;width:calc(var(--cell)*.9);height:calc(var(--cell)*.9);border-radius:50%;border:3px solid rgba(255,255,255,.8);transform:translate(-50%,-50%) scale(.2);animation:splash .7s ease-out forwards}
+@keyframes splash{to{transform:translate(-50%,-50%) scale(1.6);opacity:0}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-left">
+      <button class="icon-btn" id="btnLevels" aria-label="Choose level">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMusic" aria-label="Turn music on" aria-pressed="false"><span id="musicIcon"></span></button>
+      <button class="icon-btn" id="btnSfx" aria-label="Turn sound effects on" aria-pressed="false"><span id="sfxIcon"></span></button>
+    </div>
+    <div class="title"><h1 id="lvTitle">Level 1</h1><p id="lvSub">&nbsp;</p></div>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 16.9v.1"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-label="Rating and moves">
+    <div class="stars-now" id="starsNow" aria-live="polite"></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <div class="pond-wrap">
+    <div class="bank" id="bank">
+      <div class="gap" id="gap" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></div>
+      <div class="river" id="river" role="application" aria-label="River. Drag logs along their length. Use Tab to pick a log and arrow keys to slide it.">
+        <div class="ripples"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <button class="btn" id="btnRestart"><span id="restartIcon"></span><span id="restartLabel">Restart</span></button>
+    <button class="btn" id="btnUndo"><span id="undoIcon"></span><span>Undo</span></button>
+    <button class="btn" id="btnHint"><span id="hintIcon"></span><span>Hint</span></button>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+const GAME = { id: 'log-jam', seed: 2626 };
+/* =====================================================================
+   Shared shell: saves, seeded randomness, icons, live-synthesised audio,
+   modals, toasts and the level picker. The game code below plugs into it
+   through the GAME object and a loadLevel(idx) function.
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const scrim = $('#scrim');
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/* ---------- saved progress (private to this browser) ---------- */
+const STORE_KEY = GAME.id + '-v1';
+let save = Object.assign({ done: {}, seenHelp: false, level: 0 }, GAME.saveDefaults || {});
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
+} catch (e) {}
+if (!save.done || typeof save.done !== 'object') save.done = {};
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- seeded randomness, so level N is the same puzzle on every device ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleArr(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function seedFor(idx, salt) {
+  let h = (0x9e3779b9 ^ (GAME.seed || 0)) >>> 0;
+  h = Math.imul(h ^ (idx + 1), 0x85ebca6b); h ^= h >>> 13;
+  h = Math.imul(h ^ ((salt || 0) + 0x27d4eb2f), 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+}
+const pickOne = (arr, rnd) => arr[Math.floor(rnd() * arr.length)];
+
+/* ---------- icons ---------- */
+const ICON = {
+  tick: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.4 2.4 4.6-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C12 20.6 3.2 15.4 3.2 9.2C3.2 6.4 5.3 4.4 7.9 4.4C9.7 4.4 11.2 5.4 12 6.8C12.8 5.4 14.3 4.4 16.1 4.4C18.7 4.4 20.8 6.4 20.8 9.2C20.8 15.4 12 20.6 12 20.6Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  hint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21.2h4"/><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.6.5.9 1.2.9 2V16.6h6v-.3c0-.8.3-1.5.9-2A6.4 6.4 0 0 0 12 2.8z"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  musicOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>',
+  musicOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke-width="2.4"/></svg>',
+  sfxOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/></svg>',
+  sfxOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none" opacity=".45"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0" opacity=".45"/><path d="M5.5 5.5l13 13" stroke-width="2.6"/></svg>'
+};
+function heartsHTML(left, max, cls) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<span class="heart' + (k >= left ? ' lost' : '') + (cls && k === left ? ' ' + cls : '') + '">' + ICON.heart + '</span>';
+  return h;
+}
+function starsHTML(n, max) {
+  let h = '';
+  for (let k = 0; k < (max || 3); k++) h += '<span class="star' + (k >= n ? ' off' : '') + '">' + ICON.star + '</span>';
+  return h;
+}
+
+/* =====================================================================
+   Audio. There are no sound files: every note is built from oscillators,
+   filters and envelopes. Music and sound effects are separate toggles,
+   both off by default and remembered between visits.
+   ===================================================================== */
+const MUSIC_KEY = GAME.id + '-music-v1', SFX_KEY = GAME.id + '-sfx-v1';
+let musicOn = false, sfxOn = false;
+try { musicOn = localStorage.getItem(MUSIC_KEY) === '1'; sfxOn = localStorage.getItem(SFX_KEY) === '1'; } catch (e) {}
+let actx = null, master = null, musicBus = null, sfxBus = null, noiseBuf = null;
+let schedTimer = null, ambientStop = null;
+
+function ensureAudio() {
+  if (actx) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  try { actx = new AC(); } catch (e) { return false; }
+  master = actx.createGain(); master.gain.value = 0.42; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = 0.85; musicBus.connect(master);
+  sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+  return true;
+}
+const NOTE_FREQ = {};
+function noteFreq(note) {
+  if (!note) return 0;
+  if (typeof note === 'number') return note;
+  if (NOTE_FREQ[note]) return NOTE_FREQ[note];
+  const m = /^([A-G])(#|b)?(\d)$/.exec(note);
+  if (!m) return 0;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (NOTE_FREQ[note] = 440 * Math.pow(2, (base + (parseInt(m[3], 10) - 4) * 12 - 9) / 12));
+}
+/* one synth voice: oscillator -> (optional lowpass) -> envelope -> bus */
+function tone(t, f, o) {
+  o = o || {};
+  if (!f) return;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  const a = o.a || 0.006, hold = o.hold || 0, dur = o.dur || 0.25, vol = o.vol == null ? 0.15 : o.vol;
+  const end = t + a + hold + dur;
+  osc.type = o.type || 'triangle';
+  osc.frequency.setValueAtTime(f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + (o.glide || a + hold + dur));
+  if (o.vib) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.vibRate || 5.5; lg.gain.value = f * o.vib;
+    l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end + 0.05);
+  }
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  if (hold) g.gain.setValueAtTime(vol, t + a + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  let node = osc;
+  if (o.lp) {
+    const fl = actx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp;
+    if (o.q) fl.Q.value = o.q;
+    osc.connect(fl); node = fl;
+  }
+  node.connect(g); g.connect(o.bus || sfxBus);
+  osc.start(t); osc.stop(end + 0.05);
+}
+/* a burst of filtered noise: shakers, splashes, rustles */
+function noise(t, o) {
+  o = o || {};
+  if (!noiseBuf) {
+    const len = actx.sampleRate;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = actx.createBufferSource(); src.buffer = noiseBuf;
+  const fl = actx.createBiquadFilter(); fl.type = o.ftype || 'bandpass';
+  const dur = o.dur || 0.08, vol = o.vol || 0.1, a = o.a || 0.003;
+  fl.frequency.setValueAtTime(o.f || 2000, t);
+  if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + a + dur);
+  fl.Q.value = o.q || 1;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dur);
+  src.connect(fl); fl.connect(g); g.connect(o.bus || sfxBus);
+  src.start(t, Math.random() * 0.5); src.stop(t + a + dur + 0.05);
+}
+
+/* instruments for the background music */
+const INST = {
+  pluck: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.008, dur: Math.min(d * 0.9, 0.35), vol: v || 0.16, bus: musicBus }),
+  bell: (t, f, d, v) => {
+    v = v || 0.11;
+    tone(t, f, { type: 'sine', a: 0.004, dur: Math.min(d * 1.8, 1.2), vol: v, bus: musicBus });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: Math.min(d, 0.45), vol: v * 0.32, bus: musicBus });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.12, vol: v * 0.12, bus: musicBus });
+  },
+  marimba: (t, f, d, v) => {
+    v = v || 0.17;
+    tone(t, f, { type: 'sine', a: 0.003, dur: Math.min(d * 0.85, 0.5), vol: v, bus: musicBus });
+    tone(t, f * 3.98, { type: 'sine', a: 0.002, dur: 0.07, vol: v * 0.22, bus: musicBus });
+  },
+  flute: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.06, hold: d * 0.45, dur: d * 0.55 + 0.08, vol: v || 0.1, vib: 0.006, vibRate: 5, bus: musicBus }),
+  reed: (t, f, d, v) => tone(t, f, { type: 'square', a: 0.02, hold: d * 0.35, dur: d * 0.5, vol: v || 0.045, lp: 1500, bus: musicBus }),
+  harp: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.004, dur: Math.min(d * 2.5, 1.3), vol: v || 0.08, lp: 2400, bus: musicBus }),
+  bass: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.02, dur: d, vol: v || 0.13, bus: musicBus }),
+  wbass: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.01, dur: Math.min(d * 0.9, 0.55), vol: v || 0.15, lp: 650, bus: musicBus }),
+  hat: (t, v) => noise(t, { f: 8000, q: 0.7, dur: 0.03, vol: v || 0.025, ftype: 'highpass', bus: musicBus }),
+  shaker: (t, v) => noise(t, { f: 5500, q: 1.2, dur: 0.06, vol: v || 0.03, bus: musicBus }),
+  knock: (t, v) => tone(t, 190, { type: 'sine', to: 120, a: 0.002, dur: 0.08, vol: v || 0.08, bus: musicBus })
+};
+/* "E5:.5 - G5:1" -> [{n:'E5', d:.5}, {n:null, d:1}, ...] ("-" or "r" is a rest, default length 1 beat) */
+function track(str) {
+  return str.trim().split(/\s+/).map((tok) => {
+    const p = tok.split(':');
+    return { n: p[0] === '-' || p[0] === 'r' ? null : p[0], d: p[1] ? parseFloat(p[1]) : 1 };
+  });
+}
+function scheduler() {
+  const M = GAME.music, beat = 60 / M.tempo, until = actx.currentTime + 0.2;
+  for (const tr of M.tracks) {
+    let guard = 0;
+    while (tr.next < until && guard++ < 64) {
+      const s = tr.seq[tr.i];
+      const dur = s.d * beat;
+      if (s.n) {
+        if (tr.perc) tr.inst(tr.next, tr.vol, s.n);
+        else tr.inst(tr.next, noteFreq(s.n), dur * (tr.len || 1), tr.vol);
+      }
+      tr.next += dur;
+      tr.i = (tr.i + 1) % tr.seq.length;
+    }
+  }
+}
+function setMusic(on, fromUser) {
+  musicOn = on;
+  try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnMusic');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  $('#musicIcon').innerHTML = on ? ICON.musicOn : ICON.musicOff;
+  if (on && fromUser && ensureAudio() && actx.state === 'suspended') actx.resume();
+  clearInterval(schedTimer); schedTimer = null;
+  if (ambientStop) { try { ambientStop(); } catch (e) {} ambientStop = null; }
+  if (on && actx) {
+    const t0 = actx.currentTime + 0.06;
+    for (const tr of GAME.music.tracks) { tr.next = t0; tr.i = 0; }
+    if (GAME.music.ambient) ambientStop = GAME.music.ambient();
+    schedTimer = setInterval(scheduler, 25);
+  }
+}
+function setSfx(on) {
+  sfxOn = on;
+  try { localStorage.setItem(SFX_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnSfx');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn sound effects off' : 'Turn sound effects on');
+  $('#sfxIcon').innerHTML = on ? ICON.sfxOn : ICON.sfxOff;
+  if (on && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+/* play a named sound effect from GAME.sfx (or the shared ones below) if effects are on */
+function sfx(name, a, b) {
+  if (!sfxOn || !ensureAudio()) return;
+  if (actx.state === 'suspended') actx.resume();
+  const fn = (GAME.sfx && GAME.sfx[name]) || SFX[name];
+  if (fn) fn(actx.currentTime + 0.012, a, b);
+}
+/* sound effects every game can use */
+const SFX = {
+  warn(t) {
+    tone(t, 330, { type: 'square', a: 0.004, dur: 0.07, vol: 0.06, lp: 1800 });
+    tone(t + 0.09, 247, { type: 'square', a: 0.004, dur: 0.12, vol: 0.06, lp: 1500 });
+  },
+  fail(t) {
+    [['G4', 0.22], ['F#4', 0.22], ['F4', 0.22], ['E4', 0.6]].forEach(([n, d], i) => {
+      const f = noteFreq(n);
+      tone(t, f * 1.03, { type: 'sawtooth', to: f * 0.97, a: 0.02, dur: d, vol: i === 3 ? 0.17 : 0.14, lp: 1100 });
+      t += d;
+    });
+  },
+  win(t) {
+    let x = t;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.16, vol: 0.22 }); x += 0.085; });
+    const c = x + 0.02;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.03, dur: 0.7, vol: 0.1, lp: 3000 }));
+    tone(c, noteFreq('C7'), { type: 'sine', to: noteFreq('E7'), glide: 0.5, a: 0.05, dur: 0.55, vol: 0.07 });
+  },
+  tap(t) { tone(t, 880, { type: 'sine', to: 660, a: 0.002, dur: 0.05, vol: 0.06 }); },
+  bonk(t) { tone(t, 180, { type: 'triangle', to: 110, a: 0.003, dur: 0.14, vol: 0.14 }); },
+  chime(t, step) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const f = noteFreq('C5') * Math.pow(2, scale[Math.min(scale.length - 1, Math.max(0, step || 0))] / 12);
+    tone(t, f, { type: 'sine', a: 0.004, dur: 0.5, vol: 0.13 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.2, vol: 0.04 });
+  }
+};
+/* browsers only allow audio after a tap, so the first tap resumes music left on last visit */
+function primeAudioOnce() {
+  document.removeEventListener('pointerdown', primeAudioOnce, true);
+  if (musicOn) setMusic(true, true);
+  else if (sfxOn && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+document.addEventListener('pointerdown', primeAudioOnce, true);
+document.addEventListener('visibilitychange', () => {
+  if (!actx) return;
+  if (document.hidden) actx.suspend();
+  else if (musicOn || sfxOn) actx.resume();
+});
+
+/* ---------- little helpers ---------- */
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+let toastTimer = 0, toastEl = null;
+function toast(msg, ms) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2200);
+}
+/* a button that asks "Confirm?" before throwing away progress */
+function armConfirm(btn, labelEl, label, isBusy, go) {
+  let armed = 0;
+  btn.addEventListener('click', () => {
+    if (isBusy() && !armed) {
+      labelEl.textContent = 'Confirm?';
+      armed = setTimeout(() => { labelEl.textContent = label; armed = 0; }, 2200);
+      return;
+    }
+    clearTimeout(armed); armed = 0; labelEl.textContent = label;
+    go();
+  });
+  return () => { clearTimeout(armed); armed = 0; labelEl.textContent = label; };
+}
+
+/* ---------- modal plumbing ---------- */
+let modalLocked = false;
+function openModal(html, locked) {
+  modalLocked = !!locked;
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true">' + html + '</div>';
+  scrim.classList.add('open');
+}
+function closeModal() { modalLocked = false; scrim.classList.remove('open'); scrim.innerHTML = ''; }
+function modalOpen() { return scrim.classList.contains('open'); }
+scrim.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) { if (e.target === scrim && !modalLocked) closeModal(); return; }
+  const act = a.dataset.act;
+  if (act === 'close') closeModal();
+  else if (act === 'levels') showLevels();
+  else if (act === 'page') showLevels(+a.dataset.page);
+  else if (act === 'pick') loadLevel(+a.dataset.level);
+  else if (act === 'next') loadLevel(curLevel() + 1);
+  else if (act === 'retry') loadLevel(curLevel());
+  else if (GAME.actions && GAME.actions[act]) GAME.actions[act](a);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOpen() && !modalLocked) closeModal(); });
+
+/* opened from the Puzzle Parlour launcher? then offer a way back to it */
+let FROM_PARLOUR = false;
+try {
+  if (location.hash === '#parlour') sessionStorage.setItem('parlour', '1');
+  FROM_PARLOUR = location.hash === '#parlour' || sessionStorage.getItem('parlour') === '1';
+} catch (e) { FROM_PARLOUR = location.hash === '#parlour'; }
+
+/* ---------- level picker: pages of 20, with each finished level's best result ---------- */
+const PAGE = 20;
+function curLevel() { return (typeof G !== 'undefined' && G) ? G.idx : (save.level || 0); }
+function showLevels(page) {
+  const cur = curLevel();
+  const total = GAME.total || Infinity;
+  if (typeof page !== 'number') page = Math.floor(cur / PAGE);
+  const first = page * PAGE, last = Math.min(first + PAGE, total);
+  let h = '<h2>Levels</h2><div class="pager">' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Earlier levels">' + ICON.chevL + '</button>' +
+    '<span>' + (first + 1) + '–' + last + '</span>' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page + 1) + '"' + (last >= total ? ' disabled' : '') + ' aria-label="Later levels">' + ICON.chevR + '</button>' +
+    '</div><div class="levels">';
+  for (let i = first; i < last; i++) {
+    const done = hasOwn(save.done, i);
+    const label = GAME.levelLabel(i);
+    h += '<button class="lv' + (done ? ' done' : '') + (i === cur ? ' cur' : '') + '" data-act="pick" data-level="' + i +
+      '" aria-label="Level ' + (i + 1) + ', ' + label + (done ? ', completed' : '') + '">' +
+      (done ? '<span class="ok">' + ICON.tick + '</span>' : '') +
+      (GAME.levelTile ? GAME.levelTile(i, done) : '<b>' + (i + 1) + '</b><small>' + label + '</small>') +
+      '<span class="mh">' + (done ? GAME.levelBadge(save.done[i], i) : '') + '</span>' +
+      '</button>';
+  }
+  h += '</div><div class="stack"><button class="btn" data-act="close">Close</button>' +
+    (FROM_PARLOUR ? '<a class="btn" href="../index.html#parlour">All Puzzle Parlour games</a>' : '') + '</div>';
+  openModal(h);
+}
+
+/* installed on a home screen, keep working offline (only on a real web host, never inside a frame) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.self === window.top) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- header buttons ---------- */
+function shellBoot() {
+  $('#btnLevels').addEventListener('click', () => showLevels());
+  $('#btnMusic').addEventListener('click', () => setMusic(!musicOn, true));
+  $('#btnSfx').addEventListener('click', () => setSfx(!sfxOn));
+  $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
+  setMusic(musicOn, false);
+  setSfx(sfxOn);
+}
+
+/* ---------- Log Jam rules engine: a 6x6 river, the raft 'A' must reach the gap on the right ---------- */
+/* a board is a 36-char string: '.' water, 'x' rock, 'A' the raft, other letters are logs */
+const JW = 6, JN = 36, EXIT_ROW = 2;
+
+function piecesOf(board) {
+  const seen = {}, out = [];
+  for (let i = 0; i < JN; i++) {
+    const ch = board[i];
+    if (ch === '.' || ch === 'x' || seen[ch]) continue;
+    seen[ch] = 1;
+    const horiz = i % JW < JW - 1 && board[i + 1] === ch;
+    let len = 1;
+    while (true) { const j = i + (horiz ? len : len * JW); if (j < JN && (horiz ? Math.floor(j / JW) === Math.floor(i / JW) : true) && board[j] === ch) len++; else break; }
+    out.push({ id: ch, start: i, len, horiz, row: Math.floor(i / JW), col: i % JW });
+  }
+  return out;
+}
+function isSolved(board) { return board[EXIT_ROW * JW + JW - 1] === 'A' && board[EXIT_ROW * JW + JW - 2] === 'A'; }
+
+/* every board one slide away: [newBoard, pieceId, delta] (delta in cells, +right/+down) */
+function movesFrom(board) {
+  const out = [];
+  for (const p of piecesOf(board)) {
+    const step = p.horiz ? 1 : JW;
+    const lineMin = p.horiz ? p.row * JW : p.col, lineMax = p.horiz ? p.row * JW + JW - 1 : p.col + (JW - 1) * JW;
+    for (const dir of [-1, 1]) {
+      let d = 0;
+      while (true) {
+        const nd = d + dir;
+        const lead = dir < 0 ? p.start + nd * step : p.start + (p.len - 1 + nd) * step;
+        if (lead < lineMin || lead > lineMax || board[lead] !== '.') break;
+        d = nd;
+        const b = board.split('');
+        for (let k = 0; k < p.len; k++) b[p.start + k * step] = '.';
+        for (let k = 0; k < p.len; k++) b[p.start + (k + d) * step] = p.id;
+        out.push([b.join(''), p.id, d]);
+      }
+    }
+  }
+  return out;
+}
+
+/* shortest solution from a board: list of [pieceId, delta], or null. Stops after maxStates. */
+function solveJam(board, maxStates) {
+  if (isSolved(board)) return [];
+  const prev = new Map([[board, null]]);
+  let frontier = [board];
+  while (frontier.length) {
+    const next = [];
+    for (const b of frontier) {
+      for (const [nb, id, d] of movesFrom(b)) {
+        if (prev.has(nb)) continue;
+        prev.set(nb, [b, id, d]);
+        if (isSolved(nb)) {
+          const path = [];
+          let cur = nb;
+          while (prev.get(cur)) { const [pb, pid, pd] = prev.get(cur); path.unshift([pid, pd]); cur = pb; }
+          return path;
+        }
+        next.push(nb);
+        if (maxStates && prev.size > maxStates) return null;
+      }
+    }
+    frontier = next;
+  }
+  return null;
+}
+
+/* ---------- a fast engine for searching: pieces fixed, only their positions change ---------- */
+/* state = string, one char per piece giving its column (logs lying across) or row (logs lying along) */
+function makeEngine(board) {
+  const ps = piecesOf(board);
+  ps.sort((a, b) => (a.id === 'A' ? -1 : b.id === 'A' ? 1 : 0));
+  const P = ps.length, len = ps.map((p) => p.len), horiz = ps.map((p) => p.horiz), line = ps.map((p) => (p.horiz ? p.row : p.col));
+  const rock = new Uint8Array(JN);
+  for (let i = 0; i < JN; i++) if (board[i] === 'x') rock[i] = 1;
+  const cell = (k, pos) => (horiz[k] ? line[k] * JW + pos : pos * JW + line[k]);
+  const start = String.fromCharCode(...ps.map((p) => 48 + (p.horiz ? p.col : p.row)));
+  const g = new Uint8Array(JN);
+  function each(state, cb) {
+    g.set(rock);
+    for (let k = 0; k < P; k++) { const p0 = state.charCodeAt(k) - 48; for (let j = 0; j < len[k]; j++) g[cell(k, p0 + j)] = 1; }
+    for (let k = 0; k < P; k++) {
+      const p0 = state.charCodeAt(k) - 48;
+      for (let p = p0 - 1; p >= 0 && !g[cell(k, p)]; p--) cb(state.slice(0, k) + String.fromCharCode(48 + p) + state.slice(k + 1), k, p - p0);
+      for (let p = p0 + 1; p + len[k] <= JW && !g[cell(k, p + len[k] - 1)]; p++) cb(state.slice(0, k) + String.fromCharCode(48 + p) + state.slice(k + 1), k, p - p0);
+    }
+  }
+  const solved = (state) => state.charCodeAt(0) - 48 === JW - 2;
+  function toBoard(state) {
+    const b = Array(JN).fill('.');
+    for (let i = 0; i < JN; i++) if (rock[i]) b[i] = 'x';
+    for (let k = 0; k < P; k++) { const p0 = state.charCodeAt(k) - 48; for (let j = 0; j < len[k]; j++) b[cell(k, p0 + j)] = ps[k].id; }
+    return b.join('');
+  }
+  /* fewest-move solution from a state: [[pieceId, delta], ...] or null */
+  function solve(state, maxStates) {
+    if (solved(state)) return [];
+    const prev = new Map([[state, null]]);
+    let frontier = [state];
+    while (frontier.length) {
+      const next = [];
+      for (const s of frontier) {
+        let hit = null;
+        each(s, (ns, k, d) => {
+          if (hit || prev.has(ns)) return;
+          prev.set(ns, [s, k, d]);
+          if (solved(ns)) hit = ns; else next.push(ns);
+        });
+        if (hit) {
+          const out = [];
+          for (let cur = hit; prev.get(cur); cur = prev.get(cur)[0]) { const [, k, d] = prev.get(cur); out.unshift([ps[k].id, d]); }
+          return out;
+        }
+        if (maxStates && prev.size > maxStates) return null;
+      }
+      frontier = next;
+    }
+    return null;
+  }
+  return { ps, P, start, each, solved, toBoard, solve };
+}
+
+if (typeof module !== 'undefined') module.exports = { JW, JN, EXIT_ROW, piecesOf, isSolved, movesFrom, solveJam, makeEngine };
+
+/* pre-built levels: 6x6 river (A = raft, x = rock, other letters = logs) and par, the fewest moves */
+const LEVELS = [
+["BBCC..DDDEE.AA.F..GH.F..GHII..JJ....",3],
+["BBCDEE.FCDGH.FAAGH.F.....I.....IJJ..",3],
+["B.CCDDBEEFFGAA...GHH.IIIJK.LLLJKMMNN",4],
+["BBBCCCDDD..EAA...EFGHH.EFG..II.G..JJ",4],
+["B.CC..B.DD..BAAE..FFGE..H.GIIIHJJJ..",4],
+["B..CC.B...DEBAA.DEFF....GGHHIIJJ....",4],
+[".BB...CCDEE.AAD.F.GGHHF.IJ....IJ....",4],
+["BB.....CCDD.AAE.F.GGE.F.H..II.HJJKK.",5],
+["B..CC.B..DDEAA..FEGHH.F.GIJJJ.GI....",5],
+["..BCC.DDBEFFAAGE..HHGIIIJKKK..JLLMM.",5],
+["..BBBCDD..ECAA..EFGHH.IFG...IF...JJJ",5],
+["BC....BCDDD.AA..E.F...E.FGGHH.IIJJ..",5],
+["BC.DDDBCEEEFAAG..F.HGIII.HJJJ.KKK...",5],
+["B.CC..B..DEEAA.D.F.GGG.F..HHIIJJJKK.",6],
+["BBCC.DEEEFFDAAG..D.HG...IH....IJJKKK",6],
+[".BB..CDDD..CAAE.....E.FFGGH.IIJJH...",7],
+["BCDEE.BCDFFFAAGHIJKKGHIJLLGH...MMNN.",7],
+["B..CDDB..CEFB.AAEFG.HHI.G.J.I...JKKK",7],
+["BB..CDEE..CDAA..CD.FFGG..HHII...JJJ.",8],
+["BBCCCDE.FFGDE.AAGDHH.IG....IJJ...I..",8],
+["B..C..B..CDDE.AAFGE...FGH.I.FJH.IKKJ",8],
+["BBCC..DD.EFFAA.EGHI..EGHIJJJG...KK..",8],
+[".BBCCD..EFGDAAEFGH....IH....IH....JJ",8],
+["B..CCDBEEEFDGAAHFDGIJHK.LIJ.K.LIJMMM",8],
+["....BC.DDDBCAA.EFGHHHEFG...EIIJJJKK.",8],
+["BCCDD.BEEFF.AA.GH...IGH...IGJJ......",8],
+["BC.DDDBCEEFFAA...GHH...GII...JKKLLLJ",8],
+["BBCCDDE...FGE.AAFGH..IJJH..IKKHLL...",8],
+["..BBCC.DDEEE.AAF.G.HHF.G..IJJ.KKILL.",8],
+["BC...DBC.EFDGAAEFHGIJJ.HGIKLLLMMK...",8],
+["BBCC.DEEEFFDAA...DGGHH..I...JJIKKKLL",8],
+["BCCDDEB..FFEAA..GHIIJJGHKLL.M.KNN.M.",8],
+["B..CDDBEECFGAAHIFGJ.HIKKJ...L.JMMML.",8],
+["B.CCDDB...EEBAA.FGHH..FG.IIJJKLLL..K",8],
+["BCCC.DBEEFGDAA.FGHIJJKKHI...LL..MMNN",8],
+["..BB.CDDEE.CAA.F.CG..F..GH.IIIGHJJKK",9],
+["B.CCDDBEEFFFBAA.GH.IJJGH.I.KKL.IMMML",9],
+[".BC....BCD..AAED...FEDGG.FHH.I..JJ.I",9],
+["..BCC.D.BEEEDAAFGH...FGH....IHJJKKI.",9],
+[".BCC.D.BEFFDAAEG.D...G.....H..II.HJJ",9],
+["..BBC.DDDECFAA.EGFH..IG.HJ.IG..J.IKK",9],
+["B...CDB.E.CDAAE.FDG...F.GHHII.....JJ",9],
+["BC.DD.BCEEFFAA..GHII..GHJJ..KHLLL.K.",10],
+["BCDDEEBCFGHHAAFGIJK...IJK....LMMMNNL",10],
+["BBCCCDEEFFFDAA.GHDII.GH.JKKK..J.LLMM",10],
+["BCDDDEBC.FFE.CAAGHIIJJGHK.L.MMK.L...",10],
+["BB...CDD...CEAA..CEFGGHHIFJKKKI.J.LL",11],
+["BBCCCD..E.FDAAE.FG.HIJJG.HI....H....",12],
+["BBCCDE.FF.DE.GAADH.G...H.GIJJ.KKI...",12],
+["BCC.DEBFF.DEAAG..HIIG..HJKLLLHJK..MM",12],
+["BBCCD.EE..D..FAAD..FG...HHGI....GIJJ",12],
+["BBBCCD..EEFDAA.GF.H..GIIHJJKK.LLL...",12],
+[".BCDEEFBCDGHFAADGHIJJKKLIM..NL.M..N.",12],
+["BCCC..BDDE..AA.E...FFEGGHHIIJ...KKJ.",12],
+["x.BBC...DECFAADECF.GHEII.GH..J.....J",11],
+["BCDDEEBCFFFGHAA.IGHJJ.IK....LKMMNNL.",11],
+[".BB.C...D.C.AAD.C.EFFF.xE..GHH.IIGJJ",11],
+["x.BBCCDEEEFFDAAGHIDx.GHIJJ.GHK..LL.K",11],
+["BCDDEFBCGGEFAAHIEF.JHI...J.K.....KLL",11],
+["BB..CDE.FFCDE.AAGHI..JGHIKKJLLMMNNN.",11],
+["BCDDEEBCFFGxBAA.GHIIJJJHxK.....K.LLL",11],
+["BCDDEEBC..FGBHAAFGIHJJK.ILL.K.MM....",11],
+["BCDDEEBC..FFGHAA.IGHJJJI.HKKKLMMNN.L",11],
+[".BBB.C..DDECAA.FEGHHHF.GIJJJKKILLMMM",11],
+["BCDDDxBCEx.FAAEGHFIIEGH.JK..L.JKMML.",11],
+["BCCDDEBFFxGEAA.HGEIJJHK.ILM.K..LMNNN",12],
+["B.C...B.CDDEAAF..ExGF.Hx.GIIH.JJKKK.",12],
+["BCDDEEBCFGGHAAF..H...xI.JJKKI.LL....",12],
+["BCCDDEBFFGGEAA.HIJKK.HIJ..LLM.NN..M.",12],
+["..BCDDEEBCFGHAAIFGH..IJJ.K.ILx.KMML.",12],
+["BBCCCDEEFGGDAAF.HIJJJ.HIKKK.HI.LLMM.",12],
+["..BCDDEEBC..AAB.FGHHH.FGIIJJ..KKLLL.",12],
+["BCCCD.B.EEDFAA.GDF.H.G...HIII....JJ.",12],
+[".xBBCD.EEFCDAAGF.D..GH..IIJH....JHKK",12],
+["BBCDDEFFC.GEHAA.GIHJJ.KIHL..KI.LMMM.",12],
+["..BBB.....CDAA..CDEEE.C.FGHHH.FGIIJJ",13],
+[".xBCCDE.BFFDEAA.GHI.JJGHIx.KL.MMMKL.",13],
+["BCCDDDBEFFGGHEAAIJHKK.IJH..x.xLLMM..",13],
+["BC.DD.BCEEFFAAGHIJKLGHIJKL..MJ....M.",13],
+["BBBCCDEEFFGDHAA.G.H..II.JKK.LLJMMNN.",14],
+["BCDEEEBCDFGGHAAF..HI..JK.ILLJKMMMNN.",14],
+["BBCCD.EEEFD.AAGF..HIGFJJHIKK.L..MM.L",14],
+["BCCCDDBEEEFFAA.GHIJKxGHIJKLLL.MMNN..",14],
+["...BCC...BDEAA.FDEGHHF.IG.JKKILLJMMI",14],
+["BBCCD.E..FDGEAAF.G..HIIIJJH..K.LLL.K",14],
+[".........BCCAADB..EFDBGGEFHHIJ....IJ",14],
+["B..CC.BDD.EFAAG.EF.HG.I..HJJI...KKK.",15],
+["BCCDE.B.FDExAAF...GGHH...IJJx..IKK..",15],
+["BBCCD..xEEDF.AA.DF..GHII..GHJJ.KKLL.",15],
+["BBC.....CDD.AAE...F.EGHIFJJGHIKKK..I",15],
+["BBCCCDEEFFFDAAGHIJ..GHIJKLLH..KMMM..",15],
+[".BBC...DECFF.DEAAG....HGIII.HJKKK..J",15],
+["BCCDDDBEEFF.AA..GHIxJJGHI..KLLMM.K..",16],
+["BCCDE.BFFDEGAAH.IG..H.I...J...KKJ...",16],
+[".BB.CD.xEECDAAFGC...FGHH.IIJJ..KK...",16],
+["BBBCC.DD.EFFAA.EGHIJJJGHI.KKGLI....L",16],
+["BCDDEFBC.GEFAA.GH.IJJJH.IKK...I..LL.",16],
+["BBBCCDEEEFFDGAA.HDGII.H.J.KKLLJMMNNN",16],
+[".BBCC...DDEF.AA.EF.GGGE...HIJJ..HI..",16],
+["BxCDDEB.C.FEGAA.F.GHHIJ..K.IJ.xK.ILL",16],
+["BC.DEEBCFD.G.CFAAG...xHIJJJ.HIKK...I",16],
+[".xBBB....C.DAA.CEDFxGGEHF.IJJH..I.KK",16],
+["BBCCDE.xFFDEAAGHD...GHII.JJKK..LL...",16],
+["BCCDEFB.GDEFAAG..HII.x.H..x.JJKKLL..",16],
+[".BBC.....CDD.AAC.E.FGHHE.FG.IJKKG.IJ",15],
+["BBCC.DEEFFFDGAA.H.GII.H.JKLLMMJKNNN.",15],
+["BBCCCxDDD..EAA..FEGGHHFEIJJKK.ILLMMM",15],
+["B..CDDB..CEEF.AA.GF.HHHGIIJJKxLL..Kx",15],
+["B.CCDDBEEEFFAAGHIJKKGHIJ.L.H.M.LNN.M",15],
+["BBCCCDEE..FDGAA.FDG.HIF.JKHI..JKHILL",16],
+["..BCCC..BD..AA.D..Ex.DFFEGGHHI..xJJI",16],
+["BCC...B.DEEFAADGHF..IGHJ.KILLJ.KMMNN",16],
+["B..C..B..CDEFAAGDEFHHGD.F.IJJ.KKI...",16],
+["..BB.....CDDEAACFGEHHHFG..I.FG..IJJ.",16],
+[".BB.CDEEE.CD.AA.CF..G..FHHGII..JJKK.",16],
+["B.CCC.B.DDDEAA..FEGGHHFE.IJKLL.IJKMM",16],
+[".BCCDD.BEEEFAA...FGGHHHFI.JJKKILLMMM",16],
+["BB..CDEEFFCDAA...GHIIJ.GH.KJLLMMKNNN",16],
+["BBBCCDEE..FDG.AAF.GHHH..GIIJKKLLLJ..",17],
+[".BBBCCDDDEFG.AAEFGHHI..J..IKKJ..I.LL",17],
+["BCDDEFBC..EFGHAAE.GHI....HIJKKLLLJ..",17],
+["..B.....BC.DAABCED...FE.GHHFE.GII...",17],
+["BBCCCDEFFFGDE.AAGDx.HI....HIJJKKH.LL",17],
+["BCCDD.B..EFFAAGE.H.IGJJH.IKKKHLLL...",17],
+["BBCCDEFF..DEAA.G.HIJJG.HI.KGLLMMKNN.",17],
+["BBBCCDEEFFGDH.AAG.HIIIG....JKKLL.JMM",17],
+["BBBCCD..E..DAAE...F.EGH.FIIGH..JJ...",17],
+["BBBCD...ECD.AAE.D...E....FGG...FHH..",17],
+["BCCDEFBxGDEFAAGHIFJJJHI..KL....KL...",17],
+["BCCDEFB..DEFBAAGEFHI.G..HIJJ.....KK.",17],
+["BCCDEFBGGDEFAAHIJF..HIJ...K...LLK...",18],
+["BCDDEEBCFF..AAGH....GHIIJJKKLMNNOOLM",18],
+["BBCCDE.xFFDEAAGHD...GHII.JJKK..LLMM.",18],
+["BCDDE.BCFGE.AAFG..HHI.x...IJJJKKLL..",18],
+["BCDDEEBCFF..AAGH....GHIIJJKKLMNN..LM",18],
+["BCCDEFB.GDEFAAG..H.I.x.H.IJJJH.IKKLL",18],
+["..BCDDEEBCF.GHAAFIGHJJJIKKLL.I.x..MM",19],
+[".BCCDE.BFGDEAAFG..HHI.....IJJJKKLL..",19],
+[".BCCDE.B.FDEAAGFHE..GIH...JI..x.JKKK",19],
+["....BCDDD.BCAAE..F.GEHHFIG.JKKILLJ..",19],
+["BBBCCDEEFFGDAA..GHIJJJGHI..KLLMM.KNN",19],
+[".BCCCD.BEEFDAAGHFDI.GHJ.IKK.J...LLL.",19],
+["BBBCD...ECDFAAE.DFG.E...GHII...HJJ..",19],
+["..BCDDEEBCF.GHAAFIGHJJJIKKLL.I....MM",19],
+["BBCCD...E.D.AAEFG.HHHFG.I.....I.JJJ.",19],
+["BBC..DEEC..D.FCAAD.FGG...HHIJJxKKI..",19],
+["BCCDEFBGGDEFAAHIJKLLHIJK..M.....M...",20],
+["BCCDDDBEEx..AAF...GGFH.IJJJH.I.xKK..",20],
+["BCDDEFBCGHEFAAGH..IIJ.x...JKKKLLMMM.",20],
+[".BCCDEFB.GDEFAAG.HIIJK.H..JKx...J...",20],
+["..BCCDEEB.FD.GAAFH.G.IIH.JJK.H.LLKMM",20],
+["...BCC..DB.E..DAAEFFGG.E.HIIJJ.HKKLL",20],
+["....B.CC.DBEFAADBEF.GHIIJJGH...KKK..",20],
+[".BCCDE.BFGDEAAFG.HIIFJ.H...Jx..KKLL.",20],
+["BB..CxxDDDCEAAFG.E.HFGII.HJJ...KK...",20],
+["B.CC.DB.EFFDAAEG....EGHH.IIGJ.KKLLJ.",20],
+["BB.C...D.CEE.DAAF.GGHIF...HIJJ.KKLL.",20],
+["BCDDEEBCF...AAF.GH.II.GHJJJ.GH......",20],
+["BBC..DEEC..D.FCAAD.F.GHH.IIGJJ.KKLL.",20],
+["..BCDDE.BCxFEAA..FGGHH.F.I..JJxIKKLL",20],
+[".BBB.CDDE..CF.EAACFGGHIIJJ.H..KKLL..",20],
+[".BCCDE.B.FDE.AAF.GHHIJ.G..IJx...IKK.",20],
+["BCDDE.BC..E.FGAAEHFGIJJH.GIKLLMMMK.x",21],
+[".BCC...BDEE.AADFG..HHFG...IJJJKKI...",21],
+["BCCDEFBGGDEFAAH..I.JH..I.JKKKI.JLLMM",20],
+["BCDDEFBCGHEFAAGH..IIJ.....JKKKLLMM..",20],
+["BCDDEFBC.GEFAAHGIF..HJI...KJ....KLLL",20],
+["BCC..DBE.xFDBEAAFGHHI.FG.JIKKK.JLLL.",20],
+["BCDDEFBCGHEFAAGH..IIJ.x...JKKKLLMM..",20],
+["BCDDEFBCGHEFAAGH..IIJ.....JKKKLLMMM.",20],
+["BBCCD...E.DFAAEGHFIIIGH.J.....J.KKK.",20],
+["BBC....DC.EFGDAAEFGHHIIF...J..xKKJLL",21],
+["BBC....DCEE..DAAF.GGHIF...HIJJ.KKLL.",21],
+["..BCCCDDB.EFGAA.EFG..HIJKK.HIJLLMMM.",21],
+["BB..CxxDDDCEAAFG.E.HFGII.HJJ...KKLL.",21],
+["..BCCC..BD.EAABDFE....FG.HIIFG.HJJ..",21],
+["BCCD..B.ED.FAAE..FGGHH.F.IJJKKxI....",21],
+["..BCCx..B.DDAAB.EF.GHHEF.GIIIFJJKK..",22],
+["BCCDDEB...FEAA..FGHHIIFG..JKK.LLJ..x",22],
+["BBC..x.DCEEF.DAAGFHHIJG...IJKK.LLMM.",22],
+["..Bx..CCB.DxEFAADGEFHHDG...IJJ.KKILL",22],
+["BCDDEEBCF...AAF.GH.II.GHJJJ.GHKKK...",22],
+["BCCDDDBEEx..AAF...GGFHIJKKKHIJ.xLL..",22],
+["BB..C.DD.ECFGAAECFG.HIJJKKHI...LLL.x",22],
+["BCCCD.BEExD.AAFG....FGHH.III.J.xx..J",23],
+["BCCCD.BEExD.AAFG....FGHH.III.Jxx..xJ",23],
+["B...CDBEEECDAAFGH...FGH....GII.JJJ..",23],
+["BCCC.DBEEx.DAAF...GGFH.xIIIH...xJJ..",23],
+["BCCDDEBFF.GEAA..GHIIJJGH..KLL.MMK..x",23],
+["..B.....B.CCAAB.DEFGHHDEFGIIIEJJKK..",23],
+["B.CDDEBFC.GEBFAAGHII.JKH.x.JKH...JLL",23],
+["BBC..xDECFF.DEAAG.HHIJG...IJKK.LLMM.",23],
+["BCCCD.BEExD.AAFG...xFGHH.III.J.x...J",23],
+["BC.DDDBC.EFFAA.EGH.IIIGH..JKKL..JMML",23],
+["BCCDD.B...EFAA..EFGGHHE...IJKKLLIJ..",24],
+["BBC...DECFFGDEAAHGIIJKHx..JKLL.MMNN.",24],
+["BBB.CDEE..CD.FAAGH.FI.GH..IJJH...KK.",24],
+["BBC..xDECFFGDEAAHGIIJKH...JKLL.MMNN.",24],
+[".BCCDE.BF.DEAAF.GEHIIIG.H..J..KK.JLL",24],
+["BCCCDEBFFFDEAAGHI...GHI....HJJ.....x",24],
+["BCCCDEBFFFDEAAGHI...GHI....HJJ......",24],
+["BCDDEEBCx..F.CAA.FGG.H.F...HIIJJKK..",24],
+["BBB.C..DD.C.AAEF..G.EFHHGIIJJ.KK.x..",24],
+["..BCCx..BDEE.AADFG.HIIFG.HJ.KKLLJ...",24],
+["BBB.CDEE..CDFAA.G.F.H.G..IHJJ..IKKK.",24],
+["BCDDEEBC...F.CAA.FGG.H.F...HIIJJKK..",24],
+["BCCCD.BEEED.AAFGH...FGH....GII.JJJ.x",24],
+["BCCDE.B.FDEGAAF..GHHII.G.JKKLL.J..MM",24],
+["BCCDD.B.EEF.AA..F.GGHHF..xIJKKLLIJ..",25],
+["BCDDEEBCx.F.BCAAF.GG.HF.x..HIIJJKK..",25],
+["BBB.CDEE..CD.AA.FG..H.FG.IHJJG.IKKLL",25],
+[".BCC.D.BEFFDAAEGH.IJJGH.I.KLLLMMK...",25],
+["..BCCCDDB...EAAF..E..FGGHHIIJ.KKLLJ.",25],
+["BBCD..EFCDGGEFAAH.IIJKH...JKLL.MMNN.",25],
+["xBB.....C.DDAAC..EF.CGGEFHHHIEJJKKI.",26],
+[".BBC.x..DCEEAAD..FG.DHHFGIIIJFKKLLJ.",26],
+["BCCDDxBEExF.AA..FGHHIIFG..JKLLMMJK.x",26],
+["BCDDEEBCx..F.CAAGFHH.IGF...IJJKKLL..",26],
+["...B....CBDDAAC...EFCGGHEFIIIHJJKK.H",26],
+["BBB.CDEE..CDFAA.GHF.I.GH.JIKKHxJLLL.",26],
+["BBCC....D.EEAAD..FG.DHHFGIIIJFKKLLJ.",26],
+["BCCDDxBEE.F.AA..FGHHIIFG..JKLLMMJK.x",26],
+["xBBC....DCEEAAD....FDGGH.F..IHJJKKIH",26],
+[".BCCDE.BFGDEAAFGDH.IIJ.H...J...KKLL.",26],
+["BCCCDEBFFxDEAAG...HHGI.xJJJI...xKK..",25],
+["BCCDD.B.EEF.AA..F.GGHHF..xIJKKLLIJ.x",25],
+["BBC..DEFCGGDEFAAHDIIJKH...JKLL.MMNN.",25],
+["BCCCDEBFFFDEAAGHI...GHI....HJJ.KKK..",25],
+[".BCCD.xBE.D.AAE.F.GHHHF.GIIJ..KK.JLL",25],
+[".BCCDE.BFGDEAAFGHEIIJ.H.K.JL..KMML..",25],
+["...BCC.DEB...DEAAFGGEHIFJ..HIKJLLMMK",25],
+["BBCDD...C.EEAAC.FGHIJJFGHIKKKGLLMM..",25],
+["BCCDD.B...E.AA..EFGGHHEF.xIJKKLLIJ..",25],
+[".BCCD..BE.D.AAE.F.GHHHF.G..IJJKK.ILL",25],
+[".BCCDD.BEE.F.BAA.FGG.H.F...HIIJJKK..",25],
+[".BCCDE.BF.DEAAF.GEHIIIG.H..JKKLL.JMM",26],
+["BBB.CDEE..CDFGAAHIFGJ.HI..JKKI...LL.",26],
+["BCCDEEBFFDGHAA..GHIIJJGK..LMMKNNL...",26],
+["xBB..x..C.DDAAC..EF.CGGEFHHHIEJJKKI.",26],
+["..BC....BCDDAAB.E.FGHHEIFGJJJIKKLL.I",26],
+["B..CCCBDDx.EAAF..E..FGHIJJJGHI....x.",27],
+[".BCCDD.BEE.F.BAAGFHH.IGF...IJJKKLL..",27],
+["BBB.CDEE..CDFAA.GHF.I.GH.JIKKH.JLLMM",27],
+["BCCDD.B.EEF.AA..FGHHIIFG.xJKLLMMJK.x",27],
+["BCDDEEBCFFG..CAAG.HH.IG.J..IKKJLLMM.",27],
+["B..CCCBDDx.EAAF..E..FGHIJJJGHI......",27],
+["BBBCC...DE..AADE..FGGEHHFII.J.....J.",28],
+[".BCCDExB.FDE.AAFDGHHIJ.GK.IJ..KLLMM.",28],
+[".BCCDE.BFGDEAAFGDHIIJK.H..JK...LLMM.",28],
+["B..CCCBDDx.EAAF..EGGFH.IJJJH.I.x.xKK",28],
+["BBBCC...DE..AADE..FGGEHHFII.J.....Jx",28],
+["BCDDEEBCx.FGBCAAFGHH.IFGx..IJJKKLL..",28],
+[".BCCDE.B.FDE.AAFDGHHIJ.GK.IJ..KLLMM.",28],
+["BB...CDx..ECDAA.EF.GGGEFHHIJKK..IJ..",28],
+["B..xx.BCCCDEAAFGDE.HFGII.HJJ.K.....K",28],
+["BCDDEEBCx.FG.CAAFGHH.IFGJ..IKKJLLMM.",29],
+["BCCCDEB.FGDEAAFGD.HH.I.....IJJ.....x",29],
+["BCCCDEB.FGDEAAFGD.HH.I.....IJJ.x....",29],
+["Bx.CCCBDDx.EAAF..EGGFH.IJJJH.IKK....",29],
+["BB.C..DEEC.FD.GAAFHHG..F..GIII.JJKK.",29],
+[".BCCDD.BEE.F.BAA.FGGHI.FJ.HIKKJLLMM.",29],
+[".BCCDD.B..E..BAAE.FFGHE...GHII.JJKK.",29],
+["B..xC.BDDDC.AAE.F.GGEHF....HIIJJJH..",30],
+["BCCC.DBxEF.DAAEF.G.HHI.G...IJJ......",30],
+["xBBC.x..DCEEAAD..FG.DHHFGIIIJFKKLLJ.",30],
+["Bx.CCCBDDx.EAAF..EGGFHIJKKKHIJ......",30],
+[".BCCDD.BEEF..BAAF.GGHIF.x.HIJJ.KKLL.",30],
+["BBBCCD..EF.DAAEF..GHHFIIGJJ.K.....Kx",31],
+["BBBCC..xDE..AADE..FGGEHHFII.J.KK..Jx",31],
+["BCC.xDBEEE.D..FAAGHHFI.G...IJJKKKI..",31],
+["B..CCCBDDx.EAAF.GEHHFIGJKKKIGJ......",30],
+["B...CxBDDDCEAAF.GEHHFIGE...IJJKKKI..",31],
+["BCCCDEB.FFDEAAGHD.IIGH.....JKK...J.x",31],
+["BCDDEEBCFFGxBCAAG.HHIJG...IJKK.LLMM.",33],
+["BCDDEEBC..FG.CAAFGHHIJFG..IJKK.LLMM.",33],
+["BCCCDEB.FGDEAAFG.H.IIJxH...JKK......",33],
+["B.CCCDB.EFGDAAEFGHII.JGH...JKKx.....",33],
+["BBBCCD.xEF.DAAEF..GHHFIIGJJ.KLMM..KL",34],
+["BBBCC...DEFFAADE..GHHEIIG.JJK..x..K.",34],
+["BBBCCD..EFFDAAEG..HIIGJJHKKGLx....L.",35],
+["BCCCDEB.FFDEAAGHD.IIGH.....JKKLL.J.x",35],
+["BCDDEEBCFFG.BCAAGHIIJKGH..JKLL.MMNN.",35],
+["BCCCDEBxF.DEAAFG.H.IIGxH...JKKLL.J..",36],
+["BCCC.DB.EFFDAAEG.H.IIGxH...JKKLL.J..",37],
+["BBBCC...DEFFAADE..GHHEIIG.JJK.LL..Kx",37],
+["BCCC.DB.EFFDAAEG.H.IIG.H...JKKLL.J.x",38],
+["BCCC.DB.EFFDAAEG.H.IIG.H...JKK.LLJMM",39],
+["BCCC.DB.EFGDAAEFGH.IIJxH...JKKLL..x.",39],
+["...xB.CDDEB.CAAEB.FFG....HGII..HJJKK",39],
+["BCCC.DB.EFGDAAEFGH.IIJxH...JKKLLMM..",40],
+["...xB.CDDEBFCAAEBFGGH....IHJJ..IKKLL",40],
+["BBBC..Dx.CEFDAAGEFHHIGEJ..IKKJ.LLL.x",41],
+["B.CCC.BDDEF.AAGEF.HHGIF....IJJ.KKLL.",42],
+["B.CCC.BDDEF.AAGEF.HHGIFx...IJJ.KKLL.",42],
+["BCCC.DB.EFFDAAEGHI.JJGHI...KLLMMMK..",42],
+["BCCC.DB.EFFDAAEGHI.JJGHI...KLLxMMK..",43],
+["B.CCC.BDDEFxAAGEF.HHGIF....IJJ.KKLL.",43],
+["B.CCCDBEEFGDAAHFGDIIHJG....JKK.LLMM.",44],
+["B.CCCDBEEFGDAAHFG.IIHJGx...JKK.LLMM.",45],
+["B.CCCDBEEFGDAAHFGIJJHKGI...KLL.MMNN.",46]
+];
+
+const DUCK = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="30" cy="34" rx="20" ry="11" fill="#ffd23f" stroke="#7a5a00" stroke-width="2"/><path d="M12 30q-6-6-1-11 3 6 8 7z" fill="#ffd23f" stroke="#7a5a00" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="18" r="10" fill="#ffd23f" stroke="#7a5a00" stroke-width="2"/><path d="M48 18l10 2-10 4z" fill="#ff8c1a" stroke="#a3500b" stroke-width="1.6" stroke-linejoin="round"/><circle cx="43" cy="15.5" r="2.2" fill="#2b1d07"/><circle cx="43.8" cy="14.8" r=".7" fill="#fff"/><path d="M22 33q8 6 14-2" fill="none" stroke="#e0a800" stroke-width="2.4" stroke-linecap="round"/></svg>';
+const WOODS = [
+  { wood: '#9a6a3f', grain: 'rgba(60,35,15,.35)', ring: '#c99a64', endc: '#e3bb85' },
+  { wood: '#7b5232', grain: 'rgba(40,22,10,.4)', ring: '#b07f4e', endc: '#d6a36b' },
+  { wood: '#a5502f', grain: 'rgba(70,25,10,.35)', ring: '#d38b62', endc: '#f0b48a' },
+  { wood: '#8d8a83', grain: 'rgba(40,40,40,.35)', ring: '#b8b2a6', endc: '#d8d2c4' },
+  { wood: '#efe9df', grain: 'rgba(40,30,30,.55)', ring: '#d9c7a8', endc: '#efe0c4', birch: true },
+  { wood: '#b07a45', grain: 'rgba(70,40,15,.35)', ring: '#dcac72', endc: '#f2cf98' }
+];
+
+/* ---------- levels: the generated bank, then remixes of the toughest rivers ---------- */
+function getLevel(idx) {
+  if (idx < LEVELS.length) return { board: LEVELS[idx][0], par: LEVELS[idx][1] };
+  const rnd = mulberry32(seedFor(idx, 5));
+  const pool = Math.min(120, LEVELS.length);
+  const [board0, par] = LEVELS[LEVELS.length - 1 - Math.floor(rnd() * pool)];
+  let b = board0;
+  if (rnd() < 0.5) { let f = ''; for (let r = JW - 1; r >= 0; r--) f += b.slice(r * JW, r * JW + JW); b = f; }
+  const letters = shuffleArr('BCDEFGHIJKLMNOPQRSTUVWYZ'.split(''), rnd);
+  const map = {}; let k = 0;
+  b = [...b].map((ch) => (ch === '.' || ch === 'x' || ch === 'A' ? ch : (map[ch] = map[ch] || letters[k++]))).join('');
+  return { board: b, par };
+}
+GAME.total = Infinity;
+GAME.levelLabel = (i) => 'par ' + getLevel(i).par;
+GAME.levelBadge = (stars) => starsHTML(stars);
+
+/* ---------- state ---------- */
+let G = null;
+let drag = null;
+let winTimer = 0, hintTimer = 0, saveTimer = 0;
+const river = $('#river'), bank = $('#bank');
+
+function loadLevel(idx) { idx = Math.max(0, idx | 0); startLevel(idx, getLevel(idx)); }
+
+function startLevel(idx, L) {
+  clearTimeout(winTimer); clearTimeout(hintTimer);
+  if (disarmRestart) disarmRestart();
+  $('#restartIcon').innerHTML = ICON.restart;
+  G = { idx, L, board: L.board, par: L.par, moves: 0, history: [], hints: 0, won: false, els: {} };
+  if (save.cur && save.cur.i === idx && Array.isArray(save.cur.h) && save.cur.h.every((b) => typeof b === 'string' && b.length === JN)) {
+    G.history = save.cur.h.slice(); G.board = save.cur.b || L.board; G.moves = G.history.length; G.hints = save.cur.n | 0;
+  }
+  G.exitRow = piecesOf(G.board).find((p) => p.id === 'A').row;
+  save.level = idx; persist();
+  $('#lvTitle').textContent = 'Level ' + (idx + 1);
+  $('#lvSub').textContent = 'Par ' + L.par + ' moves';
+  build();
+  render(true);
+  closeModal();
+}
+
+function woodFor(id) { return WOODS[(id.charCodeAt(0) * 7 + G.idx) % WOODS.length]; }
+function build() {
+  for (const e of river.querySelectorAll('.piece,.ghost,.splash')) e.remove();
+  for (const p of piecesOf(G.board)) {
+    const d = document.createElement('div');
+    d.dataset.id = p.id;
+    if (p.id === 'A') { d.className = 'piece raft bob'; d.innerHTML = '<div class="body"><div class="duck">' + DUCK + '</div></div>'; d.setAttribute('aria-label', 'The raft'); }
+    else {
+      const w = woodFor(p.id);
+      d.className = 'piece log ' + (p.horiz ? 'h' : 'v') + (w.birch ? ' birch' : '');
+      d.innerHTML = '<div class="body"></div>';
+      d.style.setProperty('--wood', w.wood); d.style.setProperty('--grain', w.grain); d.style.setProperty('--ring', w.ring); d.style.setProperty('--endc', w.endc);
+      d.setAttribute('aria-label', (p.horiz ? 'Log lying across, ' : 'Log lying along the river, ') + p.len + ' long');
+    }
+    d.tabIndex = 0;
+    river.appendChild(d);
+    G.els[p.id] = d;
+  }
+  for (let i = 0; i < JN; i++) {
+    if (G.board[i] !== 'x') continue;
+    const d = document.createElement('div');
+    d.className = 'piece rock';
+    d.innerHTML = '<div class="body"></div>';
+    place(d, Math.floor(i / JW), i % JW, 1, true);
+    river.appendChild(d);
+  }
+  $('#gap').style.top = 'calc(var(--bw) + (100% - 2 * var(--bw)) / 6 * ' + G.exitRow + ')';
+  layout();
+}
+function place(d, row, col, len, horiz) {
+  d.style.left = (col / JW * 100) + '%';
+  d.style.top = (row / JW * 100) + '%';
+  d.style.width = ((horiz ? len : 1) / JW * 100) + '%';
+  d.style.height = ((horiz ? 1 : len) / JW * 100) + '%';
+}
+function layout() {
+  const wrap = bank.parentElement;
+  const top = wrap.getBoundingClientRect().top + window.scrollY;
+  const availH = window.innerHeight - top - $('#foot').offsetHeight - 40;
+  const size = Math.max(240, Math.min(wrap.clientWidth, 440, availH));
+  bank.style.width = size + 'px';
+  const bw = Math.round(size * 0.045);
+  bank.style.setProperty('--bw', bw + 'px');
+  bank.style.setProperty('--cell', ((size - 2 * bw) / JW) + 'px');
+}
+window.addEventListener('resize', layout);
+
+function render(instant) {
+  for (const p of piecesOf(G.board)) {
+    const d = G.els[p.id];
+    if (!d) continue;
+    if (instant) d.style.transition = 'none';
+    place(d, p.row, p.col, p.len, p.horiz);
+    if (instant) { void d.offsetWidth; d.style.transition = ''; }
+  }
+  const s = starsNow();
+  $('#starsNow').innerHTML = starsHTML(s);
+  $('#starsNow').setAttribute('aria-label', s + ' stars so far');
+  $('#count').innerHTML = '<small>Moves</small>' + G.moves + '<span class="sub">par ' + G.par + '</span>';
+  $('#btnUndo').disabled = !G.history.length || G.won;
+}
+function starsNow() {
+  let s = G.moves <= G.par ? 3 : G.moves <= G.par + Math.max(3, Math.ceil(G.par * 0.5)) ? 2 : 1;
+  if (G.hints) s = Math.min(s, 2);
+  return s;
+}
+
+/* ---------- dragging a log along its length ---------- */
+function freeRange(p) {
+  const step = p.horiz ? 1 : JW;
+  let lo = p.horiz ? p.col : p.row, hi = lo;
+  const at = (pos) => (p.horiz ? p.row * JW + pos : pos * JW + p.col);
+  while (lo > 0 && G.board[at(lo - 1)] === '.') lo--;
+  while (hi + p.len < JW && G.board[at(hi + p.len)] === '.') hi++;
+  return [lo, hi];
+}
+function moveTo(id, pos, quiet) {
+  const p = piecesOf(G.board).find((q) => q.id === id);
+  const cur = p.horiz ? p.col : p.row;
+  if (pos === cur) return false;
+  const b = G.board.split('');
+  for (let k = 0; k < p.len; k++) b[p.horiz ? p.row * JW + cur + k : (cur + k) * JW + p.col] = '.';
+  for (let k = 0; k < p.len; k++) b[p.horiz ? p.row * JW + pos + k : (pos + k) * JW + p.col] = id;
+  G.history.push(G.board);
+  G.board = b.join('');
+  G.moves++;
+  clearHint();
+  if (!quiet) sfx('thunk', p.len);
+  render();
+  queueSave();
+  if (isSolvedRow(G.board)) win();
+  return true;
+}
+function isSolvedRow(b) { return b[G.exitRow * JW + JW - 1] === 'A' && b[G.exitRow * JW + JW - 2] === 'A'; }
+
+river.addEventListener('pointerdown', (e) => {
+  if (!G || G.won || drag) return;
+  const d = e.target.closest('.piece');
+  if (!d || !d.dataset.id) return;
+  e.preventDefault();
+  const p = piecesOf(G.board).find((q) => q.id === d.dataset.id);
+  const [lo, hi] = freeRange(p);
+  const cellPx = river.getBoundingClientRect().width / JW;
+  drag = { id: e.pointerId, el: d, p, lo, hi, start: p.horiz ? p.col : p.row, x0: e.clientX, y0: e.clientY, cellPx, pos: p.horiz ? p.col : p.row, bumped: false };
+  try { river.setPointerCapture(e.pointerId); } catch (err) {}
+  d.classList.add('dragging');
+});
+river.addEventListener('pointermove', (e) => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const delta = ((drag.p.horiz ? e.clientX - drag.x0 : e.clientY - drag.y0) / drag.cellPx);
+  let pos = drag.start + delta;
+  const clamped = Math.max(drag.lo, Math.min(drag.hi, pos));
+  if (clamped !== pos && !drag.bumped && Math.abs(clamped - pos) > 0.25) { drag.bumped = true; sfx('bump'); }
+  if (clamped === pos) drag.bumped = false;
+  drag.pos = clamped;
+  if (drag.p.horiz) drag.el.style.left = (clamped / JW * 100) + '%'; else drag.el.style.top = (clamped / JW * 100) + '%';
+});
+function endDrag(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  const d = drag; drag = null;
+  d.el.classList.remove('dragging');
+  const pos = Math.round(d.pos);
+  if (!moveTo(d.p.id, pos)) render();
+}
+river.addEventListener('pointerup', endDrag);
+river.addEventListener('pointercancel', endDrag);
+river.addEventListener('keydown', (e) => {
+  const d = e.target.closest('.piece');
+  if (!d || !d.dataset.id || !G || G.won) return;
+  const p = piecesOf(G.board).find((q) => q.id === d.dataset.id);
+  const dir = { ArrowLeft: p.horiz ? -1 : 0, ArrowRight: p.horiz ? 1 : 0, ArrowUp: p.horiz ? 0 : -1, ArrowDown: p.horiz ? 0 : 1 }[e.key];
+  if (dir === undefined) return;
+  e.preventDefault();
+  if (!dir) return;
+  const [lo, hi] = freeRange(p), cur = p.horiz ? p.col : p.row;
+  const pos = Math.max(lo, Math.min(hi, cur + dir));
+  if (pos === cur) sfx('bump'); else moveTo(p.id, pos);
+});
+
+/* ---------- undo, hint ---------- */
+$('#btnUndo').addEventListener('click', () => {
+  if (!G || G.won || !G.history.length) return;
+  G.board = G.history.pop();
+  G.moves = Math.max(0, G.moves - 1);
+  clearHint();
+  sfx('thunk', 2);
+  render(); queueSave();
+});
+function clearHint() {
+  clearTimeout(hintTimer);
+  for (const e of river.querySelectorAll('.ghost')) e.remove();
+  for (const e of river.querySelectorAll('.hinting')) e.classList.remove('hinting');
+}
+$('#btnHint').addEventListener('click', () => {
+  if (!G || G.won) return;
+  clearHint();
+  const E = makeEngine(G.board);
+  const sol = E.solve(E.start, 400000);
+  if (!sol || !sol.length) { toast('Hmm, no way through from here — try Undo or Restart.'); return; }
+  const [id, delta] = sol[0];
+  const p = piecesOf(G.board).find((q) => q.id === id);
+  const el = G.els[id];
+  el.classList.add('hinting');
+  const ghost = document.createElement('div');
+  ghost.className = 'ghost';
+  ghost.innerHTML = '<div class="body"></div>';
+  place(ghost, p.horiz ? p.row : p.row + delta, p.horiz ? p.col + delta : p.col, p.len, p.horiz);
+  river.appendChild(ghost);
+  G.hints++;
+  render();
+  toast(sol.length === 1 ? 'One last slide and the raft is free!' : 'Slide the glowing ' + (id === 'A' ? 'raft' : 'log') + ' here — ' + sol.length + ' moves from home.', 2600);
+  hintTimer = setTimeout(clearHint, 3000);
+  sfx('hint');
+});
+
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!G || G.won) { if (save.cur) { delete save.cur; persist(); } return; }
+    save.cur = { i: G.idx, b: G.board, h: G.history.slice(-200), n: G.hints };
+    persist();
+  }, 250);
+}
+
+/* ---------- winning: the raft drifts out through the gap ---------- */
+const WIN_TITLES = ['Home and dry!', 'Smooth sailing!', 'Quack-tastic!', 'Clear waters!', 'Jam busted!'];
+function win() {
+  G.won = true;
+  const stars = starsNow();
+  save.done[G.idx] = Math.max(save.done[G.idx] || 0, stars);
+  delete save.cur;
+  persist();
+  $('#restartLabel').textContent = 'Next';
+  $('#restartIcon').innerHTML = ICON.chevR;
+  $('#btnUndo').disabled = true;
+  const raft = G.els.A;
+  setTimeout(() => {
+    raft.classList.add('sail');
+    raft.style.left = '112%';
+    const s = document.createElement('div');
+    s.className = 'splash';
+    s.style.left = '100%'; s.style.top = ((G.exitRow + 0.5) / JW * 100) + '%';
+    river.appendChild(s);
+    sfx('quack');
+  }, 180);
+  sfx('win');
+  winTimer = setTimeout(() => showWin(stars), 1300);
+}
+function showWin(stars) {
+  const msg = G.moves <= G.par ? 'Freed in ' + G.moves + ' moves — that\'s par!' : 'Freed in ' + G.moves + ' moves. Par is ' + G.par + '.';
+  openModal(
+    '<div class="art">' + DUCK + '</div>' +
+    '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
+    '<p>' + msg + '</p>' +
+    '<div class="badge-row">' + starsHTML(stars) + '</div>' +
+    (stars < 3 && G.hints ? '<p style="font-size:15px;margin-top:-6px">Hints cap a river at two stars.</p>' : '') +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="next">Next river</button>' +
+    '<button class="btn" data-act="levels">Choose level</button>' +
+    '<button class="btn" data-act="retry">Play again</button>' +
+    '</div>'
+  );
+}
+
+GAME.showHelp = () => {
+  openModal(
+    '<div class="logo"><svg viewBox="0 0 64 48">' + DUCK.replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg><h2>Log Jam</h2></div>' +
+    '<p>The duckling\'s raft is stuck in a jam of floating logs.</p>' +
+    '<ul class="rules">' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" fill="#9a6a3f" stroke="#5e3a22"/><path d="M2 4h6M2 4l2-2M2 4l2 2M22 20h-6M22 20l-2-2M22 20l-2 2"/></svg></span><span>Drag a log to slide it along its length. Logs never turn.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 64 48">' + DUCK.replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg></span><span>Clear a channel so the raft can float out of the gap on the right.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="13" rx="8" ry="7" fill="#9aa0a8" stroke="#5c6168" stroke-width="2"/></svg></span><span>Rocks don\'t budge.</span></li>' +
+    '<li><span class="mini"><span class="star">' + ICON.star + '</span></span><span>Free the raft in par, the fewest moves possible, for three stars.</span></li>' +
+    '</ul>' +
+    '<p style="font-size:15px;margin-top:-4px">One move is one slide, however far. Undo is free, and Hint shows the best next slide.</p>' +
+    '<div class="stack"><button class="btn primary" data-act="close">Let\'s float</button></div>'
+  );
+};
+
+/* ---------- music: a lazy river shuffle with a wood-block tick ---------- */
+GAME.music = {
+  tempo: 96,
+  tracks: [
+    { inst: INST.marimba, vol: 0.15, seq: track('D5:.66 F#5:.34 A5 B5:.66 A5:.34 F#5 E5:.66 F#5:.34 G5 F#5:.66 E5:.34 D5 B4:.66 D5:.34 F#5 A5:.66 G5:.34 F#5 E5:2 - A4 ' +
+      'D5:.66 F#5:.34 A5 D6:.66 C#6:.34 B5 A5:.66 B5:.34 A5 F#5:.66 E5:.34 D5 G5:.66 F#5:.34 E5 C#5:.66 D5:.34 E5 D5:2 -:2') },
+    { inst: INST.wbass, vol: 0.14, seq: track('D3 F#3 A3 F#3 A2 C#3 E3 C#3 B2 D3 F#3 D3 A2 E3 A3 E3 D3 F#3 A3 B3 D3 C#3 B2 A2 G2 B2 A2 C#3 D3 A2 D3 -') },
+    { inst: INST.knock, perc: true, vol: 0.05, seq: track(Array(8).fill('- x - x').join(' ')) }
+  ]
+};
+GAME.sfx = {
+  thunk(t, len) {
+    const f = len === 3 ? 120 : 150;
+    tone(t, f, { type: 'sine', to: f * 0.62, a: 0.003, dur: 0.16, vol: 0.2 });
+    noise(t, { f: 600, q: 1.5, dur: 0.06, vol: 0.06 });
+    noise(t + 0.03, { f: 1400, to: 500, q: 0.8, dur: 0.18, vol: 0.025 });
+  },
+  bump(t) { tone(t, 95, { type: 'sine', to: 70, a: 0.002, dur: 0.08, vol: 0.1 }); },
+  hint(t) { tone(t, 1175, { type: 'sine', a: 0.004, dur: 0.25, vol: 0.06 }); tone(t + 0.09, 1568, { type: 'sine', a: 0.004, dur: 0.3, vol: 0.05 }); },
+  quack(t) {
+    for (const dt of [0, 0.2]) {
+      tone(t + dt, 640, { type: 'sawtooth', to: 420, a: 0.01, dur: 0.12, vol: 0.12, lp: 1500, q: 8 });
+      tone(t + dt, 1280, { type: 'square', to: 860, a: 0.01, dur: 0.08, vol: 0.03, lp: 2600 });
+    }
+    noise(t + 0.3, { f: 1800, to: 300, q: 0.6, dur: 0.5, vol: 0.06 });
+  },
+  win(t) { SFX.win(t + 0.5); }
+};
+
+/* ---------- boot ---------- */
+$('#undoIcon').innerHTML = ICON.undo;
+$('#hintIcon').innerHTML = ICON.hint;
+$('#restartIcon').innerHTML = ICON.restart;
+const disarmRestart = armConfirm($('#btnRestart'), $('#restartLabel'), 'Restart',
+  () => G && !G.won && G.moves > 0,
+  () => {
+    if (G.won) { loadLevel(G.idx + 1); return; }
+    delete save.cur; persist();
+    startLevel(G.idx, G.L);
+  });
+shellBoot();
+loadLevel(save.level || 0);
+if (!save.seenHelp) { GAME.showHelp(); save.seenHelp = true; persist(); }
+</script>
+</body>
+</html>

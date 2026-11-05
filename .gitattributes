@@ -1,0 +1,4 @@
+# Keep script line endings correct whatever the cloning platform's settings.
+*.sh  text eol=lf
+*.bat text eol=crlf
+*.png binary

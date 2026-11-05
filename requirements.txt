@@ -1,0 +1,2 @@
+# Optional extra for serve.py: prints a QR code so you can open the games on your phone.
+qrcode>=7.4
