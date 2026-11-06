@@ -29,6 +29,7 @@ It gets its own icon, opens full screen without the browser bars, and works offl
 - Water flows out from the **well** through joined pipes, live as you turn them. Seedlings **bloom** when water reaches them.
 - Every tile must be joined up, with no pipe ending in mid-air. There are no loops: every pipe has exactly one route back to the well.
 - **Press and hold** (or right-click) to pin a tile you're sure of, so you can't turn it by accident.
+- Big garden? **Pinch** to zoom in, then drag to look around. The magnifier button zooms back out.
 - Finish near **par** — the fewest turns — for three stars. **Undo** is free; **Hint** turns and pins one tile for you (and caps the level at two stars).
 
 ## Features
@@ -36,7 +37,8 @@ It gets its own icon, opens full screen without the browser bars, and works offl
 - **Endless gardens** generated on your device from random spanning trees, from 3×3 up to 8×10.
 - Water visibly travels outward through newly joined pipes, and open pipe ends drip.
 - Pots and the well stay upright while the pipes turn beneath them.
-- Keyboard play on desktop: arrow keys move between tiles, Enter turns, P pins.
+- **Pinch to zoom** on big gardens, then drag with one finger to look around.
+- Keyboard play on desktop: arrow keys move between tiles, Enter turns, P pins. The mouse wheel or a trackpad pinch zooms, dragging moves around, and **+**, **−** and **0** zoom from the keyboard.
 - Light and dark mode, safe-area-aware layout and big tap targets, so it plays well one-handed on a phone.
 - **Background music** and **sound effects**, each off by default and toggled separately from the header. All audio is synthesised live with the Web Audio API — there are no audio files.
 - Progress saves in your browser (`localStorage`), including a level you're halfway through.

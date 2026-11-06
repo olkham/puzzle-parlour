@@ -30,6 +30,7 @@ It gets its own icon, opens full screen without the browser bars, and works offl
 - Switch to **Mark** to dot squares you know are empty (dots are just notes; they never cost a heart).
 - Finished rows and columns grey out and their leftover squares are dotted for you.
 - Stuck? The **bulb** highlights a square that one row or column already pins down, and tells you which.
+- Big hoop? **Pinch** to zoom in, and drag with two fingers (or one finger along the clues) to look around. The clues stay pinned to the edges of the grid, and the magnifier button zooms back out.
 - Every puzzle has exactly one answer, and logic alone gets you there — never guessing.
 
 ## Features
@@ -37,7 +38,8 @@ It gets its own icon, opens full screen without the browser bars, and works offl
 - **24 hand-drawn pictures** (5×5 up to 15×15) — a heart, a ginger cat, a teapot, a lighthouse and more — then **endless quilt motifs** generated on your device, each checked with a line-by-line logic solver before you see it.
 - Finished pictures **bloom into their real colours**, rippling out from the middle, and appear as thumbnails in the level picker — your sampler.
 - A live mini-preview of your stitching in the corner of the hoop.
-- Keyboard play on desktop: arrow keys move, Enter stitches, X marks. Right-click marks too.
+- **Pinch to zoom** on big hoops, with the clues pinned to the edges while you look around. One finger still stitches: a touch waits a moment before it counts, so starting a pinch never costs a heart.
+- Keyboard play on desktop: arrow keys move, Enter stitches, X marks. Right-click marks too. The mouse wheel or a trackpad pinch zooms, middle-drag moves around, and **+**, **−** and **0** zoom from the keyboard.
 - Light and dark mode, safe-area-aware layout and big tap targets, so it plays well one-handed on a phone.
 - **Background music** and **sound effects**, each off by default and toggled separately from the header. All audio is synthesised live with the Web Audio API — there are no audio files.
 - Progress saves in your browser (`localStorage`), including a level you're halfway through.
