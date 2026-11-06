@@ -2,6 +2,8 @@
 
 Five cosy, phone-friendly puzzle games, each a single self-contained HTML file in the same spirit as [Whisker Hunt](https://github.com/HamiltonSteff/Whisker-Hunt). Each takes a well-known puzzle format and gives it its own twist and theme.
 
+**▶️ Play now: <https://olkham.github.io/puzzle-parlour/>**
+
 ![Puzzle Parlour](screenshot.png)
 
 | Game | Style | Based on | The twist |
@@ -18,9 +20,11 @@ Every game has hand-tuned or solver-verified levels, a level picker, three-star 
 
 Any of these works — pick whichever is easiest.
 
-**1. Just open it.** Double-click `index.html` (the launcher) or any game's `index.html`. Nothing to install.
+**1. Play online.** Open <https://olkham.github.io/puzzle-parlour/> in any browser, on a computer or a phone. Nothing to download, and you can install it as an app from there (see [Installing on a phone](#installing-on-a-phone)).
 
-**2. Run a local server** (lets you play on your phone over Wi-Fi, with a QR code to scan):
+**2. Just open it.** Double-click `index.html` (the launcher) or any game's `index.html`. Nothing to install.
+
+**3. Run a local server** (lets you play on your phone over Wi-Fi, with a QR code to scan):
 
 ```bash
 ./install.sh      # Windows: install.bat
@@ -29,7 +33,7 @@ Any of these works — pick whichever is easiest.
 
 `install` creates a small Python virtual environment in `.venv` (it checks for both `python` and `python3` and asks which to use). It's safe to run again; `--clean` deletes `.venv` and starts fresh, `--python PATH` skips the question and `--yes` takes the default. `run` serves everything at <http://localhost:8080> and prints a link and QR code for your phone; it accepts `--port`, `--host` and `--no-browser`.
 
-**3. Docker.** No Python needed:
+**4. Docker.** No Python needed:
 
 ```bash
 docker compose up -d        # then open http://localhost:8080
