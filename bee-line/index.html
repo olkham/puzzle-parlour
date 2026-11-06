@@ -227,8 +227,21 @@ svg{display:block}
 .pairs svg.pop{animation:chip .5s ease}
 @keyframes chip{0%{transform:scale(1)}35%{transform:scale(1.35) rotate(-10deg)}100%{transform:none}}
 
-.hive-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;min-height:200px}
-.hive-card{background:var(--hive);border-radius:24px;padding:10px;box-shadow:0 0 0 2px var(--card-edge),var(--shadow);touch-action:none;display:grid;place-items:center;max-width:100%}
+.hive-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;touch-action:none}
+.hive-card{position:relative;background:var(--hive);border-radius:24px;padding:10px;box-shadow:0 0 0 2px var(--card-edge),var(--shadow);touch-action:none;display:grid;place-items:center;max-width:100%}
+.hive-card.zoomed #hive{overflow:hidden}
+.hive-card .zoom-fit{top:-14px;right:-14px}
+
+/* zoom-out button, shown while zoomed in */
+.zoom-fit{
+  position:absolute;z-index:4;width:40px;height:40px;border-radius:50%;padding:0;display:grid;place-items:center;
+  background:var(--card);border:2px solid var(--card-edge);box-shadow:var(--shadow);color:var(--ink);
+  animation:zoomfit .2s ease;touch-action:manipulation;
+}
+.zoom-fit[hidden]{display:none}
+.zoom-fit svg{width:21px;height:21px}
+.zoom-fit:active{transform:scale(.92)}
+@keyframes zoomfit{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
 #hive{display:block;touch-action:none;overflow:visible}
 .cell{fill:var(--wax);stroke:var(--wax-edge);stroke-width:.07;transition:fill .18s}
 .trail{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:.46}
@@ -272,6 +285,7 @@ svg{display:block}
       <svg id="hive" role="img" aria-label="Honeycomb board">
         <g id="cellsG"></g><g id="trailsG"></g><g id="flowersG"></g><g id="beesG"></g>
       </svg>
+      <button class="zoom-fit" id="zoomFit" data-zoom-skip hidden aria-label="Zoom out to see the whole comb"></button>
     </div>
   </div>
 
@@ -654,6 +668,231 @@ function shellBoot() {
   $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
   setMusic(musicOn, false);
   setSfx(sfxOn);
+}
+
+/* =====================================================================
+   Zoom and pan, for when the board gets big. Pinch with two fingers to
+   zoom (moving them drags the board around), or use the mouse wheel, a
+   trackpad pinch or the + − 0 keys. One finger still plays: a touch waits
+   a moment, or until it moves or lifts, before the game sees it, so the
+   first finger of a pinch never plays a move by accident. The game gives:
+     el                     the area that takes touches
+     layout()               lay the board out at zoom Z.z (setting Z.max on
+                            the way) and return {cw, ch, vw, vh, left, top}:
+                            the board's size at that zoom, the size of the
+                            window onto it, and where that window is on screen
+     pan()                  slide the board so (Z.x, Z.y) sits at the window's
+                            top-left corner
+     down/move/up/cancel(e) one-finger play
+     canPan(e)              optional: when zoomed in, should a one-finger drag
+                            from here slide the board instead of playing?
+     focus()                optional: the screen point the keys zoom around
+     fit, tip               the zoom-out button, and a first-time tip
+   ===================================================================== */
+const ZOOM_ICON = {
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8"/></svg>',
+  in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8M10.5 7.6v5.8"/></svg>'
+};
+function makeZoom(o) {
+  const Z = { z: 1, x: 0, y: 0, max: 1, g: null };
+  const pts = new Map();          /* touches on the board: pointerId -> {x, y} */
+  let mode = '';                  /* '' | 'wait' | 'play' | 'pan' | 'pinch' */
+  let one = null, pinch = null, raf = 0, tween = 0, gs = 0;
+  const WAIT = 220;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* only boards that gain at least a quarter from zooming can zoom */
+  const zoomable = () => Z.max >= 1.25;
+  const top = () => (zoomable() ? Z.max : 1);
+  const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (o.fit) {
+    o.fit.innerHTML = ZOOM_ICON.out;
+    o.fit.addEventListener('click', () => reset(true));
+  }
+
+  function settle() {
+    const g = Z.g;
+    if (Z.z <= 1) { Z.x = 0; Z.y = 0; }
+    Z.x = clamp(Z.x, 0, Math.max(0, g.cw - g.vw));
+    Z.y = clamp(Z.y, 0, Math.max(0, g.ch - g.vh));
+    o.pan();
+    if (o.fit) o.fit.hidden = Z.z <= 1.01;
+  }
+  /* the board point under a screen point, as a fraction of the board's size */
+  function at(cx, cy) { const g = Z.g; return [(cx - g.left + Z.x) / g.cw, (cy - g.top + Z.y) / g.ch]; }
+  /* zoom to z with board point (u, v) under screen point (cx, cy) */
+  function place(z, cx, cy, u, v) {
+    z = clamp(z, 1, top());
+    if (z !== Z.z || !Z.g) { Z.z = z; Z.g = o.layout(); }
+    Z.x = u * Z.g.cw - (cx - Z.g.left);
+    Z.y = v * Z.g.ch - (cy - Z.g.top);
+    settle();
+  }
+  function zoomAt(z, cx, cy) {
+    cancelAnimationFrame(tween);
+    Z.g = o.layout();
+    if (cx == null) { cx = Z.g.left + Z.g.vw / 2; cy = Z.g.top + Z.g.vh / 2; }
+    const [u, v] = at(cx, cy);
+    place(z, cx, cy, u, v);
+  }
+  function panBy(dx, dy) { if (Z.z > 1) { Z.x += dx; Z.y += dy; settle(); } }
+  /* after a resize or a new board: lay out again at the current zoom */
+  function refresh() {
+    Z.g = o.layout();
+    if (Z.z > top()) { Z.z = top(); Z.g = o.layout(); }
+    settle();
+  }
+  /* back to the whole board, gliding there if asked */
+  function reset(glide) {
+    cancelAnimationFrame(tween);
+    if (!glide || Z.z <= 1.01 || calm()) { Z.z = 1; refresh(); return; }
+    Z.g = o.layout();
+    const cx = Z.g.left + Z.g.vw / 2, cy = Z.g.top + Z.g.vh / 2, [u, v] = at(cx, cy), z0 = Z.z, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 260);
+      place(z0 + (1 - z0) * (1 - Math.pow(1 - k, 3)), cx, cy, u, v);
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  /* slide the board so a box (in board pixels at the current zoom) is in view */
+  function show(x, y, w, h) {
+    if (Z.z <= 1 || !Z.g) return;
+    const g = Z.g, m = 10;
+    if (x - m < Z.x) Z.x = x - m; else if (x + w + m > Z.x + g.vw) Z.x = x + w + m - g.vw;
+    if (y - m < Z.y) Z.y = y - m; else if (y + h + m > Z.y + g.vh) Z.y = y + h + m - g.vh;
+    settle();
+  }
+  /* on a phone, mention pinching the first time a board is big enough to need it */
+  function tip() {
+    if (top() < 1.6 || save.zoomTip || !o.tip || !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+    setTimeout(() => {
+      if (save.zoomTip || modalOpen()) return;
+      save.zoomTip = true; persist();
+      toast(o.tip, 4200);
+    }, 900);
+  }
+
+  /* ---------- touches, mouse and pen ---------- */
+  function commit() {
+    if (mode !== 'wait') return;
+    clearTimeout(one.t);
+    mode = 'play';
+    o.down(one.e);
+  }
+  function startPinch(a, b) {
+    cancelAnimationFrame(tween);
+    const p = pts.get(a), q = pts.get(b);
+    pinch = { ids: [a, b], d: Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
+    mode = 'pinch'; one = null;
+    Z.g = o.layout();
+    for (const id of pinch.ids) { try { o.el.setPointerCapture(id); } catch (err) {} }
+  }
+  function pinchFrame() {
+    raf = 0;
+    if (mode !== 'pinch') return;
+    const p = pts.get(pinch.ids[0]), q = pts.get(pinch.ids[1]);
+    if (!p || !q) return;
+    const d = Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    /* keep the point that was between the fingers between them, at the new spread */
+    const [u, v] = at(pinch.mx, pinch.my);
+    place(Z.z * d / pinch.d, mx, my, u, v);
+    pinch.d = d; pinch.mx = mx; pinch.my = my;
+  }
+  const startOne = (e) => ({ id: e.pointerId, e, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, pan: Z.z > 1.01 && (!o.canPan || !!o.canPan(e)) });
+  const quit = (id, x, y) => o.cancel({ pointerId: id, clientX: x, clientY: y, type: 'pointercancel' });
+
+  o.el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest('[data-zoom-skip]')) return;
+    cancelAnimationFrame(tween);
+    if (e.pointerType !== 'touch') {
+      if (mode) return;
+      if (e.button === 1) {
+        if (Z.z > 1) { e.preventDefault(); one = startOne(e); mode = 'pan'; }
+        return;
+      }
+      one = startOne(e); mode = 'play';
+      o.down(e);
+      return;
+    }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === 'pinch') return;
+    if (!mode) {
+      one = startOne(e);
+      if (zoomable()) { mode = 'wait'; one.t = setTimeout(commit, WAIT); }
+      else { mode = 'play'; o.down(e); }
+      return;
+    }
+    /* a second finger turns whatever the first was doing into a pinch (small boards don't zoom, so it's ignored there) */
+    if (!one || !pts.has(one.id) || (mode === 'play' && !zoomable())) return;
+    if (mode === 'wait') clearTimeout(one.t);
+    else if (mode === 'play') { const p = pts.get(one.id); quit(one.id, p.x, p.y); }
+    startPinch(one.id, e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+    if (mode === 'pinch') {
+      if (p && pinch.ids.includes(e.pointerId) && !raf) raf = requestAnimationFrame(pinchFrame);
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const far = Math.hypot(e.clientX - one.x, e.clientY - one.y) > (e.pointerType === 'touch' ? 10 : 5);
+    if (mode === 'wait' && far) {
+      if (one.pan) { clearTimeout(one.t); mode = 'pan'; } else commit();
+    } else if (mode === 'play' && far && one.pan) { quit(one.id, e.clientX, e.clientY); mode = 'pan'; }
+    if (mode === 'play') o.move(e);
+    else if (mode === 'pan') panBy(one.lx - e.clientX, one.ly - e.clientY);
+    one.lx = e.clientX; one.ly = e.clientY;
+  });
+  function end(e) {
+    pts.delete(e.pointerId);
+    if (mode === 'pinch') {
+      if (!pinch.ids.includes(e.pointerId)) return;
+      /* lift one finger and the other carries on sliding the board */
+      const rest = pinch.ids.find((id) => id !== e.pointerId && pts.has(id));
+      pinch = null; cancelAnimationFrame(raf); raf = 0;
+      if (rest !== undefined) { const q = pts.get(rest); one = { id: rest, x: q.x, y: q.y, lx: q.x, ly: q.y }; mode = 'pan'; }
+      else { mode = ''; one = null; }
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const up = e.type === 'pointerup';
+    if (mode === 'wait') { clearTimeout(one.t); if (up) { o.down(one.e); o.up(e); } }
+    else if (mode === 'play') { if (up) o.up(e); else o.cancel(e); }
+    mode = ''; one = null;
+  }
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+
+  /* mouse wheel, and trackpad pinches (which arrive as wheel events with ctrl held) */
+  o.el.addEventListener('wheel', (e) => {
+    if (!zoomable()) return;
+    e.preventDefault();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+    zoomAt(Z.z * Math.exp(-clamp(dy, -150, 150) * (e.ctrlKey ? 0.01 : 0.002)), e.clientX, e.clientY);
+  }, { passive: false });
+  /* Safari: trackpad pinches on a Mac, and stopping iPhones zooming the whole page */
+  o.el.addEventListener('gesturestart', (e) => { e.preventDefault(); gs = pts.size ? 0 : (e.scale || 1); });
+  o.el.addEventListener('gesturechange', (e) => {
+    e.preventDefault();
+    if (!gs || pts.size || !zoomable()) return;
+    zoomAt(Z.z * e.scale / gs, e.clientX, e.clientY);
+    gs = e.scale;
+  });
+  o.el.addEventListener('gestureend', (e) => { e.preventDefault(); gs = 0; });
+  /* keys: + and - zoom, 0 shows the whole board */
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || modalOpen() || !zoomable() || !Z.g) return;
+    const k = e.key;
+    if (k === '0') { e.preventDefault(); reset(true); return; }
+    const f = k === '+' || k === '=' ? 1.3 : k === '-' || k === '_' ? 1 / 1.3 : 0;
+    if (!f) return;
+    e.preventDefault();
+    const p = o.focus && o.focus();
+    zoomAt(Z.z * f, p ? p.x : null, p ? p.y : null);
+  });
+
+  return Object.assign(Z, { refresh, reset, zoomAt, panBy, show, tip });
 }
 
 /* ---------- honeycomb geometry (pointy-top hexes, axial q/r coordinates) ---------- */
@@ -1222,7 +1461,6 @@ function hexPoints(x, y, s) {
 function buildBoard() {
   const sh = G.shape;
   VB = { w: sh.width, h: sh.height };
-  svg.setAttribute('viewBox', '0 0 ' + sh.width.toFixed(3) + ' ' + sh.height.toFixed(3));
   cellsG.innerHTML = ''; trailsG.innerHTML = ''; flowersG.innerHTML = ''; beesG.innerHTML = '';
   G.cellEls = sh.pos.map((p) => el('polygon', { class: 'cell', points: hexPoints(p.x, p.y, 0.97) }, cellsG));
   G.trailEls = []; G.dashEls = [];
@@ -1242,19 +1480,35 @@ function buildBoard() {
   });
   $('#pairs').innerHTML = G.L.pairs.map((_, k) => chipSVG(k)).join('');
   $('#hiveCard').classList.remove('win');
-  layout();
+  zoom.reset();
+  zoom.tip();
 }
+/* the comb fits the screen at full view; zoomed in, the svg grows to fill the space and its viewBox
+   becomes a window onto part of the comb */
+let VIEW = { x: 0, y: 0, w: 1, h: 1 }, pxPerUnit = 1;
 function layout() {
-  if (!G) return;
   const wrap = $('#hiveWrap');
   const availW = Math.min(wrap.clientWidth, 452) - 20;
   const top = wrap.getBoundingClientRect().top + window.scrollY;
   const availH = Math.max(220, window.innerHeight - top - $('#foot').offsetHeight - 52);
-  const scale = Math.min(availW / VB.w, availH / VB.h);
-  svg.style.width = (VB.w * scale).toFixed(1) + 'px';
-  svg.style.height = (VB.h * scale).toFixed(1) + 'px';
+  const fit = Math.min(availW / VB.w, availH / VB.h);
+  /* zoom in until a cell is a comfortable fingertip wide */
+  zoom.max = Math.max(1, Math.min(4, 72 / (fit * Math.sqrt(3))));
+  const s = fit * zoom.z, cw = VB.w * s, ch = VB.h * s;
+  const vw = Math.min(cw, Math.max(availW, VB.w * fit)), vh = Math.min(ch, Math.max(availH, VB.h * fit));
+  svg.style.width = vw + 'px';
+  svg.style.height = vh + 'px';
+  $('#hiveCard').classList.toggle('zoomed', zoom.z > 1);
+  pxPerUnit = s;
+  const r = svg.getBoundingClientRect();
+  return { cw, ch, vw, vh, left: r.left, top: r.top };
 }
-window.addEventListener('resize', layout);
+function panView() {
+  const s = pxPerUnit, g = zoom.g;
+  VIEW = { x: zoom.x / s, y: zoom.y / s, w: g.vw / s, h: g.vh / s };
+  svg.setAttribute('viewBox', [VIEW.x, VIEW.y, VIEW.w, VIEW.h].map((v) => v.toFixed(4)).join(' '));
+}
+window.addEventListener('resize', () => { if (G) zoom.refresh(); });
 
 /* ---------- path bookkeeping ---------- */
 function recompute() {
@@ -1298,9 +1552,12 @@ function render() {
 }
 
 /* ---------- input: drag from a flower (or the end of a trail) to fly a bee ---------- */
-function svgPoint(e) {
+function svgPoint(e, keepIn) {
   const r = svg.getBoundingClientRect();
-  return { x: (e.clientX - r.left) / r.width * VB.w, y: (e.clientY - r.top) / r.height * VB.h };
+  let x = e.clientX, y = e.clientY;
+  /* zoomed in, a trail can't be dragged on past the edge of the window */
+  if (keepIn && zoom.z > 1) { x = Math.max(r.left, Math.min(r.right, x)); y = Math.max(r.top, Math.min(r.bottom, y)); }
+  return { x: VIEW.x + (x - r.left) / r.width * VIEW.w, y: VIEW.y + (y - r.top) / r.height * VIEW.h };
 }
 function nearestCell(pt, maxD) {
   let best = -1, bd = maxD * maxD;
@@ -1310,8 +1567,8 @@ function nearestCell(pt, maxD) {
 }
 function snapshot() { return G.paths.map((p) => p.slice()); }
 
-svg.addEventListener('pointerdown', (e) => {
-  if (!G || G.won || stroke) return;
+function playDown(e) {
+  if (!G || G.won || stroke || !svg.contains(e.target)) return;
   const c = nearestCell(svgPoint(e), 0.95);
   if (c < 0) return;
   let k = -1;
@@ -1328,7 +1585,7 @@ svg.addEventListener('pointerdown', (e) => {
   stroke.base[k] = G.paths[k].slice();
   recompute(); render();
   sfx('tick', 0);
-});
+}
 
 function stepTo(c) {
   const k = stroke.k, p = G.paths[k], head = p[p.length - 1];
@@ -1360,9 +1617,9 @@ function restoreOthers() {
   }
   if (cut) sfx('snip');
 }
-svg.addEventListener('pointermove', (e) => {
+function playMove(e) {
   if (!stroke || e.pointerId !== stroke.id) return;
-  const pt = svgPoint(e);
+  const pt = svgPoint(e, true);
   const k = stroke.k, sh = G.shape;
   const head = G.paths[k][G.paths[k].length - 1];
   const target = nearestCell(pt, 1.05);
@@ -1379,7 +1636,7 @@ svg.addEventListener('pointermove', (e) => {
     changed = true;
   }
   if (changed) { recompute(); render(); }
-});
+}
 function endStroke(e) {
   if (!stroke || (e && e.pointerId !== stroke.id)) return;
   const k = stroke.k;
@@ -1395,8 +1652,20 @@ function endStroke(e) {
   queueSave();
   checkWin(changed);
 }
-svg.addEventListener('pointerup', endStroke);
-svg.addEventListener('pointercancel', endStroke);
+
+const zoom = makeZoom({
+  el: $('#hiveWrap'),
+  fit: $('#zoomFit'),
+  layout, pan: panView,
+  down: playDown, move: playMove, up: endStroke, cancel: endStroke,
+  /* zoomed in, a one-finger drag from an empty cell (or off the comb) slides it around */
+  canPan: (e) => {
+    if (!G || G.won || !svg.contains(e.target)) return true;
+    const c = nearestCell(svgPoint(e), 0.95);
+    return c < 0 || (G.endOf[c] < 0 && G.owner[c] < 0);
+  },
+  tip: 'Tip: pinch the comb to zoom in. Drag with two fingers, or from an empty cell, to look around.'
+});
 
 function onConnect(k) {
   sfx('connect', k);
@@ -1441,6 +1710,14 @@ function checkWin(fromMove) {
   win();
 }
 
+/* when zoomed in, slide a set of cells into view */
+function showCells(cells) {
+  const pos = G.shape.pos, s = pxPerUnit;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const c of cells) { x0 = Math.min(x0, pos[c].x); x1 = Math.max(x1, pos[c].x); y0 = Math.min(y0, pos[c].y); y1 = Math.max(y1, pos[c].y); }
+  zoom.show((x0 - 0.9) * s, (y0 - 0.9) * s, (x1 - x0 + 1.8) * s, (y1 - y0 + 1.8) * s);
+}
+
 /* ---------- hint: lay down the true trail for one pair ---------- */
 function hint() {
   if (!G || G.won) return;
@@ -1466,6 +1743,7 @@ function hint() {
   G.hints++; G.lastPair = -1;
   recompute(); render();
   G.trailEls[pick].classList.add('hint-glow');
+  showCells(s);
   setTimeout(() => G && G.trailEls[pick] && G.trailEls[pick].classList.remove('hint-glow'), 3200);
   onConnect(pick);
   queueSave();
@@ -1506,6 +1784,7 @@ function win() {
   $('#restartLabel').textContent = 'Next';
   $('#restartIcon').innerHTML = ICON.chevR;
   $('#hiveCard').classList.add('win');
+  zoom.reset(true);
   G.cellEls.forEach((c, i) => { c.style.animationDelay = (G.shape.pos[i].x * 30 + G.shape.pos[i].y * 20) + 'ms'; });
   for (let k = 0; k < G.K; k++) flyBee(G.paths[k].slice(), k * 90);
   sfx('win');
@@ -1537,6 +1816,7 @@ GAME.showHelp = () => {
     '<li><span class="mini"><svg viewBox="0 0 24 24"><path d="M3 12h18M12 3v18" stroke="#e5484d" stroke-width="3.2" stroke-linecap="round"/><path d="M12 3v18" stroke="#3b82f6" stroke-width="3.2" stroke-linecap="round"/></svg></span><span>Trails can\'t cross. Drawing over a trail cuts it.</span></li>' +
     '<li><span class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.8l7.9 4.6v9.2L12 21.2l-7.9-4.6V7.4z" fill="#f2a516" stroke="#3a2a10"/></svg></span><span>Cover every cell of the comb to finish.</span></li>' +
     '<li><span class="mini"><span class="star">' + ICON.star + '</span></span><span>Link each pair in one move for a perfect three stars.</span></li>' +
+    '<li><span class="mini">' + ZOOM_ICON.in + '</span><span>Big comb? Pinch to zoom in, and drag with two fingers to look around.</span></li>' +
     '</ul>' +
     '<p style="font-size:15px;margin-top:-4px">Tap a flower to clear its trail. Undo and Hint are in the bottom bar.</p>' +
     '<div class="stack"><button class="btn primary" data-act="close">Let\'s buzz</button></div>'

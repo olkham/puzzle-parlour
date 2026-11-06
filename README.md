@@ -14,7 +14,7 @@ Five cosy, phone-friendly puzzle games, each a single self-contained HTML file i
 | [🍰 Layer Cake](layer-cake/) | Sorting | Water sort | Cake layers with flavour patterns, plus mystery bakes |
 | [🌱 Green Thumb](green-thumb/) | Pipe rotation | Net / Pipe Mania | Live water flow, blooming seedlings and pinnable tiles |
 
-Every game has hand-tuned or solver-verified levels, a level picker, three-star or three-heart scoring, undo or hints where they fit, light and dark mode, saved progress, and procedural background music and sound effects (no audio files).
+Every game has hand-tuned or solver-verified levels, a level picker, three-star or three-heart scoring, undo or hints where they fit, light and dark mode, saved progress, and procedural background music and sound effects (no audio files). The games whose boards grow (Thread Count, Bee Line and Green Thumb) let you pinch to zoom in on big boards and drag around them; on desktop, the mouse wheel and the + − 0 keys do the same.
 
 ## Getting started
 

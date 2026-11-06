@@ -1,7 +1,7 @@
 /* Offline support for Thread Count. Once the page has loaded online, it keeps working with no connection,
    including from a home-screen icon. The build stamps a new VERSION whenever the files change. */
 const APP = 'thread-count';
-const VERSION = '21e9f73d29';
+const VERSION = '15f7ca3a84';
 const CACHE = APP + '-' + VERSION;
 const FONTS = APP + '-fonts';
 const FILES = ["./","index.html","manifest.json","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","icons/apple-touch-icon.png"];

@@ -235,14 +235,28 @@ svg{display:block}
 .count{text-align:right;line-height:1.05}
 .count .sub{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
 
-.garden-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%}
+.garden-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;touch-action:none}
+.garden-frame{position:relative}
+.garden-view{border-radius:22px;overflow:hidden;overflow:clip;box-shadow:var(--shadow);touch-action:none}
 .garden{
-  display:grid;gap:3px;padding:10px;border-radius:22px;
+  display:grid;gap:3px;padding:10px;border-radius:22px;width:max-content;
   background-color:var(--lawn);
   background-image:radial-gradient(circle at 25% 35%,var(--lawn-dark) 0 2px,transparent 3px),radial-gradient(circle at 75% 70%,var(--lawn-dark) 0 2px,transparent 3px);
   background-size:22px 22px,30px 30px;
-  box-shadow:var(--shadow);touch-action:manipulation;
+  touch-action:none;
 }
+.garden-frame .zoom-fit{top:-14px;right:-14px}
+
+/* zoom-out button, shown while zoomed in */
+.zoom-fit{
+  position:absolute;z-index:4;width:40px;height:40px;border-radius:50%;padding:0;display:grid;place-items:center;
+  background:var(--card);border:2px solid var(--card-edge);box-shadow:var(--shadow);color:var(--ink);
+  animation:zoomfit .2s ease;touch-action:manipulation;
+}
+.zoom-fit[hidden]{display:none}
+.zoom-fit svg{width:21px;height:21px}
+.zoom-fit:active{transform:scale(.92)}
+@keyframes zoomfit{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
 .tile{
   position:relative;width:var(--ts);height:var(--ts);border-radius:22%;
   background:radial-gradient(circle at 35% 30%,var(--soil-hi),var(--soil) 70%);
@@ -297,7 +311,12 @@ svg{display:block}
   </section>
 
   <div class="garden-wrap" id="gardenWrap">
-    <div class="garden" id="garden" role="grid" aria-label="Garden pipes. Tap a tile to turn it; press and hold to pin it."></div>
+    <div class="garden-frame">
+      <div class="garden-view" id="gardenView">
+        <div class="garden" id="garden" role="grid" aria-label="Garden pipes. Tap a tile to turn it; press and hold to pin it. Plus and minus zoom."></div>
+      </div>
+      <button class="zoom-fit" id="zoomFit" data-zoom-skip hidden aria-label="Zoom out to see the whole garden"></button>
+    </div>
   </div>
 
   <section class="how" aria-label="Controls">
@@ -686,6 +705,231 @@ function shellBoot() {
   setSfx(sfxOn);
 }
 
+/* =====================================================================
+   Zoom and pan, for when the board gets big. Pinch with two fingers to
+   zoom (moving them drags the board around), or use the mouse wheel, a
+   trackpad pinch or the + − 0 keys. One finger still plays: a touch waits
+   a moment, or until it moves or lifts, before the game sees it, so the
+   first finger of a pinch never plays a move by accident. The game gives:
+     el                     the area that takes touches
+     layout()               lay the board out at zoom Z.z (setting Z.max on
+                            the way) and return {cw, ch, vw, vh, left, top}:
+                            the board's size at that zoom, the size of the
+                            window onto it, and where that window is on screen
+     pan()                  slide the board so (Z.x, Z.y) sits at the window's
+                            top-left corner
+     down/move/up/cancel(e) one-finger play
+     canPan(e)              optional: when zoomed in, should a one-finger drag
+                            from here slide the board instead of playing?
+     focus()                optional: the screen point the keys zoom around
+     fit, tip               the zoom-out button, and a first-time tip
+   ===================================================================== */
+const ZOOM_ICON = {
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8"/></svg>',
+  in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8M10.5 7.6v5.8"/></svg>'
+};
+function makeZoom(o) {
+  const Z = { z: 1, x: 0, y: 0, max: 1, g: null };
+  const pts = new Map();          /* touches on the board: pointerId -> {x, y} */
+  let mode = '';                  /* '' | 'wait' | 'play' | 'pan' | 'pinch' */
+  let one = null, pinch = null, raf = 0, tween = 0, gs = 0;
+  const WAIT = 220;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* only boards that gain at least a quarter from zooming can zoom */
+  const zoomable = () => Z.max >= 1.25;
+  const top = () => (zoomable() ? Z.max : 1);
+  const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (o.fit) {
+    o.fit.innerHTML = ZOOM_ICON.out;
+    o.fit.addEventListener('click', () => reset(true));
+  }
+
+  function settle() {
+    const g = Z.g;
+    if (Z.z <= 1) { Z.x = 0; Z.y = 0; }
+    Z.x = clamp(Z.x, 0, Math.max(0, g.cw - g.vw));
+    Z.y = clamp(Z.y, 0, Math.max(0, g.ch - g.vh));
+    o.pan();
+    if (o.fit) o.fit.hidden = Z.z <= 1.01;
+  }
+  /* the board point under a screen point, as a fraction of the board's size */
+  function at(cx, cy) { const g = Z.g; return [(cx - g.left + Z.x) / g.cw, (cy - g.top + Z.y) / g.ch]; }
+  /* zoom to z with board point (u, v) under screen point (cx, cy) */
+  function place(z, cx, cy, u, v) {
+    z = clamp(z, 1, top());
+    if (z !== Z.z || !Z.g) { Z.z = z; Z.g = o.layout(); }
+    Z.x = u * Z.g.cw - (cx - Z.g.left);
+    Z.y = v * Z.g.ch - (cy - Z.g.top);
+    settle();
+  }
+  function zoomAt(z, cx, cy) {
+    cancelAnimationFrame(tween);
+    Z.g = o.layout();
+    if (cx == null) { cx = Z.g.left + Z.g.vw / 2; cy = Z.g.top + Z.g.vh / 2; }
+    const [u, v] = at(cx, cy);
+    place(z, cx, cy, u, v);
+  }
+  function panBy(dx, dy) { if (Z.z > 1) { Z.x += dx; Z.y += dy; settle(); } }
+  /* after a resize or a new board: lay out again at the current zoom */
+  function refresh() {
+    Z.g = o.layout();
+    if (Z.z > top()) { Z.z = top(); Z.g = o.layout(); }
+    settle();
+  }
+  /* back to the whole board, gliding there if asked */
+  function reset(glide) {
+    cancelAnimationFrame(tween);
+    if (!glide || Z.z <= 1.01 || calm()) { Z.z = 1; refresh(); return; }
+    Z.g = o.layout();
+    const cx = Z.g.left + Z.g.vw / 2, cy = Z.g.top + Z.g.vh / 2, [u, v] = at(cx, cy), z0 = Z.z, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 260);
+      place(z0 + (1 - z0) * (1 - Math.pow(1 - k, 3)), cx, cy, u, v);
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  /* slide the board so a box (in board pixels at the current zoom) is in view */
+  function show(x, y, w, h) {
+    if (Z.z <= 1 || !Z.g) return;
+    const g = Z.g, m = 10;
+    if (x - m < Z.x) Z.x = x - m; else if (x + w + m > Z.x + g.vw) Z.x = x + w + m - g.vw;
+    if (y - m < Z.y) Z.y = y - m; else if (y + h + m > Z.y + g.vh) Z.y = y + h + m - g.vh;
+    settle();
+  }
+  /* on a phone, mention pinching the first time a board is big enough to need it */
+  function tip() {
+    if (top() < 1.6 || save.zoomTip || !o.tip || !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+    setTimeout(() => {
+      if (save.zoomTip || modalOpen()) return;
+      save.zoomTip = true; persist();
+      toast(o.tip, 4200);
+    }, 900);
+  }
+
+  /* ---------- touches, mouse and pen ---------- */
+  function commit() {
+    if (mode !== 'wait') return;
+    clearTimeout(one.t);
+    mode = 'play';
+    o.down(one.e);
+  }
+  function startPinch(a, b) {
+    cancelAnimationFrame(tween);
+    const p = pts.get(a), q = pts.get(b);
+    pinch = { ids: [a, b], d: Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
+    mode = 'pinch'; one = null;
+    Z.g = o.layout();
+    for (const id of pinch.ids) { try { o.el.setPointerCapture(id); } catch (err) {} }
+  }
+  function pinchFrame() {
+    raf = 0;
+    if (mode !== 'pinch') return;
+    const p = pts.get(pinch.ids[0]), q = pts.get(pinch.ids[1]);
+    if (!p || !q) return;
+    const d = Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    /* keep the point that was between the fingers between them, at the new spread */
+    const [u, v] = at(pinch.mx, pinch.my);
+    place(Z.z * d / pinch.d, mx, my, u, v);
+    pinch.d = d; pinch.mx = mx; pinch.my = my;
+  }
+  const startOne = (e) => ({ id: e.pointerId, e, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, pan: Z.z > 1.01 && (!o.canPan || !!o.canPan(e)) });
+  const quit = (id, x, y) => o.cancel({ pointerId: id, clientX: x, clientY: y, type: 'pointercancel' });
+
+  o.el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest('[data-zoom-skip]')) return;
+    cancelAnimationFrame(tween);
+    if (e.pointerType !== 'touch') {
+      if (mode) return;
+      if (e.button === 1) {
+        if (Z.z > 1) { e.preventDefault(); one = startOne(e); mode = 'pan'; }
+        return;
+      }
+      one = startOne(e); mode = 'play';
+      o.down(e);
+      return;
+    }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === 'pinch') return;
+    if (!mode) {
+      one = startOne(e);
+      if (zoomable()) { mode = 'wait'; one.t = setTimeout(commit, WAIT); }
+      else { mode = 'play'; o.down(e); }
+      return;
+    }
+    /* a second finger turns whatever the first was doing into a pinch (small boards don't zoom, so it's ignored there) */
+    if (!one || !pts.has(one.id) || (mode === 'play' && !zoomable())) return;
+    if (mode === 'wait') clearTimeout(one.t);
+    else if (mode === 'play') { const p = pts.get(one.id); quit(one.id, p.x, p.y); }
+    startPinch(one.id, e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+    if (mode === 'pinch') {
+      if (p && pinch.ids.includes(e.pointerId) && !raf) raf = requestAnimationFrame(pinchFrame);
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const far = Math.hypot(e.clientX - one.x, e.clientY - one.y) > (e.pointerType === 'touch' ? 10 : 5);
+    if (mode === 'wait' && far) {
+      if (one.pan) { clearTimeout(one.t); mode = 'pan'; } else commit();
+    } else if (mode === 'play' && far && one.pan) { quit(one.id, e.clientX, e.clientY); mode = 'pan'; }
+    if (mode === 'play') o.move(e);
+    else if (mode === 'pan') panBy(one.lx - e.clientX, one.ly - e.clientY);
+    one.lx = e.clientX; one.ly = e.clientY;
+  });
+  function end(e) {
+    pts.delete(e.pointerId);
+    if (mode === 'pinch') {
+      if (!pinch.ids.includes(e.pointerId)) return;
+      /* lift one finger and the other carries on sliding the board */
+      const rest = pinch.ids.find((id) => id !== e.pointerId && pts.has(id));
+      pinch = null; cancelAnimationFrame(raf); raf = 0;
+      if (rest !== undefined) { const q = pts.get(rest); one = { id: rest, x: q.x, y: q.y, lx: q.x, ly: q.y }; mode = 'pan'; }
+      else { mode = ''; one = null; }
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const up = e.type === 'pointerup';
+    if (mode === 'wait') { clearTimeout(one.t); if (up) { o.down(one.e); o.up(e); } }
+    else if (mode === 'play') { if (up) o.up(e); else o.cancel(e); }
+    mode = ''; one = null;
+  }
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+
+  /* mouse wheel, and trackpad pinches (which arrive as wheel events with ctrl held) */
+  o.el.addEventListener('wheel', (e) => {
+    if (!zoomable()) return;
+    e.preventDefault();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+    zoomAt(Z.z * Math.exp(-clamp(dy, -150, 150) * (e.ctrlKey ? 0.01 : 0.002)), e.clientX, e.clientY);
+  }, { passive: false });
+  /* Safari: trackpad pinches on a Mac, and stopping iPhones zooming the whole page */
+  o.el.addEventListener('gesturestart', (e) => { e.preventDefault(); gs = pts.size ? 0 : (e.scale || 1); });
+  o.el.addEventListener('gesturechange', (e) => {
+    e.preventDefault();
+    if (!gs || pts.size || !zoomable()) return;
+    zoomAt(Z.z * e.scale / gs, e.clientX, e.clientY);
+    gs = e.scale;
+  });
+  o.el.addEventListener('gestureend', (e) => { e.preventDefault(); gs = 0; });
+  /* keys: + and - zoom, 0 shows the whole board */
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || modalOpen() || !zoomable() || !Z.g) return;
+    const k = e.key;
+    if (k === '0') { e.preventDefault(); reset(true); return; }
+    const f = k === '+' || k === '=' ? 1.3 : k === '-' || k === '_' ? 1 / 1.3 : 0;
+    if (!f) return;
+    e.preventDefault();
+    const p = o.focus && o.focus();
+    zoomAt(Z.z * f, p ? p.x : null, p ? p.y : null);
+  });
+
+  return Object.assign(Z, { refresh, reset, zoomAt, panBy, show, tip });
+}
+
 /* ---------- pipe masks: N=1, E=2, S=4, W=8 ---------- */
 const DIRS = [[-1, 0, 1, 4], [0, 1, 2, 8], [1, 0, 4, 1], [0, -1, 8, 2]]; /* dr, dc, bit, opposite bit */
 const rotCW = (m) => ((m << 1) | (m >> 3)) & 15;
@@ -758,7 +1002,7 @@ GAME.levelBadge = (stars) => starsHTML(stars);
 /* ---------- state ---------- */
 let G = null;
 let winTimer = 0, saveTimer = 0, press = null;
-const garden = $('#garden');
+const garden = $('#garden'), gardenView = $('#gardenView');
 
 function loadLevel(idx) {
   idx = Math.max(0, idx | 0);
@@ -778,8 +1022,10 @@ function startLevel(idx, L) {
   $('#lvTitle').textContent = 'Level ' + (idx + 1);
   $('#lvSub').textContent = L.w + ' × ' + L.h + ' garden';
   build();
+  zoom.reset();
   flow(true);
   closeModal();
+  zoom.tip();
 }
 const maskOf = (i) => rotN(G.L.sol[i], G.turns[i]);
 
@@ -817,12 +1063,32 @@ function tileSVG(i) {
   return '<svg class="pipes" viewBox="0 0 100 100" aria-hidden="true">' + arms + water + hub + '</svg>' +
     (centre ? '<svg class="deco" viewBox="0 0 100 100" aria-hidden="true">' + centre + '</svg>' : '');
 }
-function build() {
+/* tiles fit the screen at full view; zoomed in they grow, the window onto the lawn grows to fill
+   the space, and the lawn slides about inside it */
+let tilePx = 40;
+const span = (n, t) => n * t + (n - 1) * 3 + 20;
+function layout() {
   const top = $('#gardenWrap').getBoundingClientRect().top + window.scrollY;
   const availH = Math.max(240, window.innerHeight - top - $('#foot').offsetHeight - $('.how').offsetHeight - 56);
   const availW = Math.min($('#gardenWrap').clientWidth, 452) - 20;
-  const ts = Math.floor(Math.max(30, Math.min(78, (availW - (G.w - 1) * 3) / G.w, (availH - (G.h - 1) * 3) / G.h)));
+  const ts0 = Math.floor(Math.max(30, Math.min(78, (availW - (G.w - 1) * 3) / G.w, (availH - (G.h - 1) * 3) / G.h)));
+  /* zoom in until a tile is a comfortable fingertip wide */
+  zoom.max = Math.max(1, Math.min(3, 84 / ts0));
+  const ts = ts0 * zoom.z, cw = span(G.w, ts), ch = span(G.h, ts);
+  const vw = Math.min(cw, Math.max(availW + 20, span(G.w, ts0))), vh = Math.min(ch, Math.max(availH + 12, span(G.h, ts0)));
   garden.style.setProperty('--ts', ts + 'px');
+  gardenView.style.width = vw + 'px';
+  gardenView.style.height = vh + 'px';
+  tilePx = ts;
+  const r = gardenView.getBoundingClientRect();
+  return { cw, ch, vw, vh, left: r.left, top: r.top };
+}
+function panGarden() {
+  garden.style.transform = zoom.x || zoom.y ? 'translate(' + -zoom.x + 'px,' + -zoom.y + 'px)' : '';
+}
+/* when zoomed in, slide a tile into view */
+function showTile(i) { zoom.show(10 + (i % G.w) * (tilePx + 3), 10 + Math.floor(i / G.w) * (tilePx + 3), tilePx, tilePx); }
+function build() {
   garden.style.gridTemplateColumns = 'repeat(' + G.w + ', var(--ts))';
   garden.classList.remove('win');
   garden.innerHTML = '';
@@ -839,7 +1105,7 @@ function build() {
     setTurn(i, true);
   }
 }
-window.addEventListener('resize', () => { if (G) { build(); flow(true); } });
+window.addEventListener('resize', () => { if (G) zoom.refresh(); });
 function setTurn(i, instant) {
   const svg = G.tiles[i].firstChild;
   if (instant) svg.style.transition = 'none';
@@ -916,24 +1182,40 @@ function toggleLock(i) {
   haptic(20);
   queueSave();
 }
-garden.addEventListener('pointerdown', (e) => {
-  const t = e.target.closest('.tile');
-  if (!t || !G || G.won) return;
+function playDown(e) {
+  const t = e.target.closest && e.target.closest('.tile');
+  if (!t || !garden.contains(t) || !G || G.won) return;
   const i = +t.dataset.i;
   press = { i, id: e.pointerId, x: e.clientX, y: e.clientY, held: false, mouse2: e.pointerType === 'mouse' && e.button === 2 };
   if (press.mouse2) { toggleLock(i); press.held = true; return; }
-  press.timer = setTimeout(() => { if (press && press.i === i) { press.held = true; toggleLock(i); } }, 430);
-});
-garden.addEventListener('pointermove', (e) => {
+  /* a touch reaches us a moment after it lands (in case it's the start of a pinch), so count the hold from the touch */
+  const since = performance.now() - e.timeStamp;
+  press.timer = setTimeout(() => { if (press && press.i === i) { press.held = true; toggleLock(i); } }, since > 0 && since < 400 ? 430 - since : 430);
+}
+function playMove(e) {
   if (press && e.pointerId === press.id && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 12) { clearTimeout(press.timer); press = null; }
-});
-garden.addEventListener('pointerup', (e) => {
+}
+function playUp(e) {
   if (!press || e.pointerId !== press.id) return;
   clearTimeout(press.timer);
   const p = press; press = null;
   if (!p.held) turn(p.i);
+}
+function playCancel() { if (press) { clearTimeout(press.timer); press = null; } }
+const zoom = makeZoom({
+  el: $('#gardenWrap'),
+  fit: $('#zoomFit'),
+  layout, pan: panGarden,
+  down: playDown, move: playMove, up: playUp, cancel: playCancel,
+  /* tiles only take taps, so zoomed in, a one-finger drag anywhere slides the garden */
+  focus: () => {
+    const t = document.activeElement;
+    if (!t || !t.classList || !t.classList.contains('tile')) return null;
+    const r = t.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  },
+  tip: 'Tip: pinch the garden to zoom in, then drag to look around.'
 });
-garden.addEventListener('pointercancel', () => { if (press) { clearTimeout(press.timer); press = null; } });
 garden.addEventListener('contextmenu', (e) => e.preventDefault());
 garden.addEventListener('keydown', (e) => {
   const t = e.target.closest('.tile');
@@ -943,7 +1225,8 @@ garden.addEventListener('keydown', (e) => {
   if (mv) {
     e.preventDefault();
     const rr = Math.max(0, Math.min(G.h - 1, r + mv[0])), cc = Math.max(0, Math.min(G.w - 1, c + mv[1]));
-    t.tabIndex = -1; const n = G.tiles[rr * G.w + cc]; n.tabIndex = 0; n.focus();
+    t.tabIndex = -1; const n = G.tiles[rr * G.w + cc]; n.tabIndex = 0; n.focus({ preventScroll: true });
+    showTile(rr * G.w + cc);
   } else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); turn(i); }
   else if (e.key === 'p' || e.key === 'P' || e.key === 'l' || e.key === 'L') toggleLock(i);
 });
@@ -975,6 +1258,7 @@ $('#btnHint').addEventListener('click', () => {
   G.hints++;
   setTurn(i);
   G.tiles[i].classList.remove('hinted'); void G.tiles[i].offsetWidth; G.tiles[i].classList.add('hinted');
+  showTile(i);
   sfx('hint');
   flow(false);
   queueSave();
@@ -1006,6 +1290,7 @@ function win() {
   $('#restartLabel').textContent = 'Next';
   $('#restartIcon').innerHTML = ICON.chevR;
   $('#btnUndo').disabled = true;
+  zoom.reset(true);
   setTimeout(() => {
     garden.classList.add('win');
     G.tiles.forEach((t, i) => { t.style.animationDelay = ((i % G.w) * 50 + Math.floor(i / G.w) * 50) + 'ms'; });
@@ -1042,6 +1327,7 @@ GAME.showHelp = () => {
     '<li><span class="mini"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="#7b8a99" stroke="#4d5a66" stroke-width="5"/><circle cx="50" cy="50" r="21" fill="#3aa0e3"/><path d="M50 35c6 9 9 13 9 17a9 9 0 0 1-18 0c0-4 3-8 9-17z" fill="#d8f0ff"/></svg></span><span>Water flows out from the well through joined pipes.</span></li>' +
     '<li><span class="mini"><svg viewBox="0 0 24 24"><path d="M12 21v-8" stroke="#3f8f3a" stroke-width="2.4" stroke-linecap="round"/><path d="M12 14C6.5 14 4 10 5 5c5 0 8 4 7 9z" fill="#6cc04a"/><path d="M12 14c4.5 0 7-3 6.5-7-4.5 0-7 3-6.5 7z" fill="#8bd46a"/></svg></span><span>Seedlings bloom when watered. Every tile must join up, with no leaks.</span></li>' +
     '<li><span class="mini">' + MINI.hold + '</span><span>Press and hold to pin a tile you\'re sure of.</span></li>' +
+    '<li><span class="mini">' + ZOOM_ICON.in + '</span><span>Big garden? Pinch to zoom in, then drag to look around.</span></li>' +
     '</ul>' +
     '<p style="font-size:15px;margin-top:-4px">There are no loops: every pipe has exactly one route back to the well. Finish near par for three stars.</p>' +
     '<div class="stack"><button class="btn primary" data-act="close">Let\'s garden</button></div>'
