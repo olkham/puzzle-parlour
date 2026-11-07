@@ -1,7 +1,7 @@
 {
   "name": "Puzzle Parlour",
   "short_name": "Puzzle Parlour",
-  "description": "Five cosy puzzle games: Thread Count, Bee Line, Log Jam, Layer Cake and Green Thumb.",
+  "description": "Ten cosy puzzle games: Thread Count, Bee Line, Log Jam, Layer Cake, Green Thumb, Fair Isle, Sun Catcher, Patchwork, Truffle Hunt and Fence Line.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
