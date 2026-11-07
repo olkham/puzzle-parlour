@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Patchwork</title>
+<meta name="description" content="A quilting logic puzzle: cut the quilt into rectangular patches, each holding one pin whose number is its size.">
+<meta name="theme-color" content="#f5ede2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1514" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Patchwork">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5ede2;
+  --card:#fffaf3;
+  --card-edge:#e8d6c2;
+  --ink:#3a2a2c;
+  --muted:#86706a;
+  --accent:#b8452f;
+  --accent-ink:#ffffff;
+  --heart:#e5484d;
+  --star:#f0a92e;
+  --gridink:#3a2a2c;
+  --mini:#fbe0d4;
+  --shadow:0 10px 28px rgba(70,40,25,.15);
+  --scrim:rgba(35,22,20,.55);
+  --mat:#2f7566;
+  --mat-line:rgba(255,255,255,.09);
+  --mat-line2:rgba(255,255,255,.2);
+  --mat-edge:#25594e;
+  --calico:#f7efdf;
+  --chalk:rgba(120,85,55,.32);
+  --muslin:#e7ddcc;
+  --muslin-line:rgba(120,95,70,.16);
+  --tack:#c0392b;
+  --seam:rgba(45,25,15,.38);
+  --label:#fffdf7;
+  --label-edge:#6b5348;
+  --label-ink:#3a2a2c;
+  --pinhead:#d9473a;
+  --good:#1d8a6a;
+  --bad:#d1453a;
+  --cursor:#b8452f;
+  --hint:#ffd166;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#1a1514;
+    --card:#261f1d;
+    --card-edge:#40342f;
+    --ink:#f6ece6;
+    --muted:#b9a59c;
+    --accent:#f08d6e;
+    --accent-ink:#2b120a;
+    --heart:#ff6b86;
+    --star:#f6c35b;
+    --gridink:#0f0b0a;
+    --mini:#4a2a22;
+    --shadow:0 10px 28px rgba(0,0,0,.45);
+    --scrim:rgba(8,5,4,.7);
+    --mat:#1f4d44;
+    --mat-line:rgba(255,255,255,.06);
+    --mat-line2:rgba(255,255,255,.13);
+    --mat-edge:#163a33;
+    --calico:#3b342e;
+    --chalk:rgba(255,236,215,.2);
+    --muslin:#5a5049;
+    --muslin-line:rgba(255,255,255,.07);
+    --tack:#ff8a7a;
+    --seam:rgba(0,0,0,.45);
+    --label:#fff8ee;
+    --label-edge:#2a1f1b;
+    --label-ink:#3a2a2c;
+    --pinhead:#ff7a6b;
+    --good:#5fd3a8;
+    --bad:#ff7a6b;
+    --cursor:#f08d6e;
+    --hint:#ffd166;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1a1514;--card:#261f1d;--card-edge:#40342f;--ink:#f6ece6;--muted:#b9a59c;--accent:#f08d6e;--accent-ink:#2b120a;
+  --heart:#ff6b86;--star:#f6c35b;--gridink:#0f0b0a;--mini:#4a2a22;--shadow:0 10px 28px rgba(0,0,0,.45);
+  --scrim:rgba(8,5,4,.7);--mat:#1f4d44;--mat-line:rgba(255,255,255,.06);--mat-line2:rgba(255,255,255,.13);
+  --mat-edge:#163a33;--calico:#3b342e;--chalk:rgba(255,236,215,.2);--muslin:#5a5049;--muslin-line:rgba(255,255,255,.07);
+  --tack:#ff8a7a;--seam:rgba(0,0,0,.45);--label:#fff8ee;--label-edge:#2a1f1b;--label-ink:#3a2a2c;--pinhead:#ff7a6b;
+  --good:#5fd3a8;--bad:#ff7a6b;--cursor:#f08d6e;--hint:#ffd166;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Fredoka',ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+a.btn{text-decoration:none;color:inherit}
+svg{display:block}
+
+.app{
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* header */
+.top{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:8px}
+.top-left{display:flex;gap:6px}
+.top-left .icon-btn{width:44px;height:44px;border-radius:14px}
+.top-left .icon-btn svg{width:21px;height:21px}
+.icon-btn{
+  width:48px;height:48px;border-radius:16px;flex:none;
+  background:var(--card);border:2px solid var(--card-edge);
+  display:grid;place-items:center;padding:0;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.title{text-align:center;line-height:1.05;min-width:0}
+.title h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.title p{margin:3px 0 0;font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* status row */
+.status{display:flex;align-items:center;justify-content:space-between;padding:0 4px;min-height:34px;gap:10px}
+.lives{display:flex;gap:6px}
+.lives svg{width:30px;height:30px;overflow:visible}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:1.6;stroke-linejoin:round;transition:fill .2s}
+.heart.lost path{fill:none;stroke:var(--muted);opacity:.55}
+.lives .heart.pop{animation:heartpop .5s ease}
+@keyframes heartpop{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+.count{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.count small{font-size:14px;color:var(--muted);font-weight:500;margin-right:6px}
+.star path{fill:var(--star);stroke:var(--star);stroke-width:1.4;stroke-linejoin:round}
+.star.off path{fill:none;stroke:var(--muted);opacity:.5}
+
+/* control hints */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how > div{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:16px;
+  padding:8px 10px;font-size:14px;font-weight:500;line-height:1.15;color:var(--muted);
+}
+.how b{color:var(--ink);font-weight:600;display:block}
+.how .mini{flex:none;width:34px;height:34px;border-radius:10px;background:var(--mini);display:grid;place-items:center;border:2px solid var(--gridink)}
+.how .mini svg{width:70%;height:70%}
+
+/* footer */
+.foot{display:flex;gap:10px;margin-top:auto}
+.btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 14px;border-radius:16px;
+  background:var(--card);border:2px solid var(--card-edge);
+  font-size:16px;font-weight:600;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn[hidden]{display:none}
+.foot .btn{font-size:15px;gap:6px;padding:0 10px}
+.foot .btn svg{width:18px;height:18px}
+.btn .tag{font-size:12px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.switch{width:38px;height:22px;border-radius:99px;background:var(--card-edge);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s,background .2s}
+.btn[aria-pressed="true"] .switch{background:var(--accent)}
+.btn[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-ink)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;place-items:center;padding:16px;z-index:10}
+.scrim.open{display:grid}
+.sheet{
+  width:100%;max-width:380px;max-height:86dvh;overflow:auto;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:26px;
+  padding:22px 20px 20px;box-shadow:var(--shadow);text-align:center;
+  animation:sheetin .28s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes sheetin{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:32px;font-weight:700;line-height:1.05}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:17px;line-height:1.3}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sheet .art{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center}
+.sheet .art svg{width:100%;height:100%;overflow:visible}
+.sheet .badge-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.sheet .badge-row svg{width:30px;height:30px}
+.sheet .logo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 4px}
+.sheet .logo svg{width:44px;height:44px}
+.rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:flex;flex-direction:column;gap:12px}
+.rules li{display:flex;gap:12px;align-items:center;font-size:17px;line-height:1.25}
+.rules .mini{flex:none;width:40px;height:40px;border-radius:12px;background:var(--mini);border:2.5px solid var(--gridink);display:grid;place-items:center}
+.rules .mini svg{width:74%;height:74%}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lv{
+  position:relative;padding:8px 0 7px;border-radius:14px;background:var(--bg);
+  border:2px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;min-height:66px;
+}
+.lv b{font-size:22px;font-weight:600}
+.lv small{font-size:12px;color:var(--muted);font-weight:500}
+.lv.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.lv.done{background:var(--card)}
+.lv .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;border:2px solid var(--card)}
+.lv .ok svg{width:11px;height:11px}
+.lv .mh{display:flex;gap:2px;margin-top:3px;height:10px}
+.lv .mh svg{width:10px;height:10px}
+.lv .mh .heart path,.lv .mh .star path{stroke:none}
+.lv .mh .lost path,.lv .mh .off path{fill:var(--card-edge);opacity:1}
+.pager{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.pager span{font-size:19px;font-weight:600}
+.pager .icon-btn{width:44px;height:44px;border-radius:14px}
+.spin{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--card-edge);border-top-color:var(--accent);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 74px);
+  transform:translate(-50%,16px);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:15px;font-weight:500;line-height:1.25;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;
+  width:max-content;max-width:min(88vw,420px);text-align:center;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:370px){
+  .top{gap:6px;grid-template-columns:auto 1fr 42px}
+  .top-left{gap:4px}
+  .top-left .icon-btn{width:40px;height:40px;border-radius:13px}
+  .top > .icon-btn{width:42px;height:42px;border-radius:14px}
+  .title h1{font-size:23px}
+  .foot{gap:8px}
+}
+@media (max-width:340px){
+  .title h1{font-size:19px}
+  .title p{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+
+/* ---------- Patchwork ---------- */
+/* ---------- the cutting mat and the quilt on it ---------- */
+.patches{display:flex;align-items:center;gap:8px;min-width:0}
+.patches .lives svg{width:26px;height:26px}
+.cap{display:flex;gap:3px;align-items:center}
+.cap svg{width:26px;height:26px;transition:transform .25s}
+.cap .star.off path{fill:none}
+.cap .star.pop svg{animation:heartpop .5s ease}
+.count{text-align:right;line-height:1.05}
+.count .sub{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px;white-space:nowrap}
+.count .sub b{font-weight:600}
+.count .sub.good{color:var(--good)}
+.count .sub.bad{color:var(--bad)}
+
+.mat-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;touch-action:none}
+.mat{
+  position:relative;padding:12px;border-radius:20px;touch-action:none;max-width:100%;
+  background-color:var(--mat);
+  background-image:
+    linear-gradient(var(--mat-line2) 1px,transparent 1px),linear-gradient(90deg,var(--mat-line2) 1px,transparent 1px),
+    linear-gradient(var(--mat-line) 1px,transparent 1px),linear-gradient(90deg,var(--mat-line) 1px,transparent 1px);
+  background-size:48px 48px,48px 48px,12px 12px,12px 12px;background-position:5px 5px;
+  box-shadow:0 0 0 2px var(--mat-edge),var(--shadow);
+}
+.mat .zoom-fit{top:-14px;left:-14px}
+#quilt{display:block;touch-action:none;overflow:hidden;outline:none;border-radius:4px}
+#quilt:focus-visible{box-shadow:0 0 0 3px var(--accent)}
+.calico{fill:var(--calico)}
+.chalk{fill:none;stroke:var(--chalk);stroke-width:.03;stroke-dasharray:.12 .09;transition:opacity .5s}
+.edge{fill:none;stroke:var(--chalk);stroke-width:.04}
+.mus-bg{fill:var(--muslin)}
+.mus-line{stroke:var(--muslin-line);stroke-width:.025}
+
+/* patches: a valid one is cut from a printed fabric, a wrong one is plain muslin, loosely tacked on */
+.patch{transform-box:fill-box;transform-origin:center}
+.patch .cloth{stroke:var(--seam);stroke-width:.04}
+.patch .puff{opacity:0;transition:opacity .7s ease}
+.patch .tack{fill:none;stroke:var(--tack);stroke-width:.045;stroke-dasharray:.2 .14;stroke-linecap:round}
+.patch.tacked{animation:wobble 2.6s ease-in-out infinite}
+.patch.fresh{animation:lay .3s cubic-bezier(.2,1.4,.4,1)}
+.patch.tacked.fresh{animation:lay .3s cubic-bezier(.2,1.4,.4,1),wobble 2.6s ease-in-out .3s infinite}
+@keyframes lay{from{transform:scale(.88);opacity:.35}to{transform:none;opacity:1}}
+@keyframes wobble{0%,100%{transform:rotate(-.8deg) translate(0,0)}50%{transform:rotate(.8deg) translate(.6%,.4%)}}
+.patch.gone{animation:lift .28s ease-in forwards;pointer-events:none}
+@keyframes lift{to{transform:scale(1.06) translateY(-4%);opacity:0}}
+.patch .glow{fill:none;stroke:var(--hint);stroke-width:.14;opacity:0}
+.patch.hinted .glow{animation:hintpulse 1s ease-in-out 3}
+@keyframes hintpulse{50%{opacity:1}}
+
+/* pins: the numbers, on little round labels */
+.pin-in{transform-box:fill-box;transform-origin:center;transition:opacity .35s ease var(--d,0s),transform .45s cubic-bezier(.4,-.4,.6,1) var(--d,0s)}
+.pin .shade{fill:rgba(40,20,10,.22)}
+.pin .disc{fill:var(--label);stroke:var(--label-edge);stroke-width:.035}
+.pin .head{fill:var(--pinhead)}
+.pin .shine{fill:#fff;opacity:.75}
+.pin text{font-family:'Fredoka',ui-rounded,system-ui,sans-serif;font-weight:600;fill:var(--label-ink);text-anchor:middle;dominant-baseline:central}
+.pin.hinted .disc{animation:pinpulse 1s ease-in-out 3}
+@keyframes pinpulse{50%{fill:var(--hint)}}
+
+/* the cut you're drawing */
+.cut{fill:var(--good);fill-opacity:.16;stroke:var(--good);stroke-width:.09;stroke-linejoin:round}
+.cut.bad{fill:var(--bad);fill-opacity:.1;stroke:var(--bad);stroke-dasharray:.22 .14}
+.badge rect{fill:var(--good)}
+.badge text{font-family:'Fredoka',ui-rounded,system-ui,sans-serif;font-weight:600;fill:#fff;text-anchor:middle;dominant-baseline:central}
+.badge.bad rect{fill:var(--bad)}
+.kcur{fill:none;stroke:var(--cursor);stroke-width:.09;stroke-dasharray:.16 .1}
+
+/* finished: pins out, running-stitch seams, the quilt puffs up and gets its binding */
+.seam{fill:none;stroke-linecap:round;stroke-dasharray:.13 .11}
+.seam.under{stroke:rgba(40,22,14,.45);stroke-width:.075}
+.seam.over{stroke:#fffaf0;stroke-width:.05}
+#quilt.won .chalk,#quilt.won .edge{opacity:0}
+#quilt.won .pin-in{opacity:0;transform:translateY(-35%) scale(.5)}
+#quilt.puffed .patch .puff{opacity:1}
+.binding{fill:none;stroke-width:.2;stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
+.binding-st{fill:none;stroke:#fffaf0;stroke-width:.035;stroke-dasharray:.12 .1;opacity:0;transition:opacity .4s ease .7s}
+#quilt.bound .binding{opacity:1;stroke-dashoffset:0;transition:stroke-dashoffset .8s ease}
+#quilt.bound .binding-st{opacity:.9}
+.mat.puffed{animation:matpuff .7s ease}
+@keyframes matpuff{40%{transform:scale(1.015)}}
+
+/* footer */
+.btn .lbl-s{display:none}
+@media (max-width:370px){.btn .lbl-l{display:none}.btn .lbl-s{display:inline}}
+
+/* level picker thumbnails and the finished quilt in the win card */
+.lv .thumb{width:36px;height:30px;display:grid;place-items:center;margin-bottom:2px}
+.lv .thumb svg{max-width:100%;max-height:100%}
+.lv.done small{font-weight:600;color:var(--ink)}
+.sheet .quilt-card{width:156px;height:156px;margin:0 auto 14px;border-radius:18px;display:grid;place-items:center;padding:12px;
+  background-color:var(--mat);background-image:linear-gradient(var(--mat-line) 1px,transparent 1px),linear-gradient(90deg,var(--mat-line) 1px,transparent 1px);background-size:11px 11px;
+  box-shadow:0 0 0 2px var(--mat-edge),var(--shadow)}
+.sheet .quilt-card svg{max-width:100%;max-height:100%;filter:drop-shadow(0 3px 4px rgba(0,0,0,.3));animation:quiltin .6s cubic-bezier(.2,1.3,.4,1)}
+@keyframes quiltin{from{transform:scale(.7) rotate(-6deg);opacity:0}}
+.sheet .note{font-size:15px;margin-top:-6px}
+
+/* zoom-out button, shown while zoomed in */
+.zoom-fit{
+  position:absolute;z-index:4;width:40px;height:40px;border-radius:50%;padding:0;display:grid;place-items:center;
+  background:var(--card);border:2px solid var(--card-edge);box-shadow:var(--shadow);color:var(--ink);
+  animation:zoomfit .2s ease;touch-action:manipulation;
+}
+.zoom-fit[hidden]{display:none}
+.zoom-fit svg{width:21px;height:21px}
+.zoom-fit:active{transform:scale(.92)}
+@keyframes zoomfit{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-left">
+      <button class="icon-btn" id="btnLevels" aria-label="Choose level">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMusic" aria-label="Turn music on" aria-pressed="false"><span id="musicIcon"></span></button>
+      <button class="icon-btn" id="btnSfx" aria-label="Turn sound effects on" aria-pressed="false"><span id="sfxIcon"></span></button>
+    </div>
+    <div class="title"><h1 id="lvTitle">Level 1</h1><p id="lvSub">&nbsp;</p></div>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 16.9v.1"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-label="Stars and progress">
+    <div class="cap" id="cap"></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <div class="mat-wrap" id="matWrap">
+    <div class="mat" id="mat">
+      <svg id="quilt" tabindex="0" role="application" aria-label="Quilt board. Drag from corner to corner to cut a patch; tap a patch to unpick it. Keys: arrows move, Enter starts and finishes a cut, Delete unpicks. Plus and minus zoom.">
+        <defs id="defs"></defs>
+        <rect class="calico" id="calico"/>
+        <path class="chalk" id="chalk"/>
+        <rect class="edge" id="edge"/>
+        <g id="patchG"></g>
+        <g id="seamG"></g>
+        <rect class="binding" id="binding" pathLength="1"/>
+        <rect class="binding-st" id="bindingSt"/>
+        <g id="pinG"></g>
+        <g id="cutG"></g>
+        <rect class="kcur" id="kcur" width="1" height="1" rx=".08" visibility="hidden"/>
+      </svg>
+      <button class="zoom-fit" id="zoomFit" data-zoom-skip hidden aria-label="Zoom out to see the whole quilt"></button>
+    </div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <button class="btn" id="btnRestart"><span class="ic" id="restartIcon"></span><span id="restartLabel">Restart</span></button>
+    <button class="btn" id="btnUndo" aria-label="Undo"><span class="ic" id="undoIcon"></span><span>Undo</span></button>
+    <button class="btn" id="btnHint" aria-label="Hint: sew in a patch you can work out"><span class="ic" id="hintIcon"></span><span>Hint</span></button>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+const GAME = { id: 'patchwork', seed: 7349 };
+/* =====================================================================
+   Shared shell: saves, seeded randomness, icons, live-synthesised audio,
+   modals, toasts and the level picker. The game code below plugs into it
+   through the GAME object and a loadLevel(idx) function.
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const scrim = $('#scrim');
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/* ---------- saved progress (private to this browser) ---------- */
+const STORE_KEY = GAME.id + '-v1';
+let save = Object.assign({ done: {}, seenHelp: false, level: 0 }, GAME.saveDefaults || {});
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
+} catch (e) {}
+if (!save.done || typeof save.done !== 'object') save.done = {};
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- seeded randomness, so level N is the same puzzle on every device ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleArr(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function seedFor(idx, salt) {
+  let h = (0x9e3779b9 ^ (GAME.seed || 0)) >>> 0;
+  h = Math.imul(h ^ (idx + 1), 0x85ebca6b); h ^= h >>> 13;
+  h = Math.imul(h ^ ((salt || 0) + 0x27d4eb2f), 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+}
+const pickOne = (arr, rnd) => arr[Math.floor(rnd() * arr.length)];
+
+/* ---------- icons ---------- */
+const ICON = {
+  tick: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.4 2.4 4.6-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C12 20.6 3.2 15.4 3.2 9.2C3.2 6.4 5.3 4.4 7.9 4.4C9.7 4.4 11.2 5.4 12 6.8C12.8 5.4 14.3 4.4 16.1 4.4C18.7 4.4 20.8 6.4 20.8 9.2C20.8 15.4 12 20.6 12 20.6Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  hint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21.2h4"/><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.6.5.9 1.2.9 2V16.6h6v-.3c0-.8.3-1.5.9-2A6.4 6.4 0 0 0 12 2.8z"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  musicOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>',
+  musicOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke-width="2.4"/></svg>',
+  sfxOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/></svg>',
+  sfxOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none" opacity=".45"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0" opacity=".45"/><path d="M5.5 5.5l13 13" stroke-width="2.6"/></svg>'
+};
+function heartsHTML(left, max, cls) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<span class="heart' + (k >= left ? ' lost' : '') + (cls && k === left ? ' ' + cls : '') + '">' + ICON.heart + '</span>';
+  return h;
+}
+function starsHTML(n, max) {
+  let h = '';
+  for (let k = 0; k < (max || 3); k++) h += '<span class="star' + (k >= n ? ' off' : '') + '">' + ICON.star + '</span>';
+  return h;
+}
+
+/* =====================================================================
+   Audio. There are no sound files: every note is built from oscillators,
+   filters and envelopes. Music and sound effects are separate toggles,
+   both off by default and remembered between visits.
+   ===================================================================== */
+const MUSIC_KEY = GAME.id + '-music-v1', SFX_KEY = GAME.id + '-sfx-v1';
+let musicOn = false, sfxOn = false;
+try { musicOn = localStorage.getItem(MUSIC_KEY) === '1'; sfxOn = localStorage.getItem(SFX_KEY) === '1'; } catch (e) {}
+let actx = null, master = null, musicBus = null, sfxBus = null, noiseBuf = null;
+let schedTimer = null, ambientStop = null;
+
+function ensureAudio() {
+  if (actx) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  try { actx = new AC(); } catch (e) { return false; }
+  master = actx.createGain(); master.gain.value = 0.42; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = 0.85; musicBus.connect(master);
+  sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+  return true;
+}
+const NOTE_FREQ = {};
+function noteFreq(note) {
+  if (!note) return 0;
+  if (typeof note === 'number') return note;
+  if (NOTE_FREQ[note]) return NOTE_FREQ[note];
+  const m = /^([A-G])(#|b)?(\d)$/.exec(note);
+  if (!m) return 0;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (NOTE_FREQ[note] = 440 * Math.pow(2, (base + (parseInt(m[3], 10) - 4) * 12 - 9) / 12));
+}
+/* one synth voice: oscillator -> (optional lowpass) -> envelope -> bus */
+function tone(t, f, o) {
+  o = o || {};
+  if (!f) return;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  const a = o.a || 0.006, hold = o.hold || 0, dur = o.dur || 0.25, vol = o.vol == null ? 0.15 : o.vol;
+  const end = t + a + hold + dur;
+  osc.type = o.type || 'triangle';
+  osc.frequency.setValueAtTime(f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + (o.glide || a + hold + dur));
+  if (o.vib) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.vibRate || 5.5; lg.gain.value = f * o.vib;
+    l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end + 0.05);
+  }
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  if (hold) g.gain.setValueAtTime(vol, t + a + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  let node = osc;
+  if (o.lp) {
+    const fl = actx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp;
+    if (o.q) fl.Q.value = o.q;
+    osc.connect(fl); node = fl;
+  }
+  node.connect(g); g.connect(o.bus || sfxBus);
+  osc.start(t); osc.stop(end + 0.05);
+}
+/* a burst of filtered noise: shakers, splashes, rustles */
+function noise(t, o) {
+  o = o || {};
+  if (!noiseBuf) {
+    const len = actx.sampleRate;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = actx.createBufferSource(); src.buffer = noiseBuf;
+  const fl = actx.createBiquadFilter(); fl.type = o.ftype || 'bandpass';
+  const dur = o.dur || 0.08, vol = o.vol || 0.1, a = o.a || 0.003;
+  fl.frequency.setValueAtTime(o.f || 2000, t);
+  if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + a + dur);
+  fl.Q.value = o.q || 1;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dur);
+  src.connect(fl); fl.connect(g); g.connect(o.bus || sfxBus);
+  src.start(t, Math.random() * 0.5); src.stop(t + a + dur + 0.05);
+}
+
+/* instruments for the background music */
+const INST = {
+  pluck: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.008, dur: Math.min(d * 0.9, 0.35), vol: v || 0.16, bus: musicBus }),
+  bell: (t, f, d, v) => {
+    v = v || 0.11;
+    tone(t, f, { type: 'sine', a: 0.004, dur: Math.min(d * 1.8, 1.2), vol: v, bus: musicBus });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: Math.min(d, 0.45), vol: v * 0.32, bus: musicBus });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.12, vol: v * 0.12, bus: musicBus });
+  },
+  marimba: (t, f, d, v) => {
+    v = v || 0.17;
+    tone(t, f, { type: 'sine', a: 0.003, dur: Math.min(d * 0.85, 0.5), vol: v, bus: musicBus });
+    tone(t, f * 3.98, { type: 'sine', a: 0.002, dur: 0.07, vol: v * 0.22, bus: musicBus });
+  },
+  flute: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.06, hold: d * 0.45, dur: d * 0.55 + 0.08, vol: v || 0.1, vib: 0.006, vibRate: 5, bus: musicBus }),
+  reed: (t, f, d, v) => tone(t, f, { type: 'square', a: 0.02, hold: d * 0.35, dur: d * 0.5, vol: v || 0.045, lp: 1500, bus: musicBus }),
+  harp: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.004, dur: Math.min(d * 2.5, 1.3), vol: v || 0.08, lp: 2400, bus: musicBus }),
+  bass: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.02, dur: d, vol: v || 0.13, bus: musicBus }),
+  wbass: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.01, dur: Math.min(d * 0.9, 0.55), vol: v || 0.15, lp: 650, bus: musicBus }),
+  hat: (t, v) => noise(t, { f: 8000, q: 0.7, dur: 0.03, vol: v || 0.025, ftype: 'highpass', bus: musicBus }),
+  shaker: (t, v) => noise(t, { f: 5500, q: 1.2, dur: 0.06, vol: v || 0.03, bus: musicBus }),
+  knock: (t, v) => tone(t, 190, { type: 'sine', to: 120, a: 0.002, dur: 0.08, vol: v || 0.08, bus: musicBus })
+};
+/* "E5:.5 - G5:1" -> [{n:'E5', d:.5}, {n:null, d:1}, ...] ("-" or "r" is a rest, default length 1 beat) */
+function track(str) {
+  return str.trim().split(/\s+/).map((tok) => {
+    const p = tok.split(':');
+    return { n: p[0] === '-' || p[0] === 'r' ? null : p[0], d: p[1] ? parseFloat(p[1]) : 1 };
+  });
+}
+function scheduler() {
+  const M = GAME.music, beat = 60 / M.tempo, until = actx.currentTime + 0.2;
+  for (const tr of M.tracks) {
+    let guard = 0;
+    while (tr.next < until && guard++ < 64) {
+      const s = tr.seq[tr.i];
+      const dur = s.d * beat;
+      if (s.n) {
+        if (tr.perc) tr.inst(tr.next, tr.vol, s.n);
+        else tr.inst(tr.next, noteFreq(s.n), dur * (tr.len || 1), tr.vol);
+      }
+      tr.next += dur;
+      tr.i = (tr.i + 1) % tr.seq.length;
+    }
+  }
+}
+function setMusic(on, fromUser) {
+  musicOn = on;
+  try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnMusic');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  $('#musicIcon').innerHTML = on ? ICON.musicOn : ICON.musicOff;
+  if (on && fromUser && ensureAudio() && actx.state === 'suspended') actx.resume();
+  clearInterval(schedTimer); schedTimer = null;
+  if (ambientStop) { try { ambientStop(); } catch (e) {} ambientStop = null; }
+  if (on && actx) {
+    const t0 = actx.currentTime + 0.06;
+    for (const tr of GAME.music.tracks) { tr.next = t0; tr.i = 0; }
+    if (GAME.music.ambient) ambientStop = GAME.music.ambient();
+    schedTimer = setInterval(scheduler, 25);
+  }
+}
+function setSfx(on) {
+  sfxOn = on;
+  try { localStorage.setItem(SFX_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnSfx');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn sound effects off' : 'Turn sound effects on');
+  $('#sfxIcon').innerHTML = on ? ICON.sfxOn : ICON.sfxOff;
+  if (on && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+/* play a named sound effect from GAME.sfx (or the shared ones below) if effects are on */
+function sfx(name, a, b) {
+  if (!sfxOn || !ensureAudio()) return;
+  if (actx.state === 'suspended') actx.resume();
+  const fn = (GAME.sfx && GAME.sfx[name]) || SFX[name];
+  if (fn) fn(actx.currentTime + 0.012, a, b);
+}
+/* sound effects every game can use */
+const SFX = {
+  warn(t) {
+    tone(t, 330, { type: 'square', a: 0.004, dur: 0.07, vol: 0.06, lp: 1800 });
+    tone(t + 0.09, 247, { type: 'square', a: 0.004, dur: 0.12, vol: 0.06, lp: 1500 });
+  },
+  fail(t) {
+    [['G4', 0.22], ['F#4', 0.22], ['F4', 0.22], ['E4', 0.6]].forEach(([n, d], i) => {
+      const f = noteFreq(n);
+      tone(t, f * 1.03, { type: 'sawtooth', to: f * 0.97, a: 0.02, dur: d, vol: i === 3 ? 0.17 : 0.14, lp: 1100 });
+      t += d;
+    });
+  },
+  win(t) {
+    let x = t;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.16, vol: 0.22 }); x += 0.085; });
+    const c = x + 0.02;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.03, dur: 0.7, vol: 0.1, lp: 3000 }));
+    tone(c, noteFreq('C7'), { type: 'sine', to: noteFreq('E7'), glide: 0.5, a: 0.05, dur: 0.55, vol: 0.07 });
+  },
+  tap(t) { tone(t, 880, { type: 'sine', to: 660, a: 0.002, dur: 0.05, vol: 0.06 }); },
+  bonk(t) { tone(t, 180, { type: 'triangle', to: 110, a: 0.003, dur: 0.14, vol: 0.14 }); },
+  chime(t, step) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const f = noteFreq('C5') * Math.pow(2, scale[Math.min(scale.length - 1, Math.max(0, step || 0))] / 12);
+    tone(t, f, { type: 'sine', a: 0.004, dur: 0.5, vol: 0.13 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.2, vol: 0.04 });
+  }
+};
+/* browsers only allow audio after a tap, so the first tap resumes music left on last visit */
+function primeAudioOnce() {
+  document.removeEventListener('pointerdown', primeAudioOnce, true);
+  if (musicOn) setMusic(true, true);
+  else if (sfxOn && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+document.addEventListener('pointerdown', primeAudioOnce, true);
+document.addEventListener('visibilitychange', () => {
+  if (!actx) return;
+  if (document.hidden) actx.suspend();
+  else if (musicOn || sfxOn) actx.resume();
+});
+
+/* ---------- little helpers ---------- */
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+let toastTimer = 0, toastEl = null;
+function toast(msg, ms) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2200);
+}
+/* a button that asks "Confirm?" before throwing away progress */
+function armConfirm(btn, labelEl, label, isBusy, go) {
+  let armed = 0;
+  btn.addEventListener('click', () => {
+    if (isBusy() && !armed) {
+      labelEl.textContent = 'Confirm?';
+      armed = setTimeout(() => { labelEl.textContent = label; armed = 0; }, 2200);
+      return;
+    }
+    clearTimeout(armed); armed = 0; labelEl.textContent = label;
+    go();
+  });
+  return () => { clearTimeout(armed); armed = 0; labelEl.textContent = label; };
+}
+
+/* ---------- modal plumbing ---------- */
+let modalLocked = false;
+function openModal(html, locked) {
+  modalLocked = !!locked;
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true">' + html + '</div>';
+  scrim.classList.add('open');
+}
+function closeModal() { modalLocked = false; scrim.classList.remove('open'); scrim.innerHTML = ''; }
+function modalOpen() { return scrim.classList.contains('open'); }
+scrim.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) { if (e.target === scrim && !modalLocked) closeModal(); return; }
+  const act = a.dataset.act;
+  if (act === 'close') closeModal();
+  else if (act === 'levels') showLevels();
+  else if (act === 'page') showLevels(+a.dataset.page);
+  else if (act === 'pick') loadLevel(+a.dataset.level);
+  else if (act === 'next') loadLevel(curLevel() + 1);
+  else if (act === 'retry') loadLevel(curLevel());
+  else if (GAME.actions && GAME.actions[act]) GAME.actions[act](a);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOpen() && !modalLocked) closeModal(); });
+
+/* opened from the Puzzle Parlour launcher? then offer a way back to it */
+let FROM_PARLOUR = false;
+try {
+  if (location.hash === '#parlour') sessionStorage.setItem('parlour', '1');
+  FROM_PARLOUR = location.hash === '#parlour' || sessionStorage.getItem('parlour') === '1';
+} catch (e) { FROM_PARLOUR = location.hash === '#parlour'; }
+
+/* ---------- level picker: pages of 20, with each finished level's best result ---------- */
+const PAGE = 20;
+function curLevel() { return (typeof G !== 'undefined' && G) ? G.idx : (save.level || 0); }
+function showLevels(page) {
+  const cur = curLevel();
+  const total = GAME.total || Infinity;
+  if (typeof page !== 'number') page = Math.floor(cur / PAGE);
+  const first = page * PAGE, last = Math.min(first + PAGE, total);
+  let h = '<h2>Levels</h2><div class="pager">' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Earlier levels">' + ICON.chevL + '</button>' +
+    '<span>' + (first + 1) + '–' + last + '</span>' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page + 1) + '"' + (last >= total ? ' disabled' : '') + ' aria-label="Later levels">' + ICON.chevR + '</button>' +
+    '</div><div class="levels">';
+  for (let i = first; i < last; i++) {
+    const done = hasOwn(save.done, i);
+    const label = GAME.levelLabel(i);
+    h += '<button class="lv' + (done ? ' done' : '') + (i === cur ? ' cur' : '') + '" data-act="pick" data-level="' + i +
+      '" aria-label="Level ' + (i + 1) + ', ' + label + (done ? ', completed' : '') + '">' +
+      (done ? '<span class="ok">' + ICON.tick + '</span>' : '') +
+      (GAME.levelTile ? GAME.levelTile(i, done) : '<b>' + (i + 1) + '</b><small>' + label + '</small>') +
+      '<span class="mh">' + (done ? GAME.levelBadge(save.done[i], i) : '') + '</span>' +
+      '</button>';
+  }
+  h += '</div><div class="stack"><button class="btn" data-act="close">Close</button>' +
+    (FROM_PARLOUR ? '<a class="btn" href="../index.html#parlour">All Puzzle Parlour games</a>' : '') + '</div>';
+  openModal(h);
+}
+
+/* installed on a home screen, keep working offline (only on a real web host, never inside a frame) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.self === window.top) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- header buttons ---------- */
+function shellBoot() {
+  $('#btnLevels').addEventListener('click', () => showLevels());
+  $('#btnMusic').addEventListener('click', () => setMusic(!musicOn, true));
+  $('#btnSfx').addEventListener('click', () => setSfx(!sfxOn));
+  $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
+  setMusic(musicOn, false);
+  setSfx(sfxOn);
+}
+
+/* =====================================================================
+   Zoom and pan, for when the board gets big. Pinch with two fingers to
+   zoom (moving them drags the board around), or use the mouse wheel, a
+   trackpad pinch or the + − 0 keys. One finger still plays: a touch waits
+   a moment, or until it moves or lifts, before the game sees it, so the
+   first finger of a pinch never plays a move by accident. The game gives:
+     el                     the area that takes touches
+     layout()               lay the board out at zoom Z.z (setting Z.max on
+                            the way) and return {cw, ch, vw, vh, left, top}:
+                            the board's size at that zoom, the size of the
+                            window onto it, and where that window is on screen
+     pan()                  slide the board so (Z.x, Z.y) sits at the window's
+                            top-left corner
+     down/move/up/cancel(e) one-finger play
+     canPan(e)              optional: when zoomed in, should a one-finger drag
+                            from here slide the board instead of playing?
+     focus()                optional: the screen point the keys zoom around
+     fit, tip               the zoom-out button, and a first-time tip
+   ===================================================================== */
+const ZOOM_ICON = {
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8"/></svg>',
+  in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8M10.5 7.6v5.8"/></svg>'
+};
+function makeZoom(o) {
+  const Z = { z: 1, x: 0, y: 0, max: 1, g: null };
+  const pts = new Map();          /* touches on the board: pointerId -> {x, y} */
+  let mode = '';                  /* '' | 'wait' | 'play' | 'pan' | 'pinch' */
+  let one = null, pinch = null, raf = 0, tween = 0, gs = 0;
+  const WAIT = 220;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* only boards that gain at least a quarter from zooming can zoom */
+  const zoomable = () => Z.max >= 1.25;
+  const top = () => (zoomable() ? Z.max : 1);
+  const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (o.fit) {
+    o.fit.innerHTML = ZOOM_ICON.out;
+    o.fit.addEventListener('click', () => reset(true));
+  }
+
+  function settle() {
+    const g = Z.g;
+    if (Z.z <= 1) { Z.x = 0; Z.y = 0; }
+    Z.x = clamp(Z.x, 0, Math.max(0, g.cw - g.vw));
+    Z.y = clamp(Z.y, 0, Math.max(0, g.ch - g.vh));
+    o.pan();
+    if (o.fit) o.fit.hidden = Z.z <= 1.01;
+  }
+  /* the board point under a screen point, as a fraction of the board's size */
+  function at(cx, cy) { const g = Z.g; return [(cx - g.left + Z.x) / g.cw, (cy - g.top + Z.y) / g.ch]; }
+  /* zoom to z with board point (u, v) under screen point (cx, cy) */
+  function place(z, cx, cy, u, v) {
+    z = clamp(z, 1, top());
+    if (z !== Z.z || !Z.g) { Z.z = z; Z.g = o.layout(); }
+    Z.x = u * Z.g.cw - (cx - Z.g.left);
+    Z.y = v * Z.g.ch - (cy - Z.g.top);
+    settle();
+  }
+  function zoomAt(z, cx, cy) {
+    cancelAnimationFrame(tween);
+    Z.g = o.layout();
+    if (cx == null) { cx = Z.g.left + Z.g.vw / 2; cy = Z.g.top + Z.g.vh / 2; }
+    const [u, v] = at(cx, cy);
+    place(z, cx, cy, u, v);
+  }
+  function panBy(dx, dy) { if (Z.z > 1) { Z.x += dx; Z.y += dy; settle(); } }
+  /* after a resize or a new board: lay out again at the current zoom */
+  function refresh() {
+    Z.g = o.layout();
+    if (Z.z > top()) { Z.z = top(); Z.g = o.layout(); }
+    settle();
+  }
+  /* back to the whole board, gliding there if asked */
+  function reset(glide) {
+    cancelAnimationFrame(tween);
+    if (!glide || Z.z <= 1.01 || calm()) { Z.z = 1; refresh(); return; }
+    Z.g = o.layout();
+    const cx = Z.g.left + Z.g.vw / 2, cy = Z.g.top + Z.g.vh / 2, [u, v] = at(cx, cy), z0 = Z.z, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 260);
+      place(z0 + (1 - z0) * (1 - Math.pow(1 - k, 3)), cx, cy, u, v);
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  /* slide the board so a box (in board pixels at the current zoom) is in view */
+  function show(x, y, w, h) {
+    if (Z.z <= 1 || !Z.g) return;
+    const g = Z.g, m = 10;
+    if (x - m < Z.x) Z.x = x - m; else if (x + w + m > Z.x + g.vw) Z.x = x + w + m - g.vw;
+    if (y - m < Z.y) Z.y = y - m; else if (y + h + m > Z.y + g.vh) Z.y = y + h + m - g.vh;
+    settle();
+  }
+  /* on a phone, mention pinching the first time a board is big enough to need it */
+  function tip() {
+    if (top() < 1.6 || save.zoomTip || !o.tip || !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+    setTimeout(() => {
+      if (save.zoomTip || modalOpen()) return;
+      save.zoomTip = true; persist();
+      toast(o.tip, 4200);
+    }, 900);
+  }
+
+  /* ---------- touches, mouse and pen ---------- */
+  function commit() {
+    if (mode !== 'wait') return;
+    clearTimeout(one.t);
+    mode = 'play';
+    o.down(one.e);
+  }
+  function startPinch(a, b) {
+    cancelAnimationFrame(tween);
+    const p = pts.get(a), q = pts.get(b);
+    pinch = { ids: [a, b], d: Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
+    mode = 'pinch'; one = null;
+    Z.g = o.layout();
+    for (const id of pinch.ids) { try { o.el.setPointerCapture(id); } catch (err) {} }
+  }
+  function pinchFrame() {
+    raf = 0;
+    if (mode !== 'pinch') return;
+    const p = pts.get(pinch.ids[0]), q = pts.get(pinch.ids[1]);
+    if (!p || !q) return;
+    const d = Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    /* keep the point that was between the fingers between them, at the new spread */
+    const [u, v] = at(pinch.mx, pinch.my);
+    place(Z.z * d / pinch.d, mx, my, u, v);
+    pinch.d = d; pinch.mx = mx; pinch.my = my;
+  }
+  const startOne = (e) => ({ id: e.pointerId, e, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, pan: Z.z > 1.01 && (!o.canPan || !!o.canPan(e)) });
+  const quit = (id, x, y) => o.cancel({ pointerId: id, clientX: x, clientY: y, type: 'pointercancel' });
+
+  o.el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest('[data-zoom-skip]')) return;
+    cancelAnimationFrame(tween);
+    if (e.pointerType !== 'touch') {
+      if (mode) return;
+      if (e.button === 1) {
+        if (Z.z > 1) { e.preventDefault(); one = startOne(e); mode = 'pan'; }
+        return;
+      }
+      one = startOne(e); mode = 'play';
+      o.down(e);
+      return;
+    }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === 'pinch') return;
+    if (!mode) {
+      one = startOne(e);
+      if (zoomable()) { mode = 'wait'; one.t = setTimeout(commit, WAIT); }
+      else { mode = 'play'; o.down(e); }
+      return;
+    }
+    /* a second finger turns whatever the first was doing into a pinch (small boards don't zoom, so it's ignored there) */
+    if (!one || !pts.has(one.id) || (mode === 'play' && !zoomable())) return;
+    if (mode === 'wait') clearTimeout(one.t);
+    else if (mode === 'play') { const p = pts.get(one.id); quit(one.id, p.x, p.y); }
+    startPinch(one.id, e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+    if (mode === 'pinch') {
+      if (p && pinch.ids.includes(e.pointerId) && !raf) raf = requestAnimationFrame(pinchFrame);
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const far = Math.hypot(e.clientX - one.x, e.clientY - one.y) > (e.pointerType === 'touch' ? 10 : 5);
+    if (mode === 'wait' && far) {
+      if (one.pan) { clearTimeout(one.t); mode = 'pan'; } else commit();
+    } else if (mode === 'play' && far && one.pan) { quit(one.id, e.clientX, e.clientY); mode = 'pan'; }
+    if (mode === 'play') o.move(e);
+    else if (mode === 'pan') panBy(one.lx - e.clientX, one.ly - e.clientY);
+    one.lx = e.clientX; one.ly = e.clientY;
+  });
+  function end(e) {
+    pts.delete(e.pointerId);
+    if (mode === 'pinch') {
+      if (!pinch.ids.includes(e.pointerId)) return;
+      /* lift one finger and the other carries on sliding the board */
+      const rest = pinch.ids.find((id) => id !== e.pointerId && pts.has(id));
+      pinch = null; cancelAnimationFrame(raf); raf = 0;
+      if (rest !== undefined) { const q = pts.get(rest); one = { id: rest, x: q.x, y: q.y, lx: q.x, ly: q.y }; mode = 'pan'; }
+      else { mode = ''; one = null; }
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const up = e.type === 'pointerup';
+    if (mode === 'wait') { clearTimeout(one.t); if (up) { o.down(one.e); o.up(e); } }
+    else if (mode === 'play') { if (up) o.up(e); else o.cancel(e); }
+    mode = ''; one = null;
+  }
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+
+  /* mouse wheel, and trackpad pinches (which arrive as wheel events with ctrl held) */
+  o.el.addEventListener('wheel', (e) => {
+    if (!zoomable()) return;
+    e.preventDefault();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+    zoomAt(Z.z * Math.exp(-clamp(dy, -150, 150) * (e.ctrlKey ? 0.01 : 0.002)), e.clientX, e.clientY);
+  }, { passive: false });
+  /* Safari: trackpad pinches on a Mac, and stopping iPhones zooming the whole page */
+  o.el.addEventListener('gesturestart', (e) => { e.preventDefault(); gs = pts.size ? 0 : (e.scale || 1); });
+  o.el.addEventListener('gesturechange', (e) => {
+    e.preventDefault();
+    if (!gs || pts.size || !zoomable()) return;
+    zoomAt(Z.z * e.scale / gs, e.clientX, e.clientY);
+    gs = e.scale;
+  });
+  o.el.addEventListener('gestureend', (e) => { e.preventDefault(); gs = 0; });
+  /* keys: + and - zoom, 0 shows the whole board */
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || modalOpen() || !zoomable() || !Z.g) return;
+    const k = e.key;
+    if (k === '0') { e.preventDefault(); reset(true); return; }
+    const f = k === '+' || k === '=' ? 1.3 : k === '-' || k === '_' ? 1 / 1.3 : 0;
+    if (!f) return;
+    e.preventDefault();
+    const p = o.focus && o.focus();
+    zoomAt(Z.z * f, p ? p.x : null, p ? p.y : null);
+  });
+
+  return Object.assign(Z, { refresh, reset, zoomAt, panBy, show, tip });
+}
+
+/* ---------- patchwork logic: rectangles, a logic solver and a quilt generator ---------- */
+/* a rectangle packs into one number: row, column, height and width, 5 bits each */
+const rk = (r, c, h, w) => r | (c << 5) | (h << 10) | (w << 15);
+const rR = (k) => k & 31, rC = (k) => (k >> 5) & 31, rH = (k) => (k >> 10) & 31, rW = (k) => (k >> 15) & 31;
+function rectCells(k, W) {
+  const r0 = rR(k), c0 = rC(k), h = rH(k), w = rW(k), out = [];
+  for (let r = r0; r < r0 + h; r++) for (let c = c0; c < c0 + w; c++) out.push(r * W + c);
+  return out;
+}
+function rectHas(k, r, c) { return r >= rR(k) && r < rR(k) + rH(k) && c >= rC(k) && c < rC(k) + rW(k); }
+function rectsOverlap(a, b) {
+  return rR(a) < rR(b) + rH(b) && rR(b) < rR(a) + rH(a) && rC(a) < rC(b) + rW(b) && rC(b) < rC(a) + rW(a);
+}
+
+/* a puzzle: { w, h, clues: [{r, c, v}], at: clue index per square or -1 } */
+function makePuzzle(w, h, clues) {
+  const at = new Int16Array(w * h).fill(-1);
+  clues.forEach((cl, n) => { at[cl.r * w + cl.c] = n; });
+  return { w, h, clues, at };
+}
+/* every rectangle of the right size that holds this clue and no other */
+function candidatesFor(P, n) {
+  const W = P.w, H = P.h, at = P.at, cl = P.clues[n], v = cl.v, out = [];
+  for (let h = 1; h <= H && h <= v; h++) {
+    if (v % h) continue;
+    const w = v / h;
+    if (w > W) continue;
+    for (let r0 = Math.max(0, cl.r - h + 1); r0 <= Math.min(cl.r, H - h); r0++) {
+      for (let c0 = Math.max(0, cl.c - w + 1); c0 <= Math.min(cl.c, W - w); c0++) {
+        let ok = true;
+        for (let r = r0; r < r0 + h && ok; r++) {
+          for (let c = c0; c < c0 + w; c++) { const k = at[r * W + c]; if (k >= 0 && k !== n) { ok = false; break; } }
+        }
+        if (ok) out.push(rk(r0, c0, h, w));
+      }
+    }
+  }
+  return out;
+}
+
+/* The logic solver. It only ever makes safe deductions:
+   (a) drop a clue's candidates that overlap a square another clue has claimed (or that miss one of its own),
+   (b) a clue with one candidate left is placed,
+   (c) squares covered by every candidate of a clue belong to it,
+   (d) a square that only one clue's candidates can reach belongs to that clue.
+   So if it fills the whole quilt, that answer is the only one. `given` is [[clue, rect], ...] already placed. */
+function makeSolver(P, given) {
+  const W = P.w, H = P.h, N = P.clues.length, S = W * H;
+  const owner = new Int16Array(S).fill(-1), cellWhy = new Array(S).fill(null);
+  const cands = [], placed = new Uint8Array(N), need = new Int32Array(N);
+  const dirty = new Uint8Array(N).fill(1), dirtyC = new Uint8Array(N).fill(1);
+  const why = new Array(N).fill(null);
+  const cellNums = [];
+  for (let i = 0; i < S; i++) cellNums.push([]);
+  const stamp = new Int32Array(S).fill(-1);
+  for (let n = 0; n < N; n++) {
+    const cs = candidatesFor(P, n);
+    cands.push(cs);
+    for (const k of cs) {
+      const r0 = rR(k), c0 = rC(k), h = rH(k), w = rW(k);
+      for (let r = r0; r < r0 + h; r++) for (let c = c0; c < c0 + w; c++) {
+        const i = r * W + c;
+        if (stamp[i] !== n) { stamp[i] = n; cellNums[i].push(n); }
+      }
+    }
+  }
+  const st = { c: 0, d: 0, placed: 0, bad: false };
+  function claim(i, n, reason) {
+    if (owner[i] === n) return;
+    if (owner[i] >= 0) { st.bad = true; return; }
+    owner[i] = n; need[n]++; cellWhy[i] = reason;
+    for (const m of cellNums[i]) { dirty[m] = 1; }
+  }
+  function place(n, k, reason) {
+    cands[n] = [k]; placed[n] = 1; st.placed++;
+    const r0 = rR(k), c0 = rC(k), h = rH(k), w = rW(k);
+    for (let r = r0; r < r0 + h; r++) for (let c = c0; c < c0 + w; c++) claim(r * W + c, n, reason);
+  }
+  /* (a): keep the candidates that still fit; returns how many are left */
+  function filter(n) {
+    dirty[n] = 0;
+    const cs = cands[n], keep = [];
+    let last = null;
+    for (const k of cs) {
+      const r0 = rR(k), c0 = rC(k), h = rH(k), w = rW(k);
+      let mine = 0, ok = true;
+      for (let r = r0; r < r0 + h && ok; r++) {
+        for (let c = c0; c < c0 + w; c++) {
+          const o = owner[r * W + c];
+          if (o === n) mine++;
+          else if (o >= 0) { ok = false; last = cellWhy[r * W + c]; break; }
+        }
+      }
+      if (ok && mine !== need[n]) { ok = false; last = { k: 'own', n }; }
+      if (ok) keep.push(k);
+    }
+    if (keep.length !== cs.length) { cands[n] = keep; dirtyC[n] = 1; if (last) why[n] = last; }
+    return keep.length;
+  }
+  /* (c): squares every candidate covers */
+  const cnt = new Int32Array(S);
+  function common(n) {
+    dirtyC[n] = 0;
+    const cs = cands[n];
+    if (cs.length < 2) return 0;
+    for (const k of cs) for (const i of rectCells(k, W)) cnt[i]++;
+    let got = 0;
+    for (const i of rectCells(cs[0], W)) {
+      if (cnt[i] === cs.length && owner[i] !== n) { claim(i, n, { k: 'common', n }); got++; }
+    }
+    for (const k of cs) for (const i of rectCells(k, W)) cnt[i] = 0;
+    return got;
+  }
+  /* (d): squares only one clue can reach */
+  const reach = new Int32Array(S), who = new Int16Array(S);
+  function reachOne() {
+    reach.fill(0); stamp.fill(-1);
+    for (let n = 0; n < N; n++) {
+      if (placed[n]) continue;
+      for (const k of cands[n]) {
+        const r0 = rR(k), c0 = rC(k), h = rH(k), w = rW(k);
+        for (let r = r0; r < r0 + h; r++) for (let c = c0; c < c0 + w; c++) {
+          const i = r * W + c;
+          if (stamp[i] !== n) { stamp[i] = n; reach[i]++; who[i] = n; }
+        }
+      }
+    }
+    let got = 0;
+    for (let i = 0; i < S; i++) {
+      if (owner[i] >= 0) continue;
+      if (reach[i] === 0) { st.bad = true; return 0; }
+      if (reach[i] === 1) { claim(i, who[i], { k: 'reach', n: who[i], i }); got++; }
+    }
+    return got;
+  }
+  for (const [n, k] of given || []) { place(n, k, { k: 'placed', n }); }
+  /* the starting position: a clue with one way left right now "only fits one way" */
+  function startWhy() { for (let n = 0; n < N; n++) if (!placed[n] && !why[n]) why[n] = { k: 'one' }; }
+
+  /* run until the next placement, which is returned as {n, k, why}; null when stuck or done, 'bad' on a contradiction */
+  function next(all) {
+    for (let guard = 0; guard < 10000; guard++) {
+      if (st.bad) return 'bad';
+      let single = -1;
+      for (let n = 0; n < N; n++) {
+        if (placed[n] || !dirty[n]) continue;
+        const left = filter(n);
+        if (left === 0) { st.bad = true; return 'bad'; }
+      }
+      for (let n = 0; n < N; n++) if (!placed[n] && cands[n].length === 1) { single = n; break; }
+      if (single >= 0) {
+        if (all) {
+          /* place every clue that's down to one candidate */
+          for (let n = single; n < N; n++) if (!placed[n] && cands[n].length === 1) place(n, cands[n][0], { k: 'placed', n });
+          if (st.bad) return 'bad';
+          return { n: single };
+        }
+        const res = { n: single, k: cands[single][0], why: why[single] || { k: 'one' } };
+        place(single, res.k, { k: 'placed', n: single });
+        return res;
+      }
+      if (st.placed === N) return null;
+      let got = 0;
+      for (let n = 0; n < N; n++) if (!placed[n] && dirtyC[n]) got += common(n);
+      if (st.bad) return 'bad';
+      if (got) { st.c++; continue; }
+      got = reachOne();
+      if (st.bad) return 'bad';
+      if (got) { st.d++; continue; }
+      return null;
+    }
+    return null;
+  }
+  function run() {
+    for (;;) {
+      const e = next(true);
+      if (e === 'bad') return 'bad';
+      if (!e) break;
+    }
+    return st.placed === N ? 'solved' : 'stuck';
+  }
+  return { next, run, startWhy, cands, placed, owner, st, why };
+}
+
+/* true when the clues have exactly one answer and logic alone finds it; returns the answer's rectangles */
+function logicSolve(P, given) {
+  const s = makeSolver(P, given);
+  const status = s.run();
+  return { status, rects: status === 'solved' ? s.cands.map((cs) => cs[0]) : null, steps: s.st };
+}
+
+/* ---------- making a quilt: cut the grid into rectangles, pin a number in each, check it ---------- */
+/* spec: { w, h, mean (target area), max (largest area), ones (how welcome 1x1s are, 0-1) } */
+function partition(W, H, rnd, spec) {
+  const id = new Int16Array(W * H).fill(-1), rects = [];
+  for (let i = 0; i < W * H; i++) {
+    if (id[i] >= 0) continue;
+    const r = Math.floor(i / W), c = i % W;
+    /* every shape that fits with this square as its top-left corner */
+    const opts = [];
+    let tot = 0;
+    let maxW = 0;
+    while (c + maxW < W && id[r * W + c + maxW] < 0) maxW++;
+    for (let w = 1; w <= maxW; w++) {
+      for (let h = 1; r + h <= H; h++) {
+        let free = true;
+        for (let x = c; x < c + w; x++) if (id[(r + h - 1) * W + x] >= 0) { free = false; break; }
+        if (!free) break;
+        const a = w * h;
+        if (a > spec.max) break;
+        const asp = Math.max(w, h) / Math.min(w, h);
+        if (asp > 5) continue;
+        /* bell-ish weight around the target size, gentle on long thin strips, shy of 1x1s */
+        let wt = Math.exp(-Math.pow(Math.log(a / spec.mean), 2) * 1.6);
+        if (a === 1) wt *= spec.ones;
+        if (asp >= 4) wt *= 0.35; else if (asp >= 3) wt *= 0.7;
+        if (wt <= 0) continue;
+        opts.push([w, h, wt]); tot += wt;
+      }
+    }
+    let pick = opts.length ? opts[opts.length - 1] : [1, 1, 1];
+    let x = rnd() * tot;
+    for (const o of opts) { x -= o[2]; if (x <= 0) { pick = o; break; } }
+    const [w, h] = pick, n = rects.length;
+    for (let rr = r; rr < r + h; rr++) for (let cc = c; cc < c + w; cc++) id[rr * W + cc] = n;
+    rects.push(rk(r, c, h, w));
+  }
+  /* fold stray 1x1s into a neighbour when the two make a rectangle */
+  for (let pass = 0; pass < 2; pass++) {
+    for (let n = 0; n < rects.length; n++) {
+      const k = rects[n];
+      if (k < 0 || rH(k) * rW(k) !== 1) continue;
+      const r = rR(k), c = rC(k);
+      const nbs = shuffleArr([[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]], rnd);
+      for (const [rr, cc] of nbs) {
+        if (rr < 0 || cc < 0 || rr >= H || cc >= W) continue;
+        const m = id[rr * W + cc], q = rects[m];
+        const r0 = Math.min(r, rR(q)), c0 = Math.min(c, rC(q));
+        const r1 = Math.max(r, rR(q) + rH(q) - 1), c1 = Math.max(c, rC(q) + rW(q) - 1);
+        const a = (r1 - r0 + 1) * (c1 - c0 + 1);
+        if (a !== rH(q) * rW(q) + 1 || a > spec.max) continue;
+        rects[m] = rk(r0, c0, r1 - r0 + 1, c1 - c0 + 1);
+        id[r * W + c] = m; rects[n] = -1;
+        break;
+      }
+    }
+  }
+  return rects.filter((k) => k >= 0);
+}
+
+function genPuzzle(spec, rnd) {
+  const W = spec.w, H = spec.h;
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const rects = partition(W, H, rnd, spec);
+    const ones = rects.filter((k) => rH(k) * rW(k) === 1).length;
+    if (ones > spec.maxOnes) continue;
+    if (spec.minRects && rects.length < spec.minRects) continue;
+    if (spec.maxRects && rects.length > spec.maxRects) continue;
+    const pos = rects.map((k) => Math.floor(rnd() * rH(k) * rW(k)));
+    for (let tries = 0; tries < 8; tries++) {
+      const clues = rects.map((k, n) => ({ r: rR(k) + Math.floor(pos[n] / rW(k)), c: rC(k) + pos[n] % rW(k), v: rH(k) * rW(k) }));
+      const P = makePuzzle(W, H, clues);
+      const s = makeSolver(P);
+      const status = s.run();
+      if (status === 'bad') break;
+      if (status === 'solved') {
+        /* deep = how often logic needed more than "this clue only fits one way" */
+        const deep = s.st.c + s.st.d;
+        if (deep >= (spec.minDeep || 0) && deep <= (spec.maxDeep == null ? 99 : spec.maxDeep)) return { P, sol: rects, steps: s.st, attempt, tries };
+        /* too easy or too hard for this level: move every pin and try again */
+        rects.forEach((k, n) => { pos[n] = Math.floor(rnd() * rH(k) * rW(k)); });
+        continue;
+      }
+      /* move the pins of the patches logic couldn't place, and try again */
+      rects.forEach((k, n) => { if (!s.placed[n]) pos[n] = Math.floor(rnd() * rH(k) * rW(k)); });
+    }
+  }
+  return null;
+}
+
+if (typeof module !== 'undefined') module.exports = { rk, rR, rC, rH, rW, rectCells, rectHas, rectsOverlap, makePuzzle, candidatesFor, makeSolver, logicSolve, partition, genPuzzle };
+
+/* ---------- the opening quilts, cut by hand (each letter is a patch; its capital is where the pin goes) ---------- */
+const HAND = [
+  ['bBb', 'aaa', 'aAa'],
+  ['AbBb', 'ccdd', 'cCdD', 'eeeE'],
+  ['aAabb', 'ccdbB', 'ccdee', 'CcDeE', 'fFffG']
+];
+function parseHand(rows) {
+  const H = rows.length, W = rows[0].length, map = {}, keys = [];
+  rows.forEach((row, r) => [...row].forEach((ch, c) => {
+    const k = ch.toLowerCase();
+    if (!map[k]) { map[k] = { r0: r, c0: c, r1: r, c1: c, clue: [r, c] }; keys.push(k); }
+    const m = map[k];
+    m.r1 = Math.max(m.r1, r); m.c1 = Math.max(m.c1, c);
+    if (ch !== k) m.clue = [r, c];
+  }));
+  const sol = [], clues = [];
+  for (const k of keys) {
+    const m = map[k], h = m.r1 - m.r0 + 1, w = m.c1 - m.c0 + 1;
+    sol.push(rk(m.r0, m.c0, h, w)); clues.push({ r: m.clue[0], c: m.clue[1], v: h * w });
+  }
+  return { P: makePuzzle(W, H, clues), sol };
+}
+
+/* ---------- then endless quilts, growing from 5×5 to 12×13; level N is the same quilt on every device ---------- */
+const BANDS = [
+  { to: 8, sizes: [[5, 5], [5, 5], [5, 6]], mean: 3.6, max: 8, deep: [0, 0] },
+  { to: 14, sizes: [[6, 6], [6, 7]], mean: 4, max: 9, deep: [0, 2] },
+  { to: 22, sizes: [[7, 7], [7, 8], [8, 8]], mean: 4.4, max: 10, deep: [1, 4] },
+  { to: 34, sizes: [[8, 8], [8, 9], [8, 10], [9, 9]], mean: 4.8, max: 12, deep: [2, 99] },
+  { to: 50, sizes: [[9, 10], [10, 10], [9, 11]], mean: 5, max: 12, deep: [2, 99] },
+  { to: 75, sizes: [[10, 10], [10, 11], [10, 12], [11, 11]], mean: 5.3, max: 14, deep: [3, 99] },
+  { to: Infinity, sizes: [[10, 12], [11, 12], [12, 12], [10, 13], [10, 14], [11, 13], [12, 13]], mean: 5.6, max: 16, deep: [3, 99] }
+];
+function specFor(idx) {
+  const b = BANDS.find((x) => idx < x.to);
+  const [w, h] = pickOne(b.sizes, mulberry32(seedFor(idx, 2)));
+  return { w, h, mean: b.mean, max: b.max, ones: 0.06, maxOnes: Math.max(1, Math.round(w * h / 45)), minDeep: b.deep[0], maxDeep: b.deep[1] };
+}
+function levelSize(idx) {
+  if (idx < HAND.length) return [HAND[idx][0].length, HAND[idx].length];
+  const s = specFor(idx); return [s.w, s.h];
+}
+
+/* ---------- fabrics: a coordinated palette per quilt, and ten little prints ---------- */
+const PALETTES = [
+  ['Strawberry', '#8e2b43', ['#d94f5c', '#f4a3b4', '#74ad62', '#f3bd5c', '#9c3049']],
+  ['Seaside', '#234b82', ['#2d5d9f', '#4fb3c9', '#f2cc6a', '#ec8a63', '#9bd5d1']],
+  ['Meadow', '#3e6e2f', ['#5c9a46', '#b5d465', '#f2c14e', '#7096d8', '#e98aa3']],
+  ['Lavender', '#56397f', ['#7957ae', '#b59ae0', '#86b892', '#f0b8cc', '#e9c46a']],
+  ['Harvest', '#6e4026', ['#c0582f', '#e3a33c', '#82913f', '#8a5a3b', '#d9b98c']],
+  ['Blueberry', '#2a3f80', ['#3a56a8', '#7f9be3', '#f3d64e', '#41a395', '#e57a6e']],
+  ['Peach', '#2f7464', ['#f29a76', '#e2665a', '#88cfb1', '#3e8f7d', '#f7d27a']],
+  ['Plum', '#5e2245', ['#83325f', '#cc6b8e', '#e6b04d', '#5f8a5d', '#d58a5e']],
+  ['Cornflower', '#3f5fae', ['#5b7fd1', '#e889a0', '#f6d28b', '#6fb7a8', '#c25b7a']],
+  ['Sunflower', '#4b3a22', ['#e8a823', '#5a7d3a', '#c9532f', '#f3d77a', '#6f4e37']]
+];
+const PRINTS = ['gingham', 'polka dots', 'stripes', 'florals', 'stars', 'herringbone', 'plaid', 'ticking', 'hearts', 'checks'];
+function hexMix(a, b, t) {
+  const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16);
+  const ch = (s) => Math.round(((x >> s) & 255) * (1 - t) + ((y >> s) & 255) * t);
+  return '#' + ((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1);
+}
+function isLight(hex) {
+  const x = parseInt(hex.slice(1), 16);
+  return (((x >> 16) & 255) * 0.299 + ((x >> 8) & 255) * 0.587 + (x & 255) * 0.114) > 170;
+}
+const CREAM = '#fffaf0';
+function flowerAt(x, y, r, petal, mid) {
+  let s = '';
+  for (let i = 0; i < 5; i++) {
+    const a = i / 5 * Math.PI * 2 - Math.PI / 2;
+    s += '<circle cx="' + (x + Math.cos(a) * r).toFixed(3) + '" cy="' + (y + Math.sin(a) * r).toFixed(3) + '" r="' + (r * 0.78).toFixed(3) + '" fill="' + petal + '"/>';
+  }
+  return s + '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.62).toFixed(3) + '" fill="' + mid + '"/>';
+}
+function starAt(x, y, r, fill) {
+  let d = '';
+  for (let i = 0; i < 10; i++) {
+    const a = i / 10 * Math.PI * 2 - Math.PI / 2, q = i % 2 ? r * 0.45 : r;
+    d += (i ? 'L' : 'M') + (x + Math.cos(a) * q).toFixed(3) + ' ' + (y + Math.sin(a) * q).toFixed(3);
+  }
+  return '<path d="' + d + 'Z" fill="' + fill + '"/>';
+}
+function heartAt(x, y, s, fill) {
+  return '<path transform="translate(' + x + ' ' + y + ') scale(' + s + ')" d="M0 .9C-.2 .7-1 .25-1 -.25C-1 -.7-.5 -.95 0 -.5C.5 -.95 1 -.7 1 -.25C1 .25.2 .7 0 .9Z" fill="' + fill + '"/>';
+}
+/* one print in one colour, as an SVG pattern measured in squares */
+function printDef(id, p, col) {
+  const L = hexMix(col, '#fffdf6', 0.72), D = hexMix(col, '#1c0f0a', 0.3), ink = isLight(col) ? D : CREAM;
+  const pat = (w, h, body, extra) => '<pattern id="' + id + '" width="' + w + '" height="' + h + '" patternUnits="userSpaceOnUse"' + (extra || '') + '>' + body + '</pattern>';
+  const bg = (w, h, f) => '<rect width="' + w + '" height="' + h + '" fill="' + f + '"/>';
+  switch (p) {
+    case 0: return pat(0.5, 0.5, bg(0.5, 0.5, L) + '<rect width=".25" height=".5" fill="' + col + '" opacity=".55"/><rect width=".5" height=".25" fill="' + col + '" opacity=".55"/>');
+    case 1: return pat(0.5, 0.5, bg(0.5, 0.5, col) + '<circle cx=".125" cy=".125" r=".075" fill="' + ink + '"/><circle cx=".375" cy=".375" r=".075" fill="' + ink + '"/>');
+    case 2: return pat(0.34, 0.34, bg(0.34, 0.34, L) + '<rect width=".17" height=".34" fill="' + col + '"/>', ' patternTransform="rotate(45)"');
+    case 3: return pat(0.72, 0.72, bg(0.72, 0.72, col) + '<path d="M.42 .18q.08-.1 .16-.04M.06 .52q.09.1 .17.02" stroke="' + (isLight(col) ? D : L) + '" stroke-width=".035" fill="none" stroke-linecap="round"/>' +
+      flowerAt(0.19, 0.19, 0.07, ink, '#f2c14e') + flowerAt(0.54, 0.54, 0.055, ink, isLight(col) ? CREAM : D));
+    case 4: return pat(0.6, 0.6, bg(0.6, 0.6, D) + starAt(0.15, 0.16, 0.1, CREAM) + starAt(0.45, 0.46, 0.065, L));
+    case 5: return pat(0.4, 0.24, bg(0.4, 0.24, col) + '<path d="M-.05 .2L.2 .05L.45 .2" fill="none" stroke="' + (isLight(col) ? D : L) + '" stroke-width=".055"/>');
+    case 6: return pat(0.6, 0.6, bg(0.6, 0.6, col) + '<rect width=".22" height=".6" fill="' + D + '" opacity=".35"/><rect width=".6" height=".22" fill="' + D + '" opacity=".35"/><path d="M.41 0V.6M0 .41H.6" stroke="' + CREAM + '" stroke-width=".03" opacity=".8"/>');
+    case 7: return pat(0.32, 0.32, bg(0.32, 0.32, CREAM) + '<rect x=".04" width=".07" height=".32" fill="' + col + '"/><rect x=".16" width=".03" height=".32" fill="' + col + '"/>');
+    case 8: return pat(0.5, 0.5, bg(0.5, 0.5, L) + heartAt(0.13, 0.14, 0.075, col) + heartAt(0.38, 0.39, 0.075, col));
+    default: return pat(0.3, 0.3, bg(0.3, 0.3, col) + '<rect width=".15" height=".15" fill="' + L + '"/><rect x=".15" y=".15" width=".15" height=".15" fill="' + L + '"/>');
+  }
+}
+/* pick the quilt's palette, and a print for every patch so that neighbours never share one */
+function dress(L, idx) {
+  const rnd = mulberry32(seedFor(idx, 9));
+  L.pal = (idx * 7 + Math.floor(rnd() * 3)) % PALETTES.length;
+  const W = L.w, H = L.h, N = L.sol.length, id = new Int16Array(W * H);
+  L.sol.forEach((k, n) => { for (const i of rectCells(k, W)) id[i] = n; });
+  const nb = Array.from({ length: N }, () => new Set());
+  const link = (a, b) => { if (a !== b) { nb[a].add(b); nb[b].add(a); } };
+  for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+    if (c + 1 < W) link(id[r * W + c], id[r * W + c + 1]);
+    if (r + 1 < H) link(id[r * W + c], id[(r + 1) * W + c]);
+  }
+  const cols = PALETTES[L.pal][2], useP = new Array(PRINTS.length).fill(0), useC = new Array(cols.length).fill(0);
+  L.prints = new Array(N).fill(null);
+  for (const n of shuffleArr([...Array(N).keys()], rnd)) {
+    let best = null, score0 = Infinity;
+    for (let p = 0; p < PRINTS.length; p++) {
+      for (let c = 0; c < cols.length; c++) {
+        let score = useP[p] + useC[c] * 1.4 + rnd() * 1.2;
+        for (const m of nb[n]) { const q = L.prints[m]; if (q) { if (q.p === p) score += 100; if (q.c === c) score += 25; } }
+        if (score < score0) { score0 = score; best = { p, c, col: cols[c] }; }
+      }
+    }
+    L.prints[n] = best; useP[best.p]++; useC[best.c]++;
+  }
+}
+const printId = (L, n) => 'pw-' + L.prints[n].p + '-' + L.prints[n].c;
+function defsFor(L) {
+  const seen = new Set();
+  let s = '<pattern id="pw-muslin" width=".2" height=".2" patternUnits="userSpaceOnUse"><rect class="mus-bg" width=".2" height=".2"/><path class="mus-line" d="M0 .1H.2M.1 0V.2"/></pattern>' +
+    '<radialGradient id="pw-puff" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#2a1208" stop-opacity=".34"/></radialGradient>';
+  L.prints.forEach((q, n) => {
+    const id = printId(L, n);
+    if (!seen.has(id)) { seen.add(id); s += printDef(id, q.p, q.col); }
+  });
+  return s;
+}
+
+const levelCache = {};
+function getLevel(idx) {
+  if (!levelCache[idx]) {
+    let made = null;
+    if (idx < HAND.length) made = parseHand(HAND[idx]);
+    else {
+      const spec = specFor(idx);
+      made = genPuzzle(spec, mulberry32(seedFor(idx, 1))) ||
+        genPuzzle(Object.assign({}, spec, { minDeep: 0, maxDeep: 99 }), mulberry32(seedFor(idx, 4))) || parseHand(HAND[HAND.length - 1]);
+    }
+    const L = { idx, w: made.P.w, h: made.P.h, P: made.P, sol: made.sol };
+    dress(L, idx);
+    levelCache[idx] = L;
+  }
+  return levelCache[idx];
+}
+
+/* the finished quilt as a small SVG: solid fabrics for the level picker, the real prints for the win card */
+function quiltSVG(L, prints) {
+  const W = L.w, H = L.h, m = prints ? 0.2 : 0.14, bind = PALETTES[L.pal][1];
+  let s = '<svg viewBox="' + -m + ' ' + -m + ' ' + (W + 2 * m) + ' ' + (H + 2 * m) + '" aria-hidden="true">' +
+    '<rect x="' + -m + '" y="' + -m + '" width="' + (W + 2 * m) + '" height="' + (H + 2 * m) + '" rx="' + m + '" fill="' + bind + '"/>';
+  L.sol.forEach((k, n) => {
+    const x = rC(k), y = rR(k), w = rW(k), h = rH(k);
+    const box = ' x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"';
+    if (!prints) { s += '<rect' + box + ' fill="' + L.prints[n].col + '" stroke="rgba(255,250,240,.6)" stroke-width=".1"/>'; return; }
+    s += '<rect' + box + ' fill="url(#' + printId(L, n) + ')" stroke="rgba(40,22,14,.35)" stroke-width=".05"/>' +
+      '<rect' + box + ' fill="url(#pw-puff)"/>' +
+      '<rect x="' + (x + 0.12) + '" y="' + (y + 0.12) + '" width="' + (w - 0.24) + '" height="' + (h - 0.24) + '" fill="none" stroke="' + CREAM + '" stroke-width=".05" stroke-dasharray=".13 .11" opacity=".9"/>';
+  });
+  if (prints) s += '<rect x="' + (-m / 2) + '" y="' + (-m / 2) + '" width="' + (W + m) + '" height="' + (H + m) + '" fill="none" stroke="' + CREAM + '" stroke-width=".04" stroke-dasharray=".12 .1" opacity=".85"/>';
+  return s + '</svg>';
+}
+
+GAME.total = Infinity;
+GAME.levelLabel = (i) => { const s = levelSize(i); return s[0] + '×' + s[1]; };
+GAME.levelTile = (i, done) => done
+  ? '<span class="thumb">' + quiltSVG(getLevel(i), false) + '</span><small>' + (i + 1) + '</small>'
+  : '<b>' + (i + 1) + '</b><small>' + GAME.levelLabel(i) + '</small>';
+GAME.levelBadge = (stars) => starsHTML(stars);
+
+/* ---------- game state ---------- */
+let G = null;
+let drag = null, kAnchor = null;
+let cursor = { r: 0, c: 0, show: false };
+let winTimer = 0, hintTimer = 0, saveTimer = 0, lastPin = 0, seamRaf = 0;
+const svg = $('#quilt'), defs = $('#defs'), patchG = $('#patchG'), seamG = $('#seamG'), pinG = $('#pinG'), cutG = $('#cutG'), kcur = $('#kcur');
+const SVGNS = 'http://www.w3.org/2000/svg';
+const M = 0.24;  /* a little of the mat shows around the quilt, in squares */
+let VB = { x: -M, y: -M, w: 1, h: 1 }, VIEW = { x: -M, y: -M, w: 1, h: 1 }, pxPerUnit = 1;
+const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
+
+function loadLevel(idx) {
+  idx = Math.max(0, idx | 0);
+  startLevel(idx, getLevel(idx));
+  setTimeout(() => getLevel(idx + 1), 400);
+}
+
+function startLevel(idx, L) {
+  clearTimeout(winTimer); clearHint(); stopSeams();
+  if (disarmRestart) disarmRestart();
+  $('#restartIcon').innerHTML = ICON.restart;
+  const N = L.P.clues.length;
+  G = { idx, L, w: L.w, h: L.h, N, patches: [], cuts: 0, hints: 0, undo: [], won: false, valid: 0, tips: 0, told: false,
+        cover: new Int16Array(L.w * L.h).fill(-1), els: new Map() };
+  /* pick up where you left off on this level */
+  if (save.cur && save.cur.i === idx && Array.isArray(save.cur.p)) {
+    const ok = [];
+    for (const k of save.cur.p) {
+      if (typeof k !== 'number' || k < 0 || !rH(k) || !rW(k) || rR(k) + rH(k) > L.h || rC(k) + rW(k) > L.w) continue;
+      if (ok.some((q) => rectsOverlap(q, k))) continue;
+      ok.push(k);
+    }
+    G.patches = ok; G.cuts = save.cur.c | 0; G.hints = save.cur.h | 0;
+  }
+  save.level = idx; persist();
+  drag = null; kAnchor = null; cursor = { r: 0, c: 0, show: false };
+  $('#lvTitle').textContent = 'Level ' + (idx + 1);
+  $('#lvSub').textContent = L.w + ' × ' + L.h + ' · ' + PALETTES[L.pal][0];
+  buildBoard();
+  sync();
+  closeModal();
+}
+
+/* ---------- drawing the quilt ---------- */
+function buildBoard() {
+  const { w, h, L } = G;
+  VB = { x: -M, y: -M, w: w + 2 * M, h: h + 2 * M };
+  defs.innerHTML = defsFor(L);
+  const set = (el, a) => { for (const k in a) el.setAttribute(k, a[k]); };
+  set($('#calico'), { x: 0, y: 0, width: w, height: h });
+  set($('#edge'), { x: 0, y: 0, width: w, height: h });
+  let d = '';
+  for (let c = 1; c < w; c++) d += 'M' + c + ' 0V' + h;
+  for (let r = 1; r < h; r++) d += 'M0 ' + r + 'H' + w;
+  $('#chalk').setAttribute('d', d);
+  const bind = PALETTES[L.pal][1];
+  set($('#binding'), { x: -0.1, y: -0.1, width: w + 0.2, height: h + 0.2, rx: 0.12, stroke: bind });
+  set($('#bindingSt'), { x: -0.1, y: -0.1, width: w + 0.2, height: h + 0.2, rx: 0.12 });
+  patchG.innerHTML = ''; seamG.innerHTML = ''; cutG.innerHTML = '';
+  pinG.innerHTML = L.P.clues.map((cl, n) => pinMarkup(cl, n)).join('');
+  svg.classList.remove('won', 'puffed', 'bound');
+  $('#mat').classList.remove('puffed');
+  kcur.setAttribute('visibility', 'hidden');
+  zoom.reset();
+  zoom.tip();
+}
+function pinMarkup(cl, n) {
+  const fs = cl.v >= 10 ? 0.36 : 0.44, cx = G.w / 2, cy = G.h / 2;
+  const delay = (Math.hypot(cl.c - cx, cl.r - cy) / Math.hypot(cx, cy) * 0.35).toFixed(2);
+  return '<g class="pin" data-n="' + n + '" transform="translate(' + (cl.c + 0.5) + ' ' + (cl.r + 0.5) + ')"><g class="pin-in" style="--d:' + delay + 's">' +
+    '<circle class="shade" cx=".03" cy=".05" r=".31"/><circle class="disc" r=".31"/>' +
+    '<text y=".02" font-size="' + fs + '">' + cl.v + '</text>' +
+    '<circle class="head" cx=".24" cy="-.24" r=".09"/><circle class="shine" cx=".214" cy="-.266" r=".03"/></g></g>';
+}
+/* a patch's pins, and whether it's a proper patch: exactly one pin, and that pin's number is its size */
+function patchInfo(k) {
+  const P = G.L.P, pins = [];
+  for (const i of rectCells(k, G.w)) if (P.at[i] >= 0) pins.push(P.at[i]);
+  const area = rH(k) * rW(k), ok = pins.length === 1 && P.clues[pins[0]].v === area;
+  return { area, pins, ok, n: ok ? pins[0] : -1 };
+}
+function patchEl(k, cls) {
+  const info = patchInfo(k), x = rC(k), y = rR(k), w = rW(k), h = rH(k);
+  const g = document.createElementNS(SVGNS, 'g');
+  g.setAttribute('class', 'patch' + (info.ok ? '' : ' tacked') + (cls ? ' ' + cls : ''));
+  if (!info.ok) g.style.setProperty('--wd', (-((x * 7 + y * 13) % 26) / 10) + 's');
+  const box = ' x="' + (x + 0.015) + '" y="' + (y + 0.015) + '" width="' + (w - 0.03) + '" height="' + (h - 0.03) + '" rx=".05"';
+  g.innerHTML = '<rect class="cloth"' + box + ' fill="url(#' + (info.ok ? printId(G.L, info.n) : 'pw-muslin') + ')"/>' +
+    (info.ok ? '<rect class="puff"' + box + ' fill="url(#pw-puff)"/>'
+             : '<rect class="tack" x="' + (x + 0.15) + '" y="' + (y + 0.15) + '" width="' + (w - 0.3) + '" height="' + (h - 0.3) + '" rx=".05"/>') +
+    '<rect class="glow"' + box + '/>';
+  g.info = info;
+  return g;
+}
+/* bring the drawn patches in line with G.patches (each patch looks the same for as long as it's there) */
+function sync(fresh, hinted, lifted) {
+  const keep = new Set(G.patches);
+  for (const [k, el] of G.els) {
+    if (keep.has(k)) continue;
+    G.els.delete(k);
+    if (lifted && lifted.includes(k) && !calmMotion()) { el.classList.remove('fresh', 'hinted'); el.classList.add('gone'); setTimeout(() => el.remove(), 320); }
+    else el.remove();
+  }
+  for (const k of G.patches) {
+    if (G.els.has(k)) continue;
+    const el = patchEl(k, k === fresh ? 'fresh' : k === hinted ? 'fresh hinted' : '');
+    patchG.appendChild(el);
+    G.els.set(k, el);
+  }
+  G.cover.fill(-1);
+  G.valid = 0;
+  G.patches.forEach((k, p) => { for (const i of rectCells(k, G.w)) G.cover[i] = p; if (G.els.get(k).info.ok) G.valid++; });
+  renderStatus();
+}
+const calmMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const capStars = () => (G.hints >= 2 ? 1 : G.hints === 1 ? 2 : 3);
+function renderStatus(readout, good) {
+  const cap = $('#cap');
+  cap.innerHTML = starsHTML(capStars());
+  cap.setAttribute('aria-label', capStars() + (capStars() === 1 ? ' star' : ' stars') + ' still possible');
+  const sub = readout ? '<span class="sub ' + (good ? 'good' : 'bad') + '">' + readout + '</span>'
+    : '<span class="sub">' + G.cuts + (G.cuts === 1 ? ' cut' : ' cuts') + ' · par ' + G.N + '</span>';
+  $('#count').innerHTML = '<small>Patches</small>' + G.valid + ' / ' + G.N + sub;
+}
+
+/* ---------- layout: the quilt fits the screen at full view; zoomed in, the svg grows to fill the space and its viewBox
+   becomes a window onto part of the quilt ---------- */
+function layout() {
+  const wrap = $('#matWrap'), pad = 28;
+  const availW = Math.min(wrap.clientWidth, 460) - pad;
+  const top = wrap.getBoundingClientRect().top + window.scrollY;
+  const availH = Math.max(180, window.innerHeight - top - $('#foot').offsetHeight - 34 - pad);
+  const fit = Math.min(availW / VB.w, availH / VB.h);
+  /* zoom in until a square is a comfortable fingertip wide */
+  zoom.max = Math.max(1, Math.min(4, 50 / fit));
+  const s = fit * zoom.z, cw = VB.w * s, ch = VB.h * s;
+  const vw = Math.min(cw, Math.max(availW, VB.w * fit)), vh = Math.min(ch, Math.max(availH, VB.h * fit));
+  svg.style.width = vw + 'px';
+  svg.style.height = vh + 'px';
+  pxPerUnit = s;
+  const r = svg.getBoundingClientRect();
+  return { cw, ch, vw, vh, left: r.left, top: r.top };
+}
+function panView() {
+  const s = pxPerUnit, g = zoom.g;
+  VIEW = { x: VB.x + zoom.x / s, y: VB.y + zoom.y / s, w: g.vw / s, h: g.vh / s };
+  svg.setAttribute('viewBox', [VIEW.x, VIEW.y, VIEW.w, VIEW.h].map((v) => v.toFixed(4)).join(' '));
+}
+/* when zoomed in, slide some squares into view */
+function showRect(r0, c0, h, w) { const s = pxPerUnit; zoom.show((c0 - VB.x) * s, (r0 - VB.y) * s, w * s, h * s); }
+window.addEventListener('resize', () => { if (G) zoom.refresh(); });
+
+/* ---------- input: drag from corner to corner to cut a patch, tap a patch to unpick it ---------- */
+/* the square under a screen point; only the part of the quilt you can see counts (a little slack round the edge) */
+function cellAt(x, y, keepIn) {
+  const b = svg.getBoundingClientRect();
+  if (keepIn) { x = clampN(x, b.left, b.right - 0.5); y = clampN(y, b.top, b.bottom - 0.5); }
+  else if (x < b.left || x >= b.right || y < b.top || y >= b.bottom) return null;
+  const u = VIEW.x + (x - b.left) / b.width * VIEW.w, v = VIEW.y + (y - b.top) / b.height * VIEW.h;
+  if (!keepIn && (u < -0.2 || v < -0.2 || u > G.w + 0.2 || v > G.h + 0.2)) return null;
+  return { r: clampN(Math.floor(v), 0, G.h - 1), c: clampN(Math.floor(u), 0, G.w - 1) };
+}
+const rectOf = (r0, c0, r1, c1) => rk(Math.min(r0, r1), Math.min(c0, c1), Math.abs(r1 - r0) + 1, Math.abs(c1 - c0) + 1);
+
+function playDown(e) {
+  if (!G || G.won || drag || kAnchor) return;
+  if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 2) return;
+  const p = cellAt(e.clientX, e.clientY);
+  if (!p) return;
+  if (e.preventDefault) e.preventDefault();
+  clearHint(); hideCursor();
+  /* right-click unpicks */
+  if (e.button === 2) { const q = G.cover[p.r * G.w + p.c]; if (q >= 0) unpick(G.patches[q]); return; }
+  try { svg.setPointerCapture(e.pointerId); } catch (err) {}
+  drag = { id: e.pointerId, r0: p.r, c0: p.c, r1: p.r, c1: p.c, moved: false, x: e.clientX, y: e.clientY, edge: null };
+  sfx('pin', 1);
+  drawCut(p.r, p.c, p.r, p.c);
+}
+function dragTo() {
+  const p = cellAt(drag.x, drag.y, true);
+  if (p.r === drag.r1 && p.c === drag.c1) return;
+  drag.r1 = p.r; drag.c1 = p.c; drag.moved = true;
+  const now = performance.now();
+  if (now - lastPin > 45) { sfx('pin', (Math.abs(drag.r1 - drag.r0) + 1) * (Math.abs(drag.c1 - drag.c0) + 1)); lastPin = now; }
+  drawCut(drag.r0, drag.c0, drag.r1, drag.c1);
+}
+function playMove(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  drag.x = e.clientX; drag.y = e.clientY;
+  dragTo();
+  edgeCheck();
+}
+function playUp(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  const d = drag;
+  drag = null; stopEdge();
+  cutG.innerHTML = '';
+  renderStatus();
+  if (d.r0 === d.r1 && d.c0 === d.c1) { if (!d.moved) tapAt(d.r0, d.c0); return; }
+  placePatch(rectOf(d.r0, d.c0, d.r1, d.c1), 'cut');
+}
+function playCancel(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  drag = null; stopEdge();
+  cutG.innerHTML = '';
+  renderStatus();
+}
+svg.addEventListener('contextmenu', (e) => e.preventDefault());
+
+/* zoomed in, a cut that reaches the edge of the window slides the quilt along */
+let edgeRaf = 0;
+function edgeCheck() {
+  if (!drag || zoom.z <= 1.01) { stopEdge(); return; }
+  const b = svg.getBoundingClientRect(), m = 26;
+  const dx = drag.x < b.left + m ? -1 : drag.x > b.right - m ? 1 : 0;
+  const dy = drag.y < b.top + m ? -1 : drag.y > b.bottom - m ? 1 : 0;
+  drag.edge = dx || dy ? [dx, dy] : null;
+  if (drag.edge && !edgeRaf) edgeRaf = requestAnimationFrame(edgeStep);
+}
+function edgeStep() {
+  edgeRaf = 0;
+  if (!drag || !drag.edge) return;
+  zoom.panBy(drag.edge[0] * 6, drag.edge[1] * 6);
+  dragTo();
+  edgeRaf = requestAnimationFrame(edgeStep);
+}
+function stopEdge() { cancelAnimationFrame(edgeRaf); edgeRaf = 0; }
+
+/* the outline of the cut so far, its size, and whether it would make a proper patch */
+function drawCut(r0, c0, r1, c1) {
+  const k = rectOf(r0, c0, r1, c1), info = patchInfo(k);
+  const x = rC(k), y = rR(k), w = rW(k), h = rH(k);
+  const cls = info.ok ? '' : ' bad';
+  /* the size badge sits just outside the cut, on the side away from the finger */
+  const fingerTop = r1 === y && h > 1;
+  let by = fingerTop ? y + h + 0.5 : y - 0.5;
+  if (by < VIEW.y + 0.38) by = y + h + 0.5;
+  if (by > VIEW.y + VIEW.h - 0.38) by = Math.max(VIEW.y + 0.38, y - 0.5);
+  const label = String(info.area), bw = label.length > 1 ? 0.96 : 0.74;
+  const bx = clampN(x + w / 2, VIEW.x + bw / 2 + 0.06, VIEW.x + VIEW.w - bw / 2 - 0.06);
+  cutG.innerHTML = '<rect class="cut' + cls + '" x="' + (x + 0.04) + '" y="' + (y + 0.04) + '" width="' + (w - 0.08) + '" height="' + (h - 0.08) + '" rx=".08"/>' +
+    '<g class="badge' + cls + '" transform="translate(' + bx.toFixed(3) + ' ' + by.toFixed(3) + ')"><rect x="' + (-bw / 2) + '" y="-.3" width="' + bw + '" height=".6" rx=".3"/><text y=".02" font-size=".42">' + label + '</text></g>';
+  renderStatus(cutReadout(info, w, h), info.ok);
+}
+function cutReadout(info, w, h) {
+  const size = w + ' × ' + h + ' = ' + info.area;
+  if (info.ok) return size + ' · fits the ' + info.area + ' ✓';
+  if (!info.pins.length) return size + ' · no pin inside';
+  if (info.pins.length > 1) return size + ' · ' + info.pins.length + ' pins inside';
+  return size + ' · the pin says ' + G.L.P.clues[info.pins[0]].v;
+}
+
+function tapAt(r, c) {
+  const i = r * G.w + c, q = G.cover[i];
+  if (q >= 0) { unpick(G.patches[q]); return; }
+  const n = G.L.P.at[i];
+  if (n >= 0 && G.L.P.clues[n].v === 1) { placePatch(rk(r, c, 1, 1), 'cut'); return; }
+  if (G.tips++ < 2) toast(n >= 0 ? 'Drag from this pin\'s square to the far corner of its patch.' : 'Drag from one corner to the opposite corner to cut a patch.');
+}
+
+/* ---------- placing and unpicking ---------- */
+function pushUndo() { G.undo.push(G.patches.slice()); if (G.undo.length > 80) G.undo.shift(); }
+function placePatch(k, how) {
+  if (G.patches.includes(k)) { if (how === 'cut') sfx('pin', 1); return false; }
+  pushUndo();
+  const lifted = G.patches.filter((q) => rectsOverlap(q, k));
+  G.patches = G.patches.filter((q) => !rectsOverlap(q, k));
+  G.patches.push(k);
+  if (how === 'cut') G.cuts++;
+  sync(how === 'hint' ? null : k, how === 'hint' ? k : null, lifted);
+  const ok = G.els.get(k).info.ok;
+  sfx(ok ? 'snip' : 'tack');
+  if (ok) haptic(12);
+  queueSave();
+  checkWin();
+  return lifted;
+}
+function unpick(k) {
+  pushUndo();
+  G.patches = G.patches.filter((q) => q !== k);
+  sync(null, null, [k]);
+  sfx('unpick');
+  queueSave();
+}
+function undo() {
+  if (!G || G.won || !G.undo.length) return;
+  clearHint();
+  G.patches = G.undo.pop();
+  sync();
+  sfx('tap');
+  queueSave();
+}
+$('#btnUndo').addEventListener('click', undo);
+
+function checkWin() {
+  if (G.won) return;
+  for (let i = 0; i < G.cover.length; i++) if (G.cover[i] < 0) { G.told = false; return; }
+  if (G.valid === G.N && G.patches.length === G.N) { win(); return; }
+  if (!G.told) {
+    G.told = true;
+    toast('The quilt is covered, but the wobbly patches are only tacked on. Each patch needs one pin, matching its size.', 3800);
+  }
+}
+
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!G || G.won) { if (save.cur) { delete save.cur; persist(); } return; }
+    save.cur = { i: G.idx, p: G.patches.slice(), c: G.cuts, h: G.hints };
+    persist();
+  }, 300);
+}
+
+/* ---------- keyboard: arrows move, Enter starts a cut and Enter again finishes it, Delete unpicks ---------- */
+function showCursor() {
+  cursor.show = true;
+  kcur.setAttribute('x', cursor.c); kcur.setAttribute('y', cursor.r);
+  kcur.setAttribute('visibility', 'visible');
+}
+function hideCursor() {
+  if (kAnchor) { kAnchor = null; cutG.innerHTML = ''; renderStatus(); }
+  cursor.show = false; kcur.setAttribute('visibility', 'hidden');
+}
+svg.addEventListener('keydown', (e) => {
+  if (!G || G.won || modalOpen() || drag) return;
+  const k = e.key;
+  const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+  if (moves[k]) {
+    e.preventDefault();
+    if (cursor.show) {
+      cursor.r = clampN(cursor.r + moves[k][0], 0, G.h - 1);
+      cursor.c = clampN(cursor.c + moves[k][1], 0, G.w - 1);
+    }
+    showCursor();
+    showRect(cursor.r, cursor.c, 1, 1);
+    if (kAnchor) drawCut(kAnchor.r, kAnchor.c, cursor.r, cursor.c);
+    return;
+  }
+  if (k === 'Enter' || k === ' ') {
+    e.preventDefault();
+    clearHint();
+    if (!cursor.show) { showCursor(); return; }
+    if (!kAnchor) { kAnchor = { r: cursor.r, c: cursor.c }; sfx('pin', 1); drawCut(cursor.r, cursor.c, cursor.r, cursor.c); return; }
+    const a = kAnchor;
+    kAnchor = null; cutG.innerHTML = ''; renderStatus();
+    if (a.r === cursor.r && a.c === cursor.c) tapAt(a.r, a.c);
+    else placePatch(rectOf(a.r, a.c, cursor.r, cursor.c), 'cut');
+    return;
+  }
+  if (k === 'Escape' && kAnchor) { e.preventDefault(); kAnchor = null; cutG.innerHTML = ''; renderStatus(); return; }
+  if ((k === 'Delete' || k === 'Backspace') && cursor.show) {
+    e.preventDefault();
+    const q = G.cover[cursor.r * G.w + cursor.c];
+    if (q >= 0) unpick(G.patches[q]);
+  }
+});
+svg.addEventListener('blur', () => { if (G && !G.won) hideCursor(); });
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z') && !modalOpen()) { e.preventDefault(); undo(); }
+});
+
+const zoom = makeZoom({
+  el: $('#matWrap'),
+  fit: $('#zoomFit'),
+  layout, pan: panView,
+  down: playDown, move: playMove, up: playUp, cancel: playCancel,
+  /* zoomed in, a one-finger drag on the mat around the quilt slides it */
+  canPan: (e) => !G || G.won || !cellAt(e.clientX, e.clientY),
+  focus: () => {
+    if (!cursor.show) return null;
+    const b = svg.getBoundingClientRect();
+    return { x: b.left + (cursor.c + 0.5 - VIEW.x) / VIEW.w * b.width, y: b.top + (cursor.r + 0.5 - VIEW.y) / VIEW.h * b.height };
+  },
+  tip: 'Tip: pinch the quilt to zoom in. Drag with two fingers, or along the mat, to look around.'
+});
+
+/* ---------- hint: sew in the next patch logic can find, and say why ---------- */
+function clearHint() {
+  clearTimeout(hintTimer);
+  if (!G) return;
+  for (const el of svg.querySelectorAll('.hinted')) el.classList.remove('hinted');
+}
+function whereIs(cl) {
+  const edgeR = cl.r === 0 || cl.r === G.h - 1, edgeC = cl.c === 0 || cl.c === G.w - 1;
+  return edgeR && edgeC ? 'The ' + cl.v + ' in the corner' : edgeR || edgeC ? 'The ' + cl.v + ' on the edge' : 'This ' + cl.v;
+}
+function hintWhy(n, why) {
+  const P = G.L.P, cl = P.clues[n], who = whereIs(cl), low = who.charAt(0).toLowerCase() + who.slice(1);
+  if (cl.v === 1) return 'A 1 is a patch all by itself: just its own square.';
+  const k = why ? why.k : 'one';
+  if (k === 'common' && why.n !== n) return 'However the ' + P.clues[why.n].v + ' nearby is cut, it takes squares the ' + cl.v + ' would need, so ' + low + ' only fits one way.';
+  if ((k === 'reach' || k === 'own') && why.n === n) return 'A square nearby can only be reached by ' + low + ', and just one way of cutting it covers that square.';
+  if (k === 'reach') return 'A square nearby can only belong to the ' + P.clues[why.n].v + ', which leaves ' + low + ' just one way to fit.';
+  return who + ' can only fit one way.';
+}
+function hint() {
+  if (!G || G.won) return;
+  clearHint();
+  if (drag) playCancel();
+  const L = G.L, given = [];
+  for (const k of G.patches) { const info = G.els.get(k).info; if (info.ok && L.sol[info.n] === k) given.push([info.n, k]); }
+  const s = makeSolver(L.P, given);
+  s.startWhy();
+  let e = s.next(false);
+  if (!e || e === 'bad' || L.sol[e.n] !== e.k) {
+    /* never expected: logic always has a next step on these quilts. Fall back to any missing patch */
+    const n = L.sol.findIndex((k, m) => !given.some((g) => g[0] === m));
+    if (n < 0) return;
+    e = { n, k: L.sol[n], why: null };
+  }
+  G.hints++;
+  const lifted = placePatch(e.k, 'hint') || [];
+  const pin = pinG.querySelector('.pin[data-n="' + e.n + '"]');
+  if (pin) pin.classList.add('hinted');
+  showRect(rR(e.k), rC(e.k), rH(e.k), rW(e.k));
+  const star = $('#cap').children[capStars()];
+  if (star) { star.classList.add('pop'); }
+  toast(hintWhy(e.n, e.why) + (lifted.length ? ' (It replaces ' + (lifted.length === 1 ? 'a patch' : 'patches') + ' that didn\'t fit.)' : ''), 4200);
+  hintTimer = setTimeout(clearHint, 3300);
+  sfx('hint');
+}
+$('#btnHint').addEventListener('click', hint);
+
+/* ---------- winning: pins out, seams sewn, the quilt puffs up and gets its binding ---------- */
+function starsFor() { return capStars(); }
+const WIN_TITLES = ['Snug as a bug!', 'Perfectly pieced!', 'Cosy and complete!', 'Quilt-y pleasure!', 'Neatly patched!'];
+function win() {
+  if (G.won) return;
+  G.won = true;
+  const stars = starsFor();
+  save.done[G.idx] = Math.max(save.done[G.idx] || 0, stars);
+  delete save.cur;
+  persist();
+  clearHint(); hideCursor(); stopEdge();
+  cutG.innerHTML = '';
+  $('#restartLabel').textContent = 'Next';
+  $('#restartIcon').innerHTML = ICON.chevR;
+  renderStatus();
+  zoom.reset(true);
+  svg.classList.add('won');
+  sfx('whirr');
+  haptic(30);
+  sewSeams();
+  winTimer = setTimeout(() => {
+    svg.classList.add('puffed'); $('#mat').classList.add('puffed');
+    winTimer = setTimeout(() => {
+      svg.classList.add('bound');
+      winTimer = setTimeout(() => showWin(stars), 1100);
+    }, 350);
+  }, 700);
+}
+/* running stitches travel round every patch, a little inside its edge */
+function stopSeams() { cancelAnimationFrame(seamRaf); seamRaf = 0; }
+function seamPath(x0, y0, x1, y1, t) {
+  const pts = [[x1, y0], [x1, y1], [x0, y1], [x0, y0]];
+  let left = t * 2 * ((x1 - x0) + (y1 - y0)), cx = x0, cy = y0, d = 'M' + x0.toFixed(3) + ' ' + y0.toFixed(3);
+  for (const [px, py] of pts) {
+    const len = Math.abs(px - cx) + Math.abs(py - cy);
+    if (left >= len) { d += 'L' + px.toFixed(3) + ' ' + py.toFixed(3); left -= len; cx = px; cy = py; continue; }
+    const f = left / len;
+    d += 'L' + (cx + (px - cx) * f).toFixed(3) + ' ' + (cy + (py - cy) * f).toFixed(3);
+    break;
+  }
+  return d;
+}
+function sewSeams() {
+  stopSeams();
+  const list = G.patches.slice().sort((a, b) => (rR(a) + rC(a)) - (rR(b) + rC(b)));
+  let html = '';
+  for (let j = 0; j < list.length; j++) html += '<path class="seam under" transform="translate(.018 .026)"/><path class="seam over"/>';
+  seamG.innerHTML = html;
+  const paths = seamG.children, t0 = performance.now(), calm = calmMotion();
+  const box = list.map((k) => [rC(k) + 0.13, rR(k) + 0.13, rC(k) + rW(k) - 0.13, rR(k) + rH(k) - 0.13]);
+  const step = (now) => {
+    let busy = false;
+    for (let j = 0; j < list.length; j++) {
+      const t = calm ? 1 : clampN((now - t0 - j * (520 / list.length)) / 620, 0, 1);
+      if (t < 1) busy = true;
+      const d = t > 0 ? seamPath(box[j][0], box[j][1], box[j][2], box[j][3], t) : '';
+      paths[2 * j].setAttribute('d', d); paths[2 * j + 1].setAttribute('d', d);
+    }
+    seamRaf = busy ? requestAnimationFrame(step) : 0;
+  };
+  seamRaf = requestAnimationFrame(step);
+}
+function showWin(stars) {
+  const L = G.L, perfect = !G.hints && G.cuts <= G.N;
+  openModal(
+    '<div class="quilt-card">' + quiltSVG(L, true) + '</div>' +
+    '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
+    '<p>You pieced a <b>' + PALETTES[L.pal][0].toLowerCase() + '</b> quilt from ' + G.N + ' patches.</p>' +
+    '<div class="badge-row">' + starsHTML(stars) + '</div>' +
+    (perfect ? '<p class="note">Every patch in a single snip.</p>' : stars < 3 ? '<p class="note">Finish without hints for three stars.</p>' : '') +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="next">Next level</button>' +
+    '<button class="btn" data-act="levels">Quilt chest</button>' +
+    '<button class="btn" data-act="close">Admire it</button>' +
+    '</div>'
+  );
+}
+
+/* ---------- help ---------- */
+const PW_ICON = {
+  logo: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="4" width="40" height="40" rx="7" fill="#8e2b43"/><rect x="8" y="8" width="11" height="21" fill="#4fb3c9"/><rect x="19" y="8" width="21" height="11" fill="#f3bd5c"/><rect x="19" y="19" width="10" height="10" fill="#f4a3b4"/><rect x="29" y="19" width="11" height="21" fill="#5c9a46"/><rect x="8" y="29" width="21" height="11" fill="#7957ae"/><g fill="#fffaf0"><circle cx="13.5" cy="13" r="1.4"/><circle cx="13.5" cy="19" r="1.4"/><circle cx="13.5" cy="25" r="1.4"/></g><path d="M8 8h32v32H8z" fill="none" stroke="#fffaf0" stroke-width="1.2" stroke-dasharray="2.4 2"/><path d="M34 12L24.5 22" stroke="#c9ced6" stroke-width="2" stroke-linecap="round"/><circle cx="35" cy="11" r="4" fill="#e5484d"/><circle cx="33.8" cy="9.8" r="1.2" fill="#fff" opacity=".8"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11.5" cy="13" r="8.2" fill="#fffdf7" stroke="#6b5348" stroke-width="1.3"/><text x="11.5" y="17.4" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3a2a2c" font-family="Fredoka,system-ui">6</text><circle cx="18.6" cy="5.6" r="2.7" fill="#d9473a"/></svg>',
+  cut: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.2" stroke-dasharray="3.2 2.4"/><path d="M7 9l9 6.2"/><path d="M16.6 11.2v4.4h-4.4"/></svg>',
+  quilt: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="11" rx="1" fill="#4fb3c9"/><rect x="10" y="3" width="11" height="6" rx="1" fill="#f3bd5c"/><rect x="10" y="9" width="11" height="12" rx="1" fill="#e98aa3"/><rect x="3" y="14" width="7" height="7" rx="1" fill="#74ad62"/></svg>',
+  tack: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2" fill="#e7ddcc" stroke="#8a7462" stroke-width="1" transform="rotate(-5 12 12)"/><rect x="6.5" y="8" width="11" height="8" rx="1" fill="none" stroke="#c0392b" stroke-width="1.6" stroke-dasharray="2.6 1.8" transform="rotate(-5 12 12)"/></svg>'
+};
+GAME.showHelp = () => {
+  openModal(
+    '<div class="logo">' + PW_ICON.logo + '<h2>Patchwork</h2></div>' +
+    '<p>Cut the quilt into patches, one pin in each.</p>' +
+    '<ul class="rules">' +
+    '<li><span class="mini">' + PW_ICON.pin + '</span><span>Each pin\'s number is the size of its patch: how many squares it covers.</span></li>' +
+    '<li><span class="mini">' + PW_ICON.cut + '</span><span>Drag from corner to corner to cut a patch. Tap a 1 to cut it on its own.</span></li>' +
+    '<li><span class="mini">' + PW_ICON.quilt + '</span><span>Cover the whole quilt with rectangles: no gaps, no overlaps.</span></li>' +
+    '<li><span class="mini">' + PW_ICON.tack + '</span><span>A patch that doesn\'t fit its pin is only tacked on and wobbles. Tap a patch to unpick it.</span></li>' +
+    '<li><span class="mini">' + ICON.hint + '</span><span>Stuck? A hint sews in a patch you can work out, but caps your stars.</span></li>' +
+    '<li><span class="mini">' + ZOOM_ICON.in + '</span><span>Big quilt? Pinch to zoom in, and drag with two fingers to look around.</span></li>' +
+    '</ul>' +
+    '<p style="font-size:15px;margin-top:-4px">Every quilt has one answer, reachable by logic alone. Finished quilts are stitched, bound and folded into your quilt chest.</p>' +
+    '<div class="stack"><button class="btn primary" data-act="close">Start sewing</button></div>'
+  );
+};
+
+/* ---------- music: a homely folk waltz on flute and harp ---------- */
+GAME.music = {
+  tempo: 132,
+  tracks: [
+    { inst: INST.flute, vol: 0.085, seq: track('B4 D5 G5 F#5:2 E5 D5 B4 G4 A4:3 C5 E5 A5 G5:2 F#5 E5 D5 B4 A4:3 ' +
+      'B4 D5 G5 B5:2 A5 G5 E5 C5 D5:3 E5 F#5 G5 A5:1.5 G5:.5 F#5 E5 D5 C5 B4:2 G4') },
+    { inst: INST.pluck, vol: 0.035, seq: track('B4 D5 G5 F#5:2 E5 D5 B4 G4 A4:3 C5 E5 A5 G5:2 F#5 E5 D5 B4 A4:3 ' +
+      'B4 D5 G5 B5:2 A5 G5 E5 C5 D5:3 E5 F#5 G5 A5:1.5 G5:.5 F#5 E5 D5 C5 B4:2 G4') },
+    { inst: INST.wbass, vol: 0.12, seq: track('G2 -:2 D3 -:2 G2 -:2 D3 -:2 A2 -:2 D3 -:2 E3 -:2 D3 -:2 G2 -:2 G2 -:2 C3 -:2 G2 -:2 C3 -:2 D3 -:2 D3 -:2 G2 -:2') },
+    { inst: INST.harp, vol: 0.045, len: 0.8, seq: track('- B3 B3 - A3 A3 - B3 B3 - A3 A3 - C4 C4 - A3 A3 - B3 B3 - A3 A3 ' +
+      '- B3 B3 - B3 B3 - C4 C4 - B3 B3 - C4 C4 - A3 A3 - A3 A3 - B3 B3') },
+    { inst: INST.harp, vol: 0.04, len: 0.8, seq: track('- D4 D4 - F#4 F#4 - D4 D4 - F#4 F#4 - E4 E4 - F#4 F#4 - E4 E4 - F#4 F#4 ' +
+      '- D4 D4 - D4 D4 - E4 E4 - D4 D4 - E4 E4 - F#4 F#4 - C4 C4 - D4 D4') }
+  ]
+};
+GAME.sfx = {
+  /* a soft pin click, a little higher for bigger cuts */
+  pin(t, a) {
+    const f = 1500 + Math.min(a || 1, 24) * 45;
+    tone(t, f, { type: 'sine', a: 0.002, dur: 0.03, vol: 0.045 });
+    noise(t, { f: 6500, q: 2, dur: 0.012, vol: 0.025 });
+  },
+  /* scissors: two quick metal snips */
+  snip(t) {
+    noise(t, { f: 4200, q: 5, dur: 0.035, vol: 0.09 });
+    tone(t, 2300, { type: 'sine', to: 1700, a: 0.002, dur: 0.04, vol: 0.03 });
+    noise(t + 0.075, { f: 3300, q: 5, dur: 0.05, vol: 0.1 });
+    tone(t + 0.075, 1900, { type: 'sine', to: 1300, a: 0.002, dur: 0.05, vol: 0.035 });
+  },
+  /* a loosely tacked patch: a soft, dull pat */
+  tack(t) {
+    noise(t, { f: 3000, q: 4, dur: 0.03, vol: 0.05 });
+    tone(t + 0.02, 240, { type: 'triangle', to: 170, a: 0.004, dur: 0.12, vol: 0.09 });
+  },
+  /* unpicking: a thread pulled out */
+  unpick(t) {
+    noise(t, { f: 1400, to: 5200, q: 3, dur: 0.14, vol: 0.06 });
+    tone(t, 700, { type: 'sine', to: 1100, a: 0.004, dur: 0.1, vol: 0.025 });
+  },
+  hint(t) { tone(t, 1320, { type: 'sine', a: 0.004, dur: 0.25, vol: 0.06 }); tone(t + 0.09, 1760, { type: 'sine', a: 0.004, dur: 0.3, vol: 0.05 }); },
+  /* the sewing machine: a hum and a run of needle clicks speeding up, then a happy chord */
+  whirr(t) {
+    tone(t, 70, { type: 'sawtooth', to: 120, a: 0.08, hold: 0.7, dur: 0.25, vol: 0.05, lp: 500, glide: 0.8 });
+    let x = t + 0.05;
+    for (let k = 0; k < 20; k++) {
+      noise(x, { f: 3600, q: 3, dur: 0.012, vol: 0.05 });
+      tone(x, 160, { type: 'sine', a: 0.002, dur: 0.025, vol: 0.035 });
+      x += 0.075 - k * 0.0022;
+    }
+    SFX.win(x + 0.05);
+  }
+};
+
+/* ---------- boot ---------- */
+$('#undoIcon').innerHTML = ICON.undo;
+$('#hintIcon').innerHTML = ICON.hint;
+$('#restartIcon').innerHTML = ICON.restart;
+const disarmRestart = armConfirm($('#btnRestart'), $('#restartLabel'), 'Restart',
+  () => G && !G.won && G.patches.length > 0,
+  () => {
+    if (G.won) { loadLevel(G.idx + 1); return; }
+    delete save.cur; persist();
+    startLevel(G.idx, G.L);
+  });
+shellBoot();
+loadLevel(save.level || 0);
+if (!save.seenHelp) { GAME.showHelp(); save.seenHelp = true; persist(); }
+</script>
+</body>
+</html>
