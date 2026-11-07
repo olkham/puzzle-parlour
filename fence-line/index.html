@@ -1690,7 +1690,7 @@ function render() {
     if (G.warnS[e] !== bad && G.railEls[e]) { G.warnS[e] = bad; G.railEls[e].classList.toggle('warn', !!bad); }
   }
   if (pieces === 1 && !crowded) { const r = find(F.ends[2 * st.indexOf(1)]); closed = edges[r] === nodes[r]; }
-  $('#count').innerHTML = '<small>Rails</small>' + rails + '<span class="sub">' + met + ' of ' + total + ' numbers met</span>';
+  $('#count').innerHTML = '<small>Rails</small>' + rails + '<span class="sub">' + allMet + ' of ' + total + ' numbers met</span>';
   const stars = starsNow();
   if (G.starsShown !== stars) {
     $('#stars').innerHTML = starsHTML(stars);
