@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Sun Catcher</title>
+<meta name="description" content="A stained-glass picture-logic puzzle: use the number clues to fill the glass and let the light pour through.">
+<meta name="theme-color" content="#f6efe4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17131f" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sun Catcher">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6efe4;
+  --card:#fffaf3;
+  --card-edge:#e9dcc9;
+  --ink:#2c2440;
+  --muted:#776d8c;
+  --accent:#6a46c4;
+  --accent-ink:#ffffff;
+  --heart:#e5484d;
+  --star:#f2b84b;
+  --gridink:#2c2440;
+  --mini:#e6ddfb;
+  --shadow:0 10px 28px rgba(70,50,30,.14);
+  --scrim:rgba(30,22,40,.55);
+  --lead:#3d3745;
+  --lead-dark:#1e1a24;
+  --frame:#b8895a;
+  --frame-hi:#d3a877;
+  --frost:#e7edf0;
+  --frost-hi:#fbfdfd;
+  --frost-lo:#d3dce2;
+  --glass:#f2ad3f;
+  --glass-hi:#ffd98a;
+  --glass-lo:#de8f2a;
+  --num:#2a2236;
+  --num-glass:#3b2208;
+  --clearm:#cdd5db;
+  --clearm-lo:#bcc5cc;
+  --clear:#e3ecef;
+  --clear-hi:#fbfeff;
+  --clear-lo:#cfdbe0;
+  --dot:#3d3745;
+  --wrong:#d3182f;
+  --wrongbg:#f6d0d0;
+  --hl:rgba(106,70,196,.14);
+  --sunglow:rgba(255,190,80,.5);
+  --glow:.08;
+  --crack:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23d3182f' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 10L8 7.5 8.6 5.6 6.4 3.4M10 10l3-1.4 1.6.6 2.8-2.6M10 10l.6 3.2-1.4 1.6.4 3.2M10 10L7.2 11.4 5.4 10.8 2.4 12.6' stroke-width='1.7'/%3E%3Cpath d='M8.6 5.6l1.6-2M13 8.6l.8 2.4M9.2 14.8L7 15.6M5.4 10.8L4.6 8.6' stroke-width='1.1'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#17131f;
+    --card:#231d2f;
+    --card-edge:#3a3150;
+    --ink:#f2eefb;
+    --muted:#aaa2c4;
+    --accent:#b39bff;
+    --accent-ink:#1c1236;
+    --heart:#ff6b86;
+    --star:#f6c35b;
+    --gridink:#0d0b13;
+    --mini:#3d3170;
+    --shadow:0 10px 28px rgba(0,0,0,.45);
+    --scrim:rgba(6,4,14,.7);
+    --lead:#0e0c13;
+    --lead-dark:#050408;
+    --frame:#6f5238;
+    --frame-hi:#8a6646;
+    --frost:#3b4152;
+    --frost-hi:#4d5469;
+    --frost-lo:#2e3342;
+    --glass:#e9a43c;
+    --glass-hi:#ffd27a;
+    --glass-lo:#c98020;
+    --num:#eef0fa;
+    --num-glass:#2a1806;
+    --clearm:#262a36;
+    --clearm-lo:#20232d;
+    --clear:#2f3547;
+    --clear-hi:#475069;
+    --clear-lo:#252a39;
+    --dot:#b7b2c9;
+    --wrong:#ff5c6c;
+    --wrongbg:#4a2230;
+    --hl:rgba(179,155,255,.16);
+    --sunglow:rgba(255,186,80,.38);
+    --glow:.4;
+    --crack:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ff5c6c' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 10L8 7.5 8.6 5.6 6.4 3.4M10 10l3-1.4 1.6.6 2.8-2.6M10 10l.6 3.2-1.4 1.6.4 3.2M10 10L7.2 11.4 5.4 10.8 2.4 12.6' stroke-width='1.7'/%3E%3Cpath d='M8.6 5.6l1.6-2M13 8.6l.8 2.4M9.2 14.8L7 15.6M5.4 10.8L4.6 8.6' stroke-width='1.1'/%3E%3C/svg%3E");
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#17131f;--card:#231d2f;--card-edge:#3a3150;--ink:#f2eefb;--muted:#aaa2c4;--accent:#b39bff;--accent-ink:#1c1236;
+  --heart:#ff6b86;--star:#f6c35b;--gridink:#0d0b13;--mini:#3d3170;--shadow:0 10px 28px rgba(0,0,0,.45);--scrim:rgba(6,4,14,.7);
+  --lead:#0e0c13;--lead-dark:#050408;--frame:#6f5238;--frame-hi:#8a6646;--frost:#3b4152;--frost-hi:#4d5469;--frost-lo:#2e3342;
+  --glass:#e9a43c;--glass-hi:#ffd27a;--glass-lo:#c98020;--num:#eef0fa;--num-glass:#2a1806;--clearm:#262a36;--clearm-lo:#20232d;
+  --clear:#2f3547;--clear-hi:#475069;--clear-lo:#252a39;--dot:#b7b2c9;--wrong:#ff5c6c;--wrongbg:#4a2230;--hl:rgba(179,155,255,.16);--sunglow:rgba(255,186,80,.38);--glow:.4;
+  --crack:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ff5c6c' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 10L8 7.5 8.6 5.6 6.4 3.4M10 10l3-1.4 1.6.6 2.8-2.6M10 10l.6 3.2-1.4 1.6.4 3.2M10 10L7.2 11.4 5.4 10.8 2.4 12.6' stroke-width='1.7'/%3E%3Cpath d='M8.6 5.6l1.6-2M13 8.6l.8 2.4M9.2 14.8L7 15.6M5.4 10.8L4.6 8.6' stroke-width='1.1'/%3E%3C/svg%3E");
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Fredoka',ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+a.btn{text-decoration:none;color:inherit}
+svg{display:block}
+
+.app{
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* header */
+.top{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:8px}
+.top-left{display:flex;gap:6px}
+.top-left .icon-btn{width:44px;height:44px;border-radius:14px}
+.top-left .icon-btn svg{width:21px;height:21px}
+.icon-btn{
+  width:48px;height:48px;border-radius:16px;flex:none;
+  background:var(--card);border:2px solid var(--card-edge);
+  display:grid;place-items:center;padding:0;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.title{text-align:center;line-height:1.05;min-width:0}
+.title h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.title p{margin:3px 0 0;font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* status row */
+.status{display:flex;align-items:center;justify-content:space-between;padding:0 4px;min-height:34px;gap:10px}
+.lives{display:flex;gap:6px}
+.lives svg{width:30px;height:30px;overflow:visible}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:1.6;stroke-linejoin:round;transition:fill .2s}
+.heart.lost path{fill:none;stroke:var(--muted);opacity:.55}
+.lives .heart.pop{animation:heartpop .5s ease}
+@keyframes heartpop{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+.count{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.count small{font-size:14px;color:var(--muted);font-weight:500;margin-right:6px}
+.star path{fill:var(--star);stroke:var(--star);stroke-width:1.4;stroke-linejoin:round}
+.star.off path{fill:none;stroke:var(--muted);opacity:.5}
+
+/* control hints */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how > div{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:16px;
+  padding:8px 10px;font-size:14px;font-weight:500;line-height:1.15;color:var(--muted);
+}
+.how b{color:var(--ink);font-weight:600;display:block}
+.how .mini{flex:none;width:34px;height:34px;border-radius:10px;background:var(--mini);display:grid;place-items:center;border:2px solid var(--gridink)}
+.how .mini svg{width:70%;height:70%}
+
+/* footer */
+.foot{display:flex;gap:10px;margin-top:auto}
+.btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 14px;border-radius:16px;
+  background:var(--card);border:2px solid var(--card-edge);
+  font-size:16px;font-weight:600;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn[hidden]{display:none}
+.foot .btn{font-size:15px;gap:6px;padding:0 10px}
+.foot .btn svg{width:18px;height:18px}
+.btn .tag{font-size:12px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.switch{width:38px;height:22px;border-radius:99px;background:var(--card-edge);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s,background .2s}
+.btn[aria-pressed="true"] .switch{background:var(--accent)}
+.btn[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-ink)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;place-items:center;padding:16px;z-index:10}
+.scrim.open{display:grid}
+.sheet{
+  width:100%;max-width:380px;max-height:86dvh;overflow:auto;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:26px;
+  padding:22px 20px 20px;box-shadow:var(--shadow);text-align:center;
+  animation:sheetin .28s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes sheetin{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:32px;font-weight:700;line-height:1.05}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:17px;line-height:1.3}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sheet .art{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center}
+.sheet .art svg{width:100%;height:100%;overflow:visible}
+.sheet .badge-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.sheet .badge-row svg{width:30px;height:30px}
+.sheet .logo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 4px}
+.sheet .logo svg{width:44px;height:44px}
+.rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:flex;flex-direction:column;gap:12px}
+.rules li{display:flex;gap:12px;align-items:center;font-size:17px;line-height:1.25}
+.rules .mini{flex:none;width:40px;height:40px;border-radius:12px;background:var(--mini);border:2.5px solid var(--gridink);display:grid;place-items:center}
+.rules .mini svg{width:74%;height:74%}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lv{
+  position:relative;padding:8px 0 7px;border-radius:14px;background:var(--bg);
+  border:2px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;min-height:66px;
+}
+.lv b{font-size:22px;font-weight:600}
+.lv small{font-size:12px;color:var(--muted);font-weight:500}
+.lv.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.lv.done{background:var(--card)}
+.lv .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;border:2px solid var(--card)}
+.lv .ok svg{width:11px;height:11px}
+.lv .mh{display:flex;gap:2px;margin-top:3px;height:10px}
+.lv .mh svg{width:10px;height:10px}
+.lv .mh .heart path,.lv .mh .star path{stroke:none}
+.lv .mh .lost path,.lv .mh .off path{fill:var(--card-edge);opacity:1}
+.pager{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.pager span{font-size:19px;font-weight:600}
+.pager .icon-btn{width:44px;height:44px;border-radius:14px}
+.spin{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--card-edge);border-top-color:var(--accent);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 74px);
+  transform:translate(-50%,16px);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:15px;font-weight:500;line-height:1.25;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;
+  width:max-content;max-width:min(88vw,420px);text-align:center;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:370px){
+  .top{gap:6px;grid-template-columns:auto 1fr 42px}
+  .top-left{gap:4px}
+  .top-left .icon-btn{width:40px;height:40px;border-radius:13px}
+  .top > .icon-btn{width:42px;height:42px;border-radius:14px}
+  .title h1{font-size:23px}
+  .foot{gap:8px}
+}
+@media (max-width:340px){
+  .title h1{font-size:19px}
+  .title p{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+
+/* ---------- the window: a wooden sash, a sunburst fanlight over leaded glass ---------- */
+.pane-wrap{display:flex;justify-content:center;align-items:center;width:100%;flex:1;touch-action:none}
+.window{
+  position:relative;background:var(--card);border:2px solid var(--card-edge);border-radius:22px;
+  padding:9px;box-shadow:var(--shadow);transition:box-shadow 1.4s ease;
+}
+.window.lit{box-shadow:var(--shadow),0 0 0 3px rgba(255,214,130,.35),0 0 54px 12px var(--sunglow)}
+.sash{
+  position:relative;display:flex;flex-direction:column;gap:5px;padding:6px;border-radius:14px;
+  background:linear-gradient(180deg,var(--frame-hi),var(--frame));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -2px 0 rgba(0,0,0,.18);
+}
+.fan{display:block;width:100%;height:var(--fanh,30px)}
+.fan .lead{fill:none;stroke:var(--lead);stroke-width:2.2;stroke-linejoin:round;vector-effect:non-scaling-stroke;transition:stroke 1.2s}
+.fan .p0,.fan .p1,.fan .core{transition:fill .9s ease var(--d,0s)}
+.fan .p0{fill:var(--frost)}
+.fan .p1{fill:var(--frost-lo)}
+.fan .core{fill:var(--glass)}
+.window.lit .fan .p0{fill:#ffd76e}
+.window.lit .fan .p1{fill:#f5a548}
+.window.lit .fan .core{fill:#fff2b8}
+.window.lit .fan .lead{stroke:var(--lead-dark)}
+
+.gclip{position:relative;overflow:hidden;overflow:clip;border-radius:4px;background:var(--lead);touch-action:none;transition:background-color 1.2s}
+.board{
+  position:relative;display:grid;grid-template-columns:repeat(var(--w),var(--cs));grid-template-rows:repeat(var(--h),var(--cs));
+  width:max-content;padding:2px;background-color:var(--lead);touch-action:none;outline:none;transition:background-color 1.2s;
+}
+.board:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.cell{position:relative;display:grid;place-items:center;min-width:0;min-height:0;--lw:max(1px,calc(var(--cs) * .055))}
+/* the glass piece sits inside its share of the lead came */
+.cell::before,.cell > i{content:"";position:absolute;inset:var(--lw);border-radius:calc(var(--cs) * .1)}
+.cell::before{
+  background:radial-gradient(110% 80% at 22% 12%,rgba(255,255,255,.65),rgba(255,255,255,0) 58%),linear-gradient(160deg,var(--frost) 0%,var(--frost-lo) 100%);
+}
+.cell.s::before{
+  background:radial-gradient(90% 70% at 24% 14%,rgba(255,255,255,.6),rgba(255,255,255,0) 55%),linear-gradient(150deg,var(--glass-hi),var(--glass) 52%,var(--glass-lo));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);
+}
+.cell.s.pop::before{animation:glassin .24s ease-out}
+@keyframes glassin{from{transform:scale(.5);filter:brightness(1.5)}to{transform:none;filter:none}}
+.cell.m::before{background:linear-gradient(160deg,var(--clearm),var(--clearm-lo))}
+.cell.m::after{
+  content:"";position:absolute;left:50%;top:50%;width:22%;height:22%;margin:-11% 0 0 -11%;
+  border-radius:50%;background:var(--dot);animation:dotin .16s ease-out;transition:opacity .4s var(--d,0s);
+}
+.cell.n.m::after{left:auto;top:auto;right:12%;bottom:12%;width:15%;height:15%;margin:0}
+@keyframes dotin{from{transform:scale(0)}to{transform:none}}
+.cell.x::before{background:var(--wrongbg)}
+.cell.x::after{content:"";position:absolute;inset:var(--lw);background:var(--crack) center/100% 100% no-repeat;transition:opacity .4s var(--d,0s)}
+.cell.x.pop{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10%)}50%{transform:translateX(8%)}75%{transform:translateX(-5%)}}
+
+/* the numbers */
+.cell b{
+  position:relative;z-index:2;font-size:var(--fs);font-weight:600;line-height:1;color:var(--num);
+  font-variant-numeric:tabular-nums;transition:opacity .35s,color .2s;pointer-events:none;
+  width:1.5em;height:1.5em;display:grid;place-items:center;border-radius:50%;
+}
+.cell.s b{color:var(--num-glass)}
+.cell.done b{opacity:.28}
+.cell.err b{color:var(--wrong);opacity:1;text-shadow:0 0 3px var(--card);animation:errpulse 1.2s ease-in-out infinite}
+@keyframes errpulse{50%{transform:scale(1.18)}}
+.cell.hint b{background:var(--accent);color:var(--accent-ink);opacity:1;text-shadow:none;box-shadow:0 0 0 2px var(--card)}
+.cell.hint2 b{box-shadow:0 0 0 2px var(--accent),0 0 0 4px var(--card);opacity:1}
+.cell.pulse::after{content:"";position:absolute;inset:var(--lw);border-radius:calc(var(--cs) * .1);animation:hintpulse 1s ease-in-out 3;z-index:1}
+@keyframes hintpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--accent)}50%{box-shadow:inset 0 0 0 calc(var(--cs) * .16) var(--accent),0 0 10px var(--accent)}}
+
+/* overlays: a number's 3x3 block, a second one for hints, and the keyboard cursor */
+.hl{position:absolute;z-index:3;pointer-events:none;display:none;border-radius:6px}
+.hl.on{display:block}
+.hl.soft{background:var(--hl);box-shadow:inset 0 0 0 2px var(--accent)}
+.hl.hint{box-shadow:inset 0 0 0 3px var(--accent),0 0 0 2px rgba(255,255,255,.55)}
+.hl.two{box-shadow:none;outline:2.5px dashed var(--accent);outline-offset:-3px}
+.kcur{position:absolute;z-index:3;pointer-events:none;display:none;width:var(--cs);height:var(--cs);border-radius:5px;box-shadow:inset 0 0 0 3px var(--accent),0 0 0 2px rgba(255,255,255,.6)}
+.kcur.on{display:block}
+
+/* finished: light pours through, every pane takes its own colour */
+.cell > i{opacity:0;transition:opacity .75s ease var(--d,0s)}
+.cell.gl > i{background:radial-gradient(85% 65% at 26% 16%,rgba(255,255,255,.55),rgba(255,255,255,0) 58%),linear-gradient(145deg,var(--pc-hi),var(--pc) 50%,var(--pc-lo))}
+.cell.cl > i{background:radial-gradient(85% 65% at 26% 16%,rgba(255,255,255,.5),rgba(255,255,255,0) 58%),linear-gradient(145deg,var(--clear-hi),var(--clear) 55%,var(--clear-lo))}
+.cell.g > i{opacity:.42}
+.board.lit,.gclip.lit{background-color:var(--lead-dark)}
+.board.lit .cell > i{opacity:1}
+.board.lit .cell.gl > i{box-shadow:0 0 calc(var(--cs) * var(--glow)) -1px var(--pc),inset 0 0 0 1px rgba(255,255,255,.22)}
+.board.lit .cell b,.board.lit .cell::after{opacity:0;transition:opacity .5s ease var(--d,0s)}
+.board.lit .cell b{animation:none}
+.beam{
+  position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;mix-blend-mode:screen;
+  background:linear-gradient(110deg,rgba(255,246,214,0) 38%,rgba(255,246,214,.75) 50%,rgba(255,246,214,0) 62%);
+  background-size:300% 100%;background-position:100% 0;
+}
+.gclip.lit .beam{animation:beam 2.1s ease-in-out .1s both}
+@keyframes beam{0%{opacity:0;background-position:100% 0}15%{opacity:1}80%{opacity:1}100%{opacity:0;background-position:0 0}}
+.window .zoom-fit{top:-14px;left:-14px}
+
+/* footer */
+.seg{flex:1.6;display:flex;background:var(--card);border:2px solid var(--card-edge);border-radius:16px;padding:3px;gap:3px;min-height:48px}
+.seg button{
+  flex:1;border:0;border-radius:12px;background:transparent;display:flex;align-items:center;justify-content:center;gap:7px;
+  font-size:15px;font-weight:600;color:var(--muted);padding:0 6px;
+}
+.seg button svg{width:20px;height:20px;flex:none}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.btn.sq{flex:0 0 52px;padding:0}
+#restartIcon svg{width:18px;height:18px}
+@media (max-width:370px){
+  #restartIcon,.seg button span{display:none}
+  .seg button{padding:0 4px}
+  .btn.sq{flex-basis:48px}
+}
+
+/* the level picker is a window too: each level a pane, finished ones lit with their picture */
+.levels{background:var(--lead);gap:6px;padding:6px;border-radius:14px;border:5px solid var(--frame);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.lv{border:0;border-radius:6px;background:linear-gradient(160deg,var(--frost-hi),var(--frost-lo));color:var(--num)}
+.lv small{color:var(--muted)}
+.lv.done{background:radial-gradient(90% 70% at 25% 15%,rgba(255,255,255,.7),rgba(255,255,255,0) 60%),linear-gradient(150deg,#ffe7a6,#f3b54e)}
+.lv.done small{font-weight:600;color:#3b2208}
+.lv.cur{box-shadow:0 0 0 3px var(--accent);z-index:1}
+.lv .ok{border-color:var(--lead)}
+.lv .mh .lost path{fill:rgba(0,0,0,.18)}
+.lv .thumb{width:34px;height:30px;display:grid;place-items:center;margin-bottom:2px}
+.lv .thumb svg{max-width:100%;max-height:100%;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sheet .arch{width:150px;margin:0 auto 10px;filter:drop-shadow(0 6px 16px var(--sunglow))}
+.sheet .arch.dim{filter:none;opacity:.9}
+.sheet .arch svg{width:100%;height:auto;overflow:visible}
+
+/* zoom-out button, shown while zoomed in */
+.zoom-fit{
+  position:absolute;z-index:4;width:40px;height:40px;border-radius:50%;padding:0;display:grid;place-items:center;
+  background:var(--card);border:2px solid var(--card-edge);box-shadow:var(--shadow);color:var(--ink);
+  animation:zoomfit .2s ease;touch-action:manipulation;
+}
+.zoom-fit[hidden]{display:none}
+.zoom-fit svg{width:21px;height:21px}
+.zoom-fit:active{transform:scale(.92)}
+@keyframes zoomfit{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-left">
+      <button class="icon-btn" id="btnLevels" aria-label="Choose level">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMusic" aria-label="Turn music on" aria-pressed="false"><span id="musicIcon"></span></button>
+      <button class="icon-btn" id="btnSfx" aria-label="Turn sound effects on" aria-pressed="false"><span id="sfxIcon"></span></button>
+    </div>
+    <div class="title"><h1 id="lvTitle">Level 1</h1><p id="lvSub">&nbsp;</p></div>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 16.9v.1"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-label="Lives and progress">
+    <div class="lives" id="lives" aria-live="polite"></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <div class="pane-wrap" id="paneWrap">
+    <div class="window" id="win">
+      <div class="sash">
+        <svg class="fan" id="fan" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="gclip" id="gclip">
+          <div class="board" id="board" tabindex="0" role="grid" aria-label="Leaded window. Arrow keys move, Enter fills glass, X marks a square clear. Plus and minus zoom."></div>
+          <div class="beam" aria-hidden="true"></div>
+        </div>
+      </div>
+      <button class="zoom-fit" id="zoomFit" data-zoom-skip hidden aria-label="Zoom out to see the whole window"></button>
+    </div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <button class="btn" id="btnRestart">
+      <span id="restartIcon"></span>
+      <span id="restartLabel">Restart</span>
+    </button>
+    <div class="seg" role="group" aria-label="What a tap does">
+      <button id="modeFill" aria-pressed="true"><span id="icoGlass"></span>Fill</button>
+      <button id="modeMark" aria-pressed="false"><span id="icoDot"></span>Mark</button>
+    </div>
+    <button class="btn sq" id="btnHint" aria-label="Show a number you can use"></button>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+const GAME = { id: 'sun-catcher', seed: 6271 };
+/* =====================================================================
+   Shared shell: saves, seeded randomness, icons, live-synthesised audio,
+   modals, toasts and the level picker. The game code below plugs into it
+   through the GAME object and a loadLevel(idx) function.
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const scrim = $('#scrim');
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/* ---------- saved progress (private to this browser) ---------- */
+const STORE_KEY = GAME.id + '-v1';
+let save = Object.assign({ done: {}, seenHelp: false, level: 0 }, GAME.saveDefaults || {});
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
+} catch (e) {}
+if (!save.done || typeof save.done !== 'object') save.done = {};
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- seeded randomness, so level N is the same puzzle on every device ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleArr(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function seedFor(idx, salt) {
+  let h = (0x9e3779b9 ^ (GAME.seed || 0)) >>> 0;
+  h = Math.imul(h ^ (idx + 1), 0x85ebca6b); h ^= h >>> 13;
+  h = Math.imul(h ^ ((salt || 0) + 0x27d4eb2f), 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+}
+const pickOne = (arr, rnd) => arr[Math.floor(rnd() * arr.length)];
+
+/* ---------- icons ---------- */
+const ICON = {
+  tick: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.4 2.4 4.6-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C12 20.6 3.2 15.4 3.2 9.2C3.2 6.4 5.3 4.4 7.9 4.4C9.7 4.4 11.2 5.4 12 6.8C12.8 5.4 14.3 4.4 16.1 4.4C18.7 4.4 20.8 6.4 20.8 9.2C20.8 15.4 12 20.6 12 20.6Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  hint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21.2h4"/><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.6.5.9 1.2.9 2V16.6h6v-.3c0-.8.3-1.5.9-2A6.4 6.4 0 0 0 12 2.8z"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  musicOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>',
+  musicOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke-width="2.4"/></svg>',
+  sfxOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/></svg>',
+  sfxOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none" opacity=".45"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0" opacity=".45"/><path d="M5.5 5.5l13 13" stroke-width="2.6"/></svg>'
+};
+function heartsHTML(left, max, cls) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<span class="heart' + (k >= left ? ' lost' : '') + (cls && k === left ? ' ' + cls : '') + '">' + ICON.heart + '</span>';
+  return h;
+}
+function starsHTML(n, max) {
+  let h = '';
+  for (let k = 0; k < (max || 3); k++) h += '<span class="star' + (k >= n ? ' off' : '') + '">' + ICON.star + '</span>';
+  return h;
+}
+
+/* =====================================================================
+   Audio. There are no sound files: every note is built from oscillators,
+   filters and envelopes. Music and sound effects are separate toggles,
+   both off by default and remembered between visits.
+   ===================================================================== */
+const MUSIC_KEY = GAME.id + '-music-v1', SFX_KEY = GAME.id + '-sfx-v1';
+let musicOn = false, sfxOn = false;
+try { musicOn = localStorage.getItem(MUSIC_KEY) === '1'; sfxOn = localStorage.getItem(SFX_KEY) === '1'; } catch (e) {}
+let actx = null, master = null, musicBus = null, sfxBus = null, noiseBuf = null;
+let schedTimer = null, ambientStop = null;
+
+function ensureAudio() {
+  if (actx) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  try { actx = new AC(); } catch (e) { return false; }
+  master = actx.createGain(); master.gain.value = 0.42; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = 0.85; musicBus.connect(master);
+  sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+  return true;
+}
+const NOTE_FREQ = {};
+function noteFreq(note) {
+  if (!note) return 0;
+  if (typeof note === 'number') return note;
+  if (NOTE_FREQ[note]) return NOTE_FREQ[note];
+  const m = /^([A-G])(#|b)?(\d)$/.exec(note);
+  if (!m) return 0;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (NOTE_FREQ[note] = 440 * Math.pow(2, (base + (parseInt(m[3], 10) - 4) * 12 - 9) / 12));
+}
+/* one synth voice: oscillator -> (optional lowpass) -> envelope -> bus */
+function tone(t, f, o) {
+  o = o || {};
+  if (!f) return;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  const a = o.a || 0.006, hold = o.hold || 0, dur = o.dur || 0.25, vol = o.vol == null ? 0.15 : o.vol;
+  const end = t + a + hold + dur;
+  osc.type = o.type || 'triangle';
+  osc.frequency.setValueAtTime(f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + (o.glide || a + hold + dur));
+  if (o.vib) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.vibRate || 5.5; lg.gain.value = f * o.vib;
+    l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end + 0.05);
+  }
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  if (hold) g.gain.setValueAtTime(vol, t + a + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  let node = osc;
+  if (o.lp) {
+    const fl = actx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp;
+    if (o.q) fl.Q.value = o.q;
+    osc.connect(fl); node = fl;
+  }
+  node.connect(g); g.connect(o.bus || sfxBus);
+  osc.start(t); osc.stop(end + 0.05);
+}
+/* a burst of filtered noise: shakers, splashes, rustles */
+function noise(t, o) {
+  o = o || {};
+  if (!noiseBuf) {
+    const len = actx.sampleRate;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = actx.createBufferSource(); src.buffer = noiseBuf;
+  const fl = actx.createBiquadFilter(); fl.type = o.ftype || 'bandpass';
+  const dur = o.dur || 0.08, vol = o.vol || 0.1, a = o.a || 0.003;
+  fl.frequency.setValueAtTime(o.f || 2000, t);
+  if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + a + dur);
+  fl.Q.value = o.q || 1;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dur);
+  src.connect(fl); fl.connect(g); g.connect(o.bus || sfxBus);
+  src.start(t, Math.random() * 0.5); src.stop(t + a + dur + 0.05);
+}
+
+/* instruments for the background music */
+const INST = {
+  pluck: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.008, dur: Math.min(d * 0.9, 0.35), vol: v || 0.16, bus: musicBus }),
+  bell: (t, f, d, v) => {
+    v = v || 0.11;
+    tone(t, f, { type: 'sine', a: 0.004, dur: Math.min(d * 1.8, 1.2), vol: v, bus: musicBus });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: Math.min(d, 0.45), vol: v * 0.32, bus: musicBus });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.12, vol: v * 0.12, bus: musicBus });
+  },
+  marimba: (t, f, d, v) => {
+    v = v || 0.17;
+    tone(t, f, { type: 'sine', a: 0.003, dur: Math.min(d * 0.85, 0.5), vol: v, bus: musicBus });
+    tone(t, f * 3.98, { type: 'sine', a: 0.002, dur: 0.07, vol: v * 0.22, bus: musicBus });
+  },
+  flute: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.06, hold: d * 0.45, dur: d * 0.55 + 0.08, vol: v || 0.1, vib: 0.006, vibRate: 5, bus: musicBus }),
+  reed: (t, f, d, v) => tone(t, f, { type: 'square', a: 0.02, hold: d * 0.35, dur: d * 0.5, vol: v || 0.045, lp: 1500, bus: musicBus }),
+  harp: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.004, dur: Math.min(d * 2.5, 1.3), vol: v || 0.08, lp: 2400, bus: musicBus }),
+  bass: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.02, dur: d, vol: v || 0.13, bus: musicBus }),
+  wbass: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.01, dur: Math.min(d * 0.9, 0.55), vol: v || 0.15, lp: 650, bus: musicBus }),
+  hat: (t, v) => noise(t, { f: 8000, q: 0.7, dur: 0.03, vol: v || 0.025, ftype: 'highpass', bus: musicBus }),
+  shaker: (t, v) => noise(t, { f: 5500, q: 1.2, dur: 0.06, vol: v || 0.03, bus: musicBus }),
+  knock: (t, v) => tone(t, 190, { type: 'sine', to: 120, a: 0.002, dur: 0.08, vol: v || 0.08, bus: musicBus })
+};
+/* "E5:.5 - G5:1" -> [{n:'E5', d:.5}, {n:null, d:1}, ...] ("-" or "r" is a rest, default length 1 beat) */
+function track(str) {
+  return str.trim().split(/\s+/).map((tok) => {
+    const p = tok.split(':');
+    return { n: p[0] === '-' || p[0] === 'r' ? null : p[0], d: p[1] ? parseFloat(p[1]) : 1 };
+  });
+}
+function scheduler() {
+  const M = GAME.music, beat = 60 / M.tempo, until = actx.currentTime + 0.2;
+  for (const tr of M.tracks) {
+    let guard = 0;
+    while (tr.next < until && guard++ < 64) {
+      const s = tr.seq[tr.i];
+      const dur = s.d * beat;
+      if (s.n) {
+        if (tr.perc) tr.inst(tr.next, tr.vol, s.n);
+        else tr.inst(tr.next, noteFreq(s.n), dur * (tr.len || 1), tr.vol);
+      }
+      tr.next += dur;
+      tr.i = (tr.i + 1) % tr.seq.length;
+    }
+  }
+}
+function setMusic(on, fromUser) {
+  musicOn = on;
+  try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnMusic');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  $('#musicIcon').innerHTML = on ? ICON.musicOn : ICON.musicOff;
+  if (on && fromUser && ensureAudio() && actx.state === 'suspended') actx.resume();
+  clearInterval(schedTimer); schedTimer = null;
+  if (ambientStop) { try { ambientStop(); } catch (e) {} ambientStop = null; }
+  if (on && actx) {
+    const t0 = actx.currentTime + 0.06;
+    for (const tr of GAME.music.tracks) { tr.next = t0; tr.i = 0; }
+    if (GAME.music.ambient) ambientStop = GAME.music.ambient();
+    schedTimer = setInterval(scheduler, 25);
+  }
+}
+function setSfx(on) {
+  sfxOn = on;
+  try { localStorage.setItem(SFX_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnSfx');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn sound effects off' : 'Turn sound effects on');
+  $('#sfxIcon').innerHTML = on ? ICON.sfxOn : ICON.sfxOff;
+  if (on && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+/* play a named sound effect from GAME.sfx (or the shared ones below) if effects are on */
+function sfx(name, a, b) {
+  if (!sfxOn || !ensureAudio()) return;
+  if (actx.state === 'suspended') actx.resume();
+  const fn = (GAME.sfx && GAME.sfx[name]) || SFX[name];
+  if (fn) fn(actx.currentTime + 0.012, a, b);
+}
+/* sound effects every game can use */
+const SFX = {
+  warn(t) {
+    tone(t, 330, { type: 'square', a: 0.004, dur: 0.07, vol: 0.06, lp: 1800 });
+    tone(t + 0.09, 247, { type: 'square', a: 0.004, dur: 0.12, vol: 0.06, lp: 1500 });
+  },
+  fail(t) {
+    [['G4', 0.22], ['F#4', 0.22], ['F4', 0.22], ['E4', 0.6]].forEach(([n, d], i) => {
+      const f = noteFreq(n);
+      tone(t, f * 1.03, { type: 'sawtooth', to: f * 0.97, a: 0.02, dur: d, vol: i === 3 ? 0.17 : 0.14, lp: 1100 });
+      t += d;
+    });
+  },
+  win(t) {
+    let x = t;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.16, vol: 0.22 }); x += 0.085; });
+    const c = x + 0.02;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.03, dur: 0.7, vol: 0.1, lp: 3000 }));
+    tone(c, noteFreq('C7'), { type: 'sine', to: noteFreq('E7'), glide: 0.5, a: 0.05, dur: 0.55, vol: 0.07 });
+  },
+  tap(t) { tone(t, 880, { type: 'sine', to: 660, a: 0.002, dur: 0.05, vol: 0.06 }); },
+  bonk(t) { tone(t, 180, { type: 'triangle', to: 110, a: 0.003, dur: 0.14, vol: 0.14 }); },
+  chime(t, step) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const f = noteFreq('C5') * Math.pow(2, scale[Math.min(scale.length - 1, Math.max(0, step || 0))] / 12);
+    tone(t, f, { type: 'sine', a: 0.004, dur: 0.5, vol: 0.13 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.2, vol: 0.04 });
+  }
+};
+/* browsers only allow audio after a tap, so the first tap resumes music left on last visit */
+function primeAudioOnce() {
+  document.removeEventListener('pointerdown', primeAudioOnce, true);
+  if (musicOn) setMusic(true, true);
+  else if (sfxOn && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+document.addEventListener('pointerdown', primeAudioOnce, true);
+document.addEventListener('visibilitychange', () => {
+  if (!actx) return;
+  if (document.hidden) actx.suspend();
+  else if (musicOn || sfxOn) actx.resume();
+});
+
+/* ---------- little helpers ---------- */
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+let toastTimer = 0, toastEl = null;
+function toast(msg, ms) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2200);
+}
+/* a button that asks "Confirm?" before throwing away progress */
+function armConfirm(btn, labelEl, label, isBusy, go) {
+  let armed = 0;
+  btn.addEventListener('click', () => {
+    if (isBusy() && !armed) {
+      labelEl.textContent = 'Confirm?';
+      armed = setTimeout(() => { labelEl.textContent = label; armed = 0; }, 2200);
+      return;
+    }
+    clearTimeout(armed); armed = 0; labelEl.textContent = label;
+    go();
+  });
+  return () => { clearTimeout(armed); armed = 0; labelEl.textContent = label; };
+}
+
+/* ---------- modal plumbing ---------- */
+let modalLocked = false;
+function openModal(html, locked) {
+  modalLocked = !!locked;
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true">' + html + '</div>';
+  scrim.classList.add('open');
+}
+function closeModal() { modalLocked = false; scrim.classList.remove('open'); scrim.innerHTML = ''; }
+function modalOpen() { return scrim.classList.contains('open'); }
+scrim.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) { if (e.target === scrim && !modalLocked) closeModal(); return; }
+  const act = a.dataset.act;
+  if (act === 'close') closeModal();
+  else if (act === 'levels') showLevels();
+  else if (act === 'page') showLevels(+a.dataset.page);
+  else if (act === 'pick') loadLevel(+a.dataset.level);
+  else if (act === 'next') loadLevel(curLevel() + 1);
+  else if (act === 'retry') loadLevel(curLevel());
+  else if (GAME.actions && GAME.actions[act]) GAME.actions[act](a);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOpen() && !modalLocked) closeModal(); });
+
+/* opened from the Puzzle Parlour launcher? then offer a way back to it */
+let FROM_PARLOUR = false;
+try {
+  if (location.hash === '#parlour') sessionStorage.setItem('parlour', '1');
+  FROM_PARLOUR = location.hash === '#parlour' || sessionStorage.getItem('parlour') === '1';
+} catch (e) { FROM_PARLOUR = location.hash === '#parlour'; }
+
+/* ---------- level picker: pages of 20, with each finished level's best result ---------- */
+const PAGE = 20;
+function curLevel() { return (typeof G !== 'undefined' && G) ? G.idx : (save.level || 0); }
+function showLevels(page) {
+  const cur = curLevel();
+  const total = GAME.total || Infinity;
+  if (typeof page !== 'number') page = Math.floor(cur / PAGE);
+  const first = page * PAGE, last = Math.min(first + PAGE, total);
+  let h = '<h2>Levels</h2><div class="pager">' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Earlier levels">' + ICON.chevL + '</button>' +
+    '<span>' + (first + 1) + '–' + last + '</span>' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page + 1) + '"' + (last >= total ? ' disabled' : '') + ' aria-label="Later levels">' + ICON.chevR + '</button>' +
+    '</div><div class="levels">';
+  for (let i = first; i < last; i++) {
+    const done = hasOwn(save.done, i);
+    const label = GAME.levelLabel(i);
+    h += '<button class="lv' + (done ? ' done' : '') + (i === cur ? ' cur' : '') + '" data-act="pick" data-level="' + i +
+      '" aria-label="Level ' + (i + 1) + ', ' + label + (done ? ', completed' : '') + '">' +
+      (done ? '<span class="ok">' + ICON.tick + '</span>' : '') +
+      (GAME.levelTile ? GAME.levelTile(i, done) : '<b>' + (i + 1) + '</b><small>' + label + '</small>') +
+      '<span class="mh">' + (done ? GAME.levelBadge(save.done[i], i) : '') + '</span>' +
+      '</button>';
+  }
+  h += '</div><div class="stack"><button class="btn" data-act="close">Close</button>' +
+    (FROM_PARLOUR ? '<a class="btn" href="../index.html#parlour">All Puzzle Parlour games</a>' : '') + '</div>';
+  openModal(h);
+}
+
+/* installed on a home screen, keep working offline (only on a real web host, never inside a frame) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.self === window.top) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- header buttons ---------- */
+function shellBoot() {
+  $('#btnLevels').addEventListener('click', () => showLevels());
+  $('#btnMusic').addEventListener('click', () => setMusic(!musicOn, true));
+  $('#btnSfx').addEventListener('click', () => setSfx(!sfxOn));
+  $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
+  setMusic(musicOn, false);
+  setSfx(sfxOn);
+}
+
+/* =====================================================================
+   Zoom and pan, for when the board gets big. Pinch with two fingers to
+   zoom (moving them drags the board around), or use the mouse wheel, a
+   trackpad pinch or the + − 0 keys. One finger still plays: a touch waits
+   a moment, or until it moves or lifts, before the game sees it, so the
+   first finger of a pinch never plays a move by accident. The game gives:
+     el                     the area that takes touches
+     layout()               lay the board out at zoom Z.z (setting Z.max on
+                            the way) and return {cw, ch, vw, vh, left, top}:
+                            the board's size at that zoom, the size of the
+                            window onto it, and where that window is on screen
+     pan()                  slide the board so (Z.x, Z.y) sits at the window's
+                            top-left corner
+     down/move/up/cancel(e) one-finger play
+     canPan(e)              optional: when zoomed in, should a one-finger drag
+                            from here slide the board instead of playing?
+     focus()                optional: the screen point the keys zoom around
+     fit, tip               the zoom-out button, and a first-time tip
+   ===================================================================== */
+const ZOOM_ICON = {
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8"/></svg>',
+  in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8M10.5 7.6v5.8"/></svg>'
+};
+function makeZoom(o) {
+  const Z = { z: 1, x: 0, y: 0, max: 1, g: null };
+  const pts = new Map();          /* touches on the board: pointerId -> {x, y} */
+  let mode = '';                  /* '' | 'wait' | 'play' | 'pan' | 'pinch' */
+  let one = null, pinch = null, raf = 0, tween = 0, gs = 0;
+  const WAIT = 220;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* only boards that gain at least a quarter from zooming can zoom */
+  const zoomable = () => Z.max >= 1.25;
+  const top = () => (zoomable() ? Z.max : 1);
+  const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (o.fit) {
+    o.fit.innerHTML = ZOOM_ICON.out;
+    o.fit.addEventListener('click', () => reset(true));
+  }
+
+  function settle() {
+    const g = Z.g;
+    if (Z.z <= 1) { Z.x = 0; Z.y = 0; }
+    Z.x = clamp(Z.x, 0, Math.max(0, g.cw - g.vw));
+    Z.y = clamp(Z.y, 0, Math.max(0, g.ch - g.vh));
+    o.pan();
+    if (o.fit) o.fit.hidden = Z.z <= 1.01;
+  }
+  /* the board point under a screen point, as a fraction of the board's size */
+  function at(cx, cy) { const g = Z.g; return [(cx - g.left + Z.x) / g.cw, (cy - g.top + Z.y) / g.ch]; }
+  /* zoom to z with board point (u, v) under screen point (cx, cy) */
+  function place(z, cx, cy, u, v) {
+    z = clamp(z, 1, top());
+    if (z !== Z.z || !Z.g) { Z.z = z; Z.g = o.layout(); }
+    Z.x = u * Z.g.cw - (cx - Z.g.left);
+    Z.y = v * Z.g.ch - (cy - Z.g.top);
+    settle();
+  }
+  function zoomAt(z, cx, cy) {
+    cancelAnimationFrame(tween);
+    Z.g = o.layout();
+    if (cx == null) { cx = Z.g.left + Z.g.vw / 2; cy = Z.g.top + Z.g.vh / 2; }
+    const [u, v] = at(cx, cy);
+    place(z, cx, cy, u, v);
+  }
+  function panBy(dx, dy) { if (Z.z > 1) { Z.x += dx; Z.y += dy; settle(); } }
+  /* after a resize or a new board: lay out again at the current zoom */
+  function refresh() {
+    Z.g = o.layout();
+    if (Z.z > top()) { Z.z = top(); Z.g = o.layout(); }
+    settle();
+  }
+  /* back to the whole board, gliding there if asked */
+  function reset(glide) {
+    cancelAnimationFrame(tween);
+    if (!glide || Z.z <= 1.01 || calm()) { Z.z = 1; refresh(); return; }
+    Z.g = o.layout();
+    const cx = Z.g.left + Z.g.vw / 2, cy = Z.g.top + Z.g.vh / 2, [u, v] = at(cx, cy), z0 = Z.z, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 260);
+      place(z0 + (1 - z0) * (1 - Math.pow(1 - k, 3)), cx, cy, u, v);
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  /* slide the board so a box (in board pixels at the current zoom) is in view */
+  function show(x, y, w, h) {
+    if (Z.z <= 1 || !Z.g) return;
+    const g = Z.g, m = 10;
+    if (x - m < Z.x) Z.x = x - m; else if (x + w + m > Z.x + g.vw) Z.x = x + w + m - g.vw;
+    if (y - m < Z.y) Z.y = y - m; else if (y + h + m > Z.y + g.vh) Z.y = y + h + m - g.vh;
+    settle();
+  }
+  /* on a phone, mention pinching the first time a board is big enough to need it */
+  function tip() {
+    if (top() < 1.6 || save.zoomTip || !o.tip || !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+    setTimeout(() => {
+      if (save.zoomTip || modalOpen()) return;
+      save.zoomTip = true; persist();
+      toast(o.tip, 4200);
+    }, 900);
+  }
+
+  /* ---------- touches, mouse and pen ---------- */
+  function commit() {
+    if (mode !== 'wait') return;
+    clearTimeout(one.t);
+    mode = 'play';
+    o.down(one.e);
+  }
+  function startPinch(a, b) {
+    cancelAnimationFrame(tween);
+    const p = pts.get(a), q = pts.get(b);
+    pinch = { ids: [a, b], d: Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
+    mode = 'pinch'; one = null;
+    Z.g = o.layout();
+    for (const id of pinch.ids) { try { o.el.setPointerCapture(id); } catch (err) {} }
+  }
+  function pinchFrame() {
+    raf = 0;
+    if (mode !== 'pinch') return;
+    const p = pts.get(pinch.ids[0]), q = pts.get(pinch.ids[1]);
+    if (!p || !q) return;
+    const d = Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    /* keep the point that was between the fingers between them, at the new spread */
+    const [u, v] = at(pinch.mx, pinch.my);
+    place(Z.z * d / pinch.d, mx, my, u, v);
+    pinch.d = d; pinch.mx = mx; pinch.my = my;
+  }
+  const startOne = (e) => ({ id: e.pointerId, e, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, pan: Z.z > 1.01 && (!o.canPan || !!o.canPan(e)) });
+  const quit = (id, x, y) => o.cancel({ pointerId: id, clientX: x, clientY: y, type: 'pointercancel' });
+
+  o.el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest('[data-zoom-skip]')) return;
+    cancelAnimationFrame(tween);
+    if (e.pointerType !== 'touch') {
+      if (mode) return;
+      if (e.button === 1) {
+        if (Z.z > 1) { e.preventDefault(); one = startOne(e); mode = 'pan'; }
+        return;
+      }
+      one = startOne(e); mode = 'play';
+      o.down(e);
+      return;
+    }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === 'pinch') return;
+    if (!mode) {
+      one = startOne(e);
+      if (zoomable()) { mode = 'wait'; one.t = setTimeout(commit, WAIT); }
+      else { mode = 'play'; o.down(e); }
+      return;
+    }
+    /* a second finger turns whatever the first was doing into a pinch (small boards don't zoom, so it's ignored there) */
+    if (!one || !pts.has(one.id) || (mode === 'play' && !zoomable())) return;
+    if (mode === 'wait') clearTimeout(one.t);
+    else if (mode === 'play') { const p = pts.get(one.id); quit(one.id, p.x, p.y); }
+    startPinch(one.id, e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+    if (mode === 'pinch') {
+      if (p && pinch.ids.includes(e.pointerId) && !raf) raf = requestAnimationFrame(pinchFrame);
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const far = Math.hypot(e.clientX - one.x, e.clientY - one.y) > (e.pointerType === 'touch' ? 10 : 5);
+    if (mode === 'wait' && far) {
+      if (one.pan) { clearTimeout(one.t); mode = 'pan'; } else commit();
+    } else if (mode === 'play' && far && one.pan) { quit(one.id, e.clientX, e.clientY); mode = 'pan'; }
+    if (mode === 'play') o.move(e);
+    else if (mode === 'pan') panBy(one.lx - e.clientX, one.ly - e.clientY);
+    one.lx = e.clientX; one.ly = e.clientY;
+  });
+  function end(e) {
+    pts.delete(e.pointerId);
+    if (mode === 'pinch') {
+      if (!pinch.ids.includes(e.pointerId)) return;
+      /* lift one finger and the other carries on sliding the board */
+      const rest = pinch.ids.find((id) => id !== e.pointerId && pts.has(id));
+      pinch = null; cancelAnimationFrame(raf); raf = 0;
+      if (rest !== undefined) { const q = pts.get(rest); one = { id: rest, x: q.x, y: q.y, lx: q.x, ly: q.y }; mode = 'pan'; }
+      else { mode = ''; one = null; }
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const up = e.type === 'pointerup';
+    if (mode === 'wait') { clearTimeout(one.t); if (up) { o.down(one.e); o.up(e); } }
+    else if (mode === 'play') { if (up) o.up(e); else o.cancel(e); }
+    mode = ''; one = null;
+  }
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+
+  /* mouse wheel, and trackpad pinches (which arrive as wheel events with ctrl held) */
+  o.el.addEventListener('wheel', (e) => {
+    if (!zoomable()) return;
+    e.preventDefault();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+    zoomAt(Z.z * Math.exp(-clamp(dy, -150, 150) * (e.ctrlKey ? 0.01 : 0.002)), e.clientX, e.clientY);
+  }, { passive: false });
+  /* Safari: trackpad pinches on a Mac, and stopping iPhones zooming the whole page */
+  o.el.addEventListener('gesturestart', (e) => { e.preventDefault(); gs = pts.size ? 0 : (e.scale || 1); });
+  o.el.addEventListener('gesturechange', (e) => {
+    e.preventDefault();
+    if (!gs || pts.size || !zoomable()) return;
+    zoomAt(Z.z * e.scale / gs, e.clientX, e.clientY);
+    gs = e.scale;
+  });
+  o.el.addEventListener('gestureend', (e) => { e.preventDefault(); gs = 0; });
+  /* keys: + and - zoom, 0 shows the whole board */
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || modalOpen() || !zoomable() || !Z.g) return;
+    const k = e.key;
+    if (k === '0') { e.preventDefault(); reset(true); return; }
+    const f = k === '+' || k === '=' ? 1.3 : k === '-' || k === '_' ? 1 / 1.3 : 0;
+    if (!f) return;
+    e.preventDefault();
+    const p = o.focus && o.focus();
+    zoomAt(Z.z * f, p ? p.x : null, p ? p.y : null);
+  });
+
+  return Object.assign(Z, { refresh, reset, zoomAt, panBy, show, tip });
+}
+
+/* ---------- mosaic logic: 3x3 block sums, a propagation + pair solver, and clue carving ---------- */
+/* A square's 3x3 block is kept as 9 slots, slot = (dr+1)*3 + (dc+1), -1 off the board. Square i sits in
+   slot 8-s of the block of the square in slot s of its own block, which keeps the bookkeeping cheap. */
+const POP9 = new Uint8Array(512);
+for (let m = 1; m < 512; m++) POP9[m] = (m & 1) + POP9[m >> 1];
+/* SHARE[o]: the slots of a block that also lie in the block of the square at offset o (o = (dr+2)*5 + dc+2) */
+const SHARE = new Uint16Array(25);
+for (let o = 0; o < 25; o++) {
+  const odr = Math.floor(o / 5) - 2, odc = (o % 5) - 2;
+  for (let s = 0; s < 9; s++) if (Math.abs(Math.floor(s / 3) - 1 - odr) <= 1 && Math.abs((s % 3) - 1 - odc) <= 1) SHARE[o] |= 1 << s;
+}
+const boardCache = {};
+function boardFor(w, h) {
+  const key = w + 'x' + h;
+  if (boardCache[key]) return boardCache[key];
+  const N = w * h;
+  const blk = new Int16Array(N * 9).fill(-1), full = new Uint16Array(N);
+  const nb = new Int16Array(N * 24), nbO = new Uint8Array(N * 24), nbN = new Uint8Array(N);
+  for (let i = 0; i < N; i++) {
+    const r = Math.floor(i / w), c = i % w;
+    for (let s = 0; s < 9; s++) {
+      const rr = r + Math.floor(s / 3) - 1, cc = c + (s % 3) - 1;
+      if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
+      blk[i * 9 + s] = rr * w + cc; full[i] |= 1 << s;
+    }
+    for (let o = 0; o < 25; o++) {
+      const rr = r + Math.floor(o / 5) - 2, cc = c + (o % 5) - 2;
+      if (o === 12 || rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
+      nb[i * 24 + nbN[i]] = rr * w + cc; nbO[i * 24 + nbN[i]++] = o;
+    }
+  }
+  return (boardCache[key] = {
+    w, h, N, blk, full, nb, nbO, nbN,
+    um: new Uint16Array(N), cg: new Int8Array(N), inQ: new Uint8Array(N), Q: new Int16Array(N + 1), dirty: new Uint8Array(N)
+  });
+}
+/* the number every square would show: glass squares in its 3x3 block */
+function cluesFor(w, h, sol) {
+  const B = boardFor(w, h), out = new Int8Array(B.N);
+  for (let i = 0; i < B.N; i++) { let s = 0; for (let k = 0; k < 9; k++) { const j = B.blk[i * 9 + k]; if (j >= 0) s += sol[j]; } out[i] = s; }
+  return out;
+}
+
+/* Solve as far as logic goes. clue: Int8Array (-1 = no number), st: Int8Array of -1/0/1 (changed in place).
+   Rules: a number whose open squares must all be glass (or all clear), and, if usePairs, two overlapping
+   numbers compared through the squares only one of them covers. Returns 'solved', 'stuck' or 'bad'. */
+function solveMosaic(w, h, clue, st, usePairs) {
+  const B = boardFor(w, h);
+  const { N, blk, full, nb, nbO, nbN, um, cg, inQ, Q, dirty } = B;
+  const QN = N + 1;
+  let qh = 0, qt = 0, unknown = 0;
+  for (let i = 0; i < N; i++) if (st[i] < 0) unknown++;
+  for (let k = 0; k < N; k++) {
+    inQ[k] = 0; dirty[k] = 0;
+    if (clue[k] < 0) continue;
+    let g = 0, m = full[k];
+    for (let s = 0; s < 9; s++) { if (!(m >> s & 1)) continue; const v = st[blk[k * 9 + s]]; if (v >= 0) { m &= ~(1 << s); g += v; } }
+    cg[k] = g; um[k] = m;
+    Q[qt++] = k; inQ[k] = 1; dirty[k] = 1;
+  }
+  const set = (i, v) => {
+    st[i] = v; unknown--;
+    for (let s = 0; s < 9; s++) {
+      const k = blk[i * 9 + s];
+      if (k < 0 || clue[k] < 0) continue;
+      um[k] &= ~(1 << (8 - s)); cg[k] += v; dirty[k] = 1;
+      if (!inQ[k]) { inQ[k] = 1; Q[qt] = k; qt = qt + 1 === QN ? 0 : qt + 1; }
+    }
+  };
+  /* set every square of block k picked out by the slot mask m */
+  const fill = (k, m, v) => { for (let s = 0; s < 9; s++) if (m >> s & 1) { const j = blk[k * 9 + s]; if (st[j] < 0) set(j, v); } };
+  for (;;) {
+    while (qh !== qt) {
+      const k = Q[qh]; qh = qh + 1 === QN ? 0 : qh + 1; inQ[k] = 0;
+      const u = POP9[um[k]], need = clue[k] - cg[k];
+      if (need < 0 || need > u) return 'bad';
+      if (u && (!need || need === u)) fill(k, um[k], need ? 1 : 0);
+    }
+    if (!unknown) return 'solved';
+    if (!usePairs) return 'stuck';
+    let progress = false;
+    for (let a = 0; a < N && !progress; a++) {
+      if (!dirty[a]) continue;
+      dirty[a] = 0;
+      const ua = um[a];
+      if (clue[a] < 0 || !ua) continue;
+      for (let y = 0; y < nbN[a]; y++) {
+        const b = nb[a * 24 + y];
+        if (clue[b] < 0) continue;
+        const ub = um[b], o = nbO[a * 24 + y], sh = ua & SHARE[o];
+        if (!ub || !sh) continue;
+        const ao = ua & ~SHARE[o], bo = ub & ~SHARE[24 - o];
+        if (!ao && !bo) continue;
+        const aU = POP9[ao], bU = POP9[bo], needA = clue[a] - cg[a], needB = clue[b] - cg[b];
+        const lo = Math.max(0, needA - aU, needB - bU), hi = Math.min(POP9[sh], needA, needB);
+        if (lo > hi) return 'bad';
+        let hit = false;
+        if (aU) { if (needA - hi === aU) { fill(a, ao, 1); hit = true; } else if (needA === lo) { fill(a, ao, 0); hit = true; } }
+        if (bU) { if (needB - hi === bU) { fill(b, bo, 1); hit = true; } else if (needB === lo) { fill(b, bo, 0); hit = true; } }
+        if (hit) { progress = true; break; }
+      }
+    }
+    if (!progress) return 'stuck';
+  }
+}
+
+/* Start with a number on every square, then take numbers away in a seeded order for as long as logic
+   still reaches the one answer. keep: never go below this share of squares numbered (gentle levels). */
+function carveClues(w, h, sol, rnd, keep, usePairs) {
+  const N = w * h, clue = cluesFor(w, h, sol), st = new Int8Array(N);
+  st.fill(-1);
+  if (solveMosaic(w, h, clue, st, usePairs) !== 'solved') return null;
+  const floor = Math.ceil(N * (keep || 0));
+  let left = N;
+  for (const i of shuffleArr([...Array(N).keys()], rnd)) {
+    if (left <= floor) break;
+    const v = clue[i];
+    clue[i] = -1;
+    st.fill(-1);
+    if (solveMosaic(w, h, clue, st, usePairs) === 'solved') left--;
+    else clue[i] = v;
+  }
+  return clue;
+}
+
+/* ---------- the hand-leaded pictures ("." is plain glass, letters are glass colours) ---------- */
+const GLASS = {
+  r: '#d8323f', R: '#9c1f33', p: '#f07ea6', P: '#c2376f', o: '#f08a2c', O: '#c2621c',
+  y: '#f6c844', Y: '#dd9d1d', g: '#33a464', G: '#1e6e45', l: '#94cc4c', b: '#3268cf',
+  B: '#21408f', c: '#71c4ef', t: '#22a6a2', T: '#147371', v: '#7d4fd0', V: '#53309a',
+  m: '#bb9fea', w: '#f7f2e6', s: '#bcc3cf', S: '#6c7488', n: '#8c5b33', N: '#5c3b1f',
+  k: '#2b2535', e: '#f6c9a3'
+};
+const PICTURES = [
+  { name: 'Sun', art: `
+..y..
+.yoy.
+yoYoy
+.yoy.
+..y..` },
+  { name: 'Heart', art: `
+rr..rr
+rprrrr
+rrrrrr
+rrrrrr
+.rrrr.
+..rr..` },
+  { name: 'Flower', art: `
+.ppppp.
+ppPPPpp
+ppPyPpp
+ppPPPpp
+.ppppp.
+...g...
+ll.g.ll
+.llgll.` },
+  { name: 'Moon and star', art: `
+..yy....
+.yy...w.
+yyY..www
+yYY...w.
+yYY.....
+yYYY....
+.yYYYYy.
+..yyyy..` },
+  { name: 'Leaf', art: `
+.....ggg
+...ggglg
+..ggglgg
+.ggglgg.
+.gglggg.
+.glggg..
+.lgg....
+n.......` },
+  { name: 'Tulip', art: `
+r..r..r
+rr.r.rr
+rrrrrrr
+rRrrrRr
+.rrrrr.
+..rrr..
+g..g..g
+gg.g.gg
+.ggggg.` },
+  { name: 'Fish', art: `
+...wooo....
+..owooow..o
+.oowooowooo
+okowooowoo.
+.oowooowooo
+..owooow..o
+...wooo....` },
+  { name: 'Butterfly', art: `
+.vv...vv.
+vmmv.vmmv
+vmmvkvmmv
+vvvvkvvvv
+.vvvkvvv.
+..ppkpp..
+.pPpkpPp.
+.ppp.ppp.
+..p...p..` },
+  { name: 'Bird', art: `
+.....bbb..
+....bbkbo.
+....bbbb..
+..bbbboo..
+.bbBbooo..
+bbBBbooo..
+b.bbbbo...
+....n.n.gg
+nnnnnnnnng` },
+  { name: 'Sailboat', art: `
+.....r....
+....wrr...
+...wwrrr..
+..wwwrrrr.
+.wwwwrrrrr
+.....n....
+nnnnnnnnnn
+.nnnnnnnn.
+..nnnnnn..
+cc.bb.cc.b` },
+  { name: 'Rainbow', art: `
+....rrrrr....
+..rrooooorr..
+.rooyyyyyoor.
+royygggggyyor
+roygbbbbbgyor
+roygb...bgyor
+.wwgb...bgww.
+wwwww...wwwww
+.www.....www.` },
+  { name: 'Rose window', art: `
+...BBBBB...
+..BB.b.BB..
+.B.b.R.b.B.
+BBbRrrrRbBB
+B..ryyyr..B
+BbRryYyrRbB
+B..ryyyr..B
+BBbRrrrRbBB
+.B.b.R.b.B.
+..BB.b.BB..
+...BBBBB...` },
+  { name: 'Owl', art: `
+.N.......N.
+.NN.....NN.
+.nnnnnnnnn.
+nwwwnnnwwwn
+nwkwnonwkwn
+nwwwnonwwwn
+nnnnnnnnnnn
+nenenenenen
+.nenenenen.
+.nnenenenn.
+..nnnnnnn..
+..oo...oo..` },
+  { name: 'Cat', art: `
+.o...o......
+.oo.oo......
+.ooooo......
+oogogoo.....
+oooPooo.....
+.ooooo......
+..owoo......
+.owwwoO.....
+oowwwooO....
+oowwwoooO..o
+oowwwoooo..o
+.oooooooooo.` },
+  { name: 'Teapot', art: `
+.....yy.....
+....tttt....
+...TTTTTT...
+t..tttttt...
+tt.ttwtwttt.
+.ttwwwwwwt.t
+.tttwwwwtt.t
+..tttwwttt.t
+..ttttttttt.
+...tttttt...
+....tttt....
+...TTTTTT...` },
+  { name: 'Lighthouse', art: `
+......r......
+.....rrr.....
+.yy.yyyyy.yy.
+...yyyYyyy...
+.yy.SSSSS.yy.
+.....rrr.....
+.....www.....
+....rrrrr....
+....wwwww....
+....rrrrr....
+...SSSSSSS...
+.cc.SSSSS.cc.
+bbbbbbbbbbbbb` },
+  { name: 'Dragonfly', art: `
+.....GtG.....
+.cccc.T.cccc.
+ccmmcctccmmcc
+.cccc.T.cccc.
+..ccc.t.ccc..
+.cmmcctccmmc.
+..ccc.T.ccc..
+......t......
+......T......
+......t......
+......T......
+......t......
+......t......` },
+  { name: 'Bunch of grapes', art: `
+.......n......
+......n..ggg..
+.....n..ggggg.
+...vvnvvglgggg
+..vmvvmvv.lgg.
+..vvvvvvv..g..
+.vmvvmvvmv....
+.vvvvvvvvv....
+..vmvvmvv.....
+..vvvvvvv.....
+...vmvvm......
+...vvvvv......
+....vvv.......
+.....v........` },
+  { name: 'Tree of life', art: `
+....gglgglg....
+...gglgrlggl...
+..ggrgglgglgg..
+.gglgglngrgglg.
+.glgglgnlgglrg.
+.lrglggngglggl.
+.gglnglnglnrlg.
+.glggngnlnglgg.
+..gglgnnnglgg..
+..glggnnnlggl..
+......nnn......
+......nnn......
+......nnn......
+...NN.NNN.NN...
+..N.N.N.N.N.N..` },
+  { name: 'Great rose window', art: `
+......ggg......
+...v..ggg..v...
+..vvBBcccBBvv..
+.vvBc..b..cBvv.
+..Bccb...bccB..
+..B.b.RrR.b.B..
+ggc..RyyyR..cgg
+ggcb.ryYyr.bcgg
+ggc..RyyyR..cgg
+..B.b.RrR.b.B..
+..Bccb...bccB..
+.vvBc..b..cBvv.
+..vvBBcccBBvv..
+...v..ggg..v...
+......ggg......` }
+];
+
+/* ---------- endless windows: symmetric motifs drawn from layered shapes, in jewel-tone glass ---------- */
+const JEWELS = [
+  ['Ruby', '#8e1b2e', '#d8323f', '#f39a96', '#f6c844', '#3268cf'],
+  ['Sapphire', '#1d3a8a', '#3268cf', '#86c6f2', '#f6c844', '#d8323f'],
+  ['Emerald', '#155c3a', '#2f9e5f', '#9ad055', '#f6c844', '#7d4fd0'],
+  ['Amethyst', '#4a2a8c', '#7d4fd0', '#c0a6ee', '#f6c844', '#22a6a2'],
+  ['Amber', '#9a4f12', '#f08a2c', '#f8cf5a', '#d8323f', '#2f9e5f'],
+  ['Garnet', '#7a1d4b', '#c2376f', '#f287ae', '#f6c844', '#22a6a2'],
+  ['Turquoise', '#0f6563', '#22a6a2', '#8fe0d6', '#f08a2c', '#c2376f'],
+  ['Topaz', '#a8681a', '#dd9d1d', '#f7da80', '#3268cf', '#d8323f']
+];
+const MOTIFS = ['rosette', 'medallion', 'quatrefoil', 'star', 'border'];
+function windowSize(idx) { return [11, 12, 13, 13, 14, 15, 15][Math.floor(mulberry32(seedFor(idx, 3))() * 7)]; }
+/* one seeded design: a list of [shape test, colour slot or -1 to cut a gap] painted in order */
+function motifLayers(kind, rnd) {
+  const R = (a, b) => a + rnd() * (b - a);
+  const k = rnd() < 0.5 ? 4 : 8, ph = rnd() < 0.5 ? 0 : Math.PI / k;
+  const ring = (a, b) => (x, y, d) => d >= a && d < b;
+  const disc = (a) => (x, y, d) => d < a;
+  const petals = (n, r0, amp, p) => (x, y, d, an) => d < r0 + amp * Math.cos(n * an + p);
+  const diamond = (a) => (x, y) => Math.abs(x) + Math.abs(y) < a;
+  const square = (a, b) => (x, y) => { const m = Math.max(Math.abs(x), Math.abs(y)); return m >= a && m < b; };
+  const lobes = (off, r, diag) => (x, y) => {
+    const o = diag ? off * Math.SQRT1_2 : off;
+    const cs = diag ? [[o, o], [-o, o], [o, -o], [-o, -o]] : [[off, 0], [-off, 0], [0, off], [0, -off]];
+    return cs.some(([cx, cy]) => Math.hypot(x - cx, y - cy) < r);
+  };
+  const spokes = (n, wd, a, b, p) => (x, y, d, an) => {
+    if (d < a || d >= b) return false;
+    const s = (2 * Math.PI) / n, t = ((an - p) % s + s) % s;
+    return Math.min(t, s - t) * d < wd;
+  };
+  const L = [];
+  if (kind === 'rosette') {
+    L.push([ring(R(0.82, 0.9), 1.02), 0]);
+    L.push([petals(k, R(0.5, 0.6), R(0.18, 0.28), ph), 1]);
+    L.push([petals(k, R(0.3, 0.38), R(0.08, 0.14), ph), 2]);
+    if (rnd() < 0.6) L.push([spokes(k, 0.06, 0.4, 0.86, ph + Math.PI / k), -1]);
+    L.push([ring(R(0.2, 0.26), R(0.3, 0.34)), -1]);
+    L.push([disc(R(0.16, 0.22)), 3]);
+  } else if (kind === 'medallion') {
+    L.push([square(R(0.8, 0.86), 1.02), 0]);
+    L.push([lobes(0.86, R(0.2, 0.28), true), 4]);
+    L.push([diamond(R(0.82, 0.95)), 1]);
+    L.push([diamond(R(0.56, 0.66)), -1]);
+    L.push([disc(R(0.44, 0.52)), 2]);
+    L.push([petals(4, 0.2, 0.12, ph), 3]);
+  } else if (kind === 'quatrefoil') {
+    const off = R(0.36, 0.44), lr = R(0.3, 0.36);
+    L.push([ring(R(0.88, 0.94), 1.06), 0]);
+    L.push([lobes(off, lr, rnd() < 0.5), 1]);
+    L.push([lobes(off, lr - R(0.12, 0.16), false), 2]);
+    L.push([disc(R(0.24, 0.3)), -1]);
+    L.push([disc(R(0.13, 0.18)), 3]);
+    if (rnd() < 0.5) L.push([lobes(0.94, 0.12, true), 4]);
+  } else if (kind === 'star') {
+    const a = R(0.8, 0.92);
+    L.push([(x, y) => Math.abs(x) + Math.abs(y) < a * 1.25 || Math.max(Math.abs(x), Math.abs(y)) < a * 0.78, 1]);
+    L.push([(x, y) => Math.abs(x) + Math.abs(y) < a * 0.9 && Math.max(Math.abs(x), Math.abs(y)) < a * 0.62, 2]);
+    L.push([ring(R(0.34, 0.4), R(0.44, 0.5)), -1]);
+    L.push([disc(R(0.26, 0.32)), 3]);
+    L.push([disc(0.1), 0]);
+    if (rnd() < 0.6) L.push([spokes(8, 0.05, 0.5, 1.2, Math.PI / 8), -1]);
+  } else {
+    const t = R(0.12, 0.17);
+    L.push([square(1 - t, 1.02), 0]);
+    L.push([(x, y) => square(1 - t, 1.02)(x, y) && ((Math.round((x + 1) * 4.2) + Math.round((y + 1) * 4.2)) % 2 === 0), 3]);
+    L.push([petals(k, R(0.42, 0.5), R(0.14, 0.22), ph), 1]);
+    L.push([petals(k, R(0.24, 0.3), R(0.06, 0.1), ph + Math.PI / k), 2]);
+    L.push([disc(R(0.1, 0.14)), 4]);
+    if (rnd() < 0.5) L.push([lobes(0.74, 0.16, true), 2]);
+  }
+  return L;
+}
+/* the picture for an endless level: kept only if it isn't too sparse or too solid, and logic can solve it */
+function designWindow(idx) {
+  const n = windowSize(idx), w = n, h = n, N = n * n;
+  for (let salt = 0; salt < 60; salt++) {
+    const rnd = mulberry32(seedFor(idx, 100 + salt));
+    const kind = MOTIFS[Math.floor(rnd() * MOTIFS.length)], pal = JEWELS[Math.floor(rnd() * JEWELS.length)];
+    const layers = motifLayers(kind, rnd);
+    const sol = new Uint8Array(N), slot = new Int8Array(N).fill(-1);
+    const half = (n - 1) / 2, sc = n / 2;
+    let filled = 0;
+    for (let i = 0; i < N; i++) {
+      /* sample the square's centre, folded so the picture is mirrored both ways and across the diagonal */
+      let x = Math.abs((i % w) - half) / sc, y = Math.abs(Math.floor(i / w) - half) / sc;
+      if (y > x) { const t = x; x = y; y = t; }
+      const d = Math.hypot(x, y), an = Math.atan2(y, x);
+      for (const [test, s] of layers) if (test(x, y, d, an)) slot[i] = s;
+      sol[i] = slot[i] >= 0 ? 1 : 0;
+      filled += sol[i];
+    }
+    if (filled < N * 0.32 || filled > N * 0.74) continue;
+    if (solveMosaic(w, h, cluesFor(w, h, sol), new Int8Array(N).fill(-1), true) !== 'solved') continue;
+    const colors = new Array(N).fill(null);
+    for (let i = 0; i < N; i++) if (sol[i]) colors[i] = pal[1 + slot[i]];
+    return { w, h, sol, colors, name: pal[0] + ' ' + kind, kind: 'window', salt, keep: 0, pairs: true };
+  }
+  return null;
+}
+
+/* ---------- levels: the hand-leaded pictures first, then endless windows ---------- */
+const MAX_LIVES = 3;
+/* gentle start: [share of squares that keep their number, whether pairs of numbers are needed] */
+const EASE = [[0.6, 0], [0.5, 0], [0.42, 0], [0.36, 0], [0.3, 0], [0.42, 1], [0.36, 1], [0.3, 1], [0.26, 1], [0.22, 1], [0.18, 1], [0.14, 1]];
+const picCache = {}, levelCache = {};
+function levelSize(idx) {
+  if (idx < PICTURES.length) { const rows = PICTURES[idx].art.trim().split('\n'); return [rows[0].length, rows.length]; }
+  const n = windowSize(idx); return [n, n];
+}
+function fromPicture(idx) {
+  const p = PICTURES[idx], rows = p.art.trim().split('\n'), h = rows.length, w = rows[0].length;
+  const sol = new Uint8Array(w * h), colors = new Array(w * h).fill(null);
+  rows.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== '.') { sol[r * w + c] = 1; colors[r * w + c] = GLASS[ch] || '#888'; } }));
+  const e = EASE[idx] || [0, 1];
+  return { w, h, sol, colors, name: p.name, kind: 'pane', keep: e[0], pairs: !!e[1] };
+}
+/* just the picture (fast: the level picker draws finished ones as thumbnails) */
+function pictureOf(idx) {
+  if (!picCache[idx]) {
+    picCache[idx] = idx < PICTURES.length ? fromPicture(idx)
+      : (designWindow(idx) || Object.assign(fromPicture(idx % PICTURES.length), { keep: 0, pairs: true }));
+  }
+  return picCache[idx];
+}
+/* the picture plus its numbers, carved down with a seeded order */
+function getLevel(idx) {
+  if (!levelCache[idx]) {
+    const P = pictureOf(idx), rnd = mulberry32(seedFor(idx, 900 + (P.salt || 0)));
+    const clue = carveClues(P.w, P.h, P.sol, rnd, P.keep, P.pairs) || carveClues(P.w, P.h, P.sol, rnd, 0, true);
+    levelCache[idx] = Object.assign({}, P, { clue });
+  }
+  return levelCache[idx];
+}
+
+/* ---------- pictures as little leaded windows (picker thumbnails, win and lose cards) ---------- */
+function shade(hex, t) {
+  const n = parseInt(hex.slice(1), 16), f = (v) => Math.round(t >= 0 ? v + (255 - v) * t : v * (1 + t));
+  return '#' + ((1 << 24) | (f(n >> 16) << 16) | (f((n >> 8) & 255) << 8) | f(n & 255)).toString(16).slice(1);
+}
+/* the picture centred in a square of plain glass */
+function paneSVG(L, faint) {
+  const m = Math.max(L.w, L.h), ox = Math.floor((m - L.w) / 2), oy = Math.floor((m - L.h) / 2);
+  let s = '<svg viewBox="0 0 ' + m + ' ' + m + '" aria-hidden="true"><rect width="' + m + '" height="' + m + '" fill="#2a2530"/>';
+  for (let r = 0; r < m; r++) for (let c = 0; c < m; c++) {
+    const pr = r - oy, pc = c - ox, i = pr * L.w + pc;
+    const inPic = pr >= 0 && pc >= 0 && pr < L.h && pc < L.w && L.sol[i];
+    s += '<rect x="' + (c + 0.07) + '" y="' + (r + 0.07) + '" width=".86" height=".86" rx=".12" fill="' + (inPic && !faint ? L.colors[i] : '#e4ecef') + '"/>';
+    if (inPic && faint) s += '<rect x="' + (c + 0.07) + '" y="' + (r + 0.07) + '" width=".86" height=".86" rx=".12" fill="' + L.colors[i] + '" opacity=".38"/>';
+  }
+  return s + '</svg>';
+}
+/* an arched window: a sunburst fanlight over the picture, on a sill */
+function archSVG(L, dim) {
+  let fan = '';
+  for (let k = 0; k < 7; k++) {
+    const a0 = Math.PI * k / 7, a1 = Math.PI * (k + 1) / 7;
+    const p = (a) => (50 - Math.cos(a) * 37).toFixed(2) + ' ' + (47 - Math.sin(a) * 33).toFixed(2);
+    fan += '<path d="M50 47L' + p(a0) + 'A37 33 0 0 1 ' + p(a1) + 'Z" fill="' + (dim ? (k % 2 ? '#c9d2d8' : '#dde4e8') : (k % 2 ? '#f5a548' : '#ffd76e')) + '"/>';
+  }
+  return '<svg viewBox="0 0 100 134" aria-hidden="true">' +
+    '<path d="M5 132V47A45 42 0 0 1 95 47V132Z" fill="#b8895a"/><path d="M5 132V47A45 42 0 0 1 95 47" fill="none" stroke="#d3a877" stroke-width="1.5"/>' +
+    '<path d="M11 47A39 36 0 0 1 89 47Z" fill="#2a2530"/>' + fan +
+    '<path d="M38 47A12 10 0 0 1 62 47Z" fill="' + (dim ? '#eef2f4' : '#fff2b8') + '" stroke="#2a2530" stroke-width="1.4"/>' +
+    paneSVG(L, dim).replace('<svg ', '<svg x="11" y="51" width="78" height="78" ') +
+    '<rect x="1" y="128" width="98" height="6" rx="2" fill="#8a6646"/></svg>';
+}
+
+GAME.total = Infinity;
+GAME.levelLabel = (i) => { const s = levelSize(i); return s[0] + '×' + s[1]; };
+GAME.levelTile = (i, done) => done
+  ? '<span class="thumb">' + paneSVG(pictureOf(i)) + '</span><small>' + (i + 1) + '</small>'
+  : '<b>' + (i + 1) + '</b><small>' + GAME.levelLabel(i) + '</small>';
+GAME.levelBadge = (lives) => heartsHTML(lives, MAX_LIVES);
+
+/* ---------- small icons for this game ---------- */
+const SC_ICON = {
+  glass: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5" fill="#f2ad3f" stroke="currentColor" stroke-width="2.2"/><path d="M8 10.5l3-3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/></svg>',
+  dot: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/></svg>',
+  block: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5" fill="#e7edf0"/><g fill="#f2ad3f"><rect x="3.5" y="3.5" width="5.3" height="5.3" rx="1"/><rect x="15.2" y="3.5" width="5.3" height="5.3" rx="1"/><rect x="9.35" y="15.2" width="5.3" height="5.3" rx="1"/><rect x="15.2" y="15.2" width="5.3" height="5.3" rx="1"/></g><path d="M9 3v18M15 3v18M3 9h18M3 15h18" stroke="#3d3745" stroke-width="1.2"/><rect x="3" y="3" width="18" height="18" rx="2.5" fill="none" stroke="#3d3745" stroke-width="1.6"/><text x="12" y="14.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#2a2236" font-family="Fredoka,system-ui">4</text></svg>',
+  fade: '<svg viewBox="0 0 24 24" aria-hidden="true"><text x="7" y="17.5" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor" opacity=".3" font-family="Fredoka,system-ui">2</text><text x="17" y="17.5" text-anchor="middle" font-size="14" font-weight="700" fill="#e5484d" font-family="Fredoka,system-ui">5</text></svg>',
+  logo: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 45V20A16 15 0 0 1 40 20V45Z" fill="#b8895a"/><path d="M11.5 20A12.5 11.5 0 0 1 36.5 20Z" fill="#2a2530"/><g stroke="#2a2530" stroke-width="1"><path d="M24 20L12.6 20A11.4 10.4 0 0 1 15.9 12.6Z" fill="#ffd76e"/><path d="M24 20L15.9 12.6A11.4 10.4 0 0 1 24 9.6Z" fill="#f5a548"/><path d="M24 20L24 9.6A11.4 10.4 0 0 1 32.1 12.6Z" fill="#ffd76e"/><path d="M24 20L32.1 12.6A11.4 10.4 0 0 1 35.4 20Z" fill="#f5a548"/></g><rect x="11.5" y="22" width="25" height="20.5" fill="#2a2530"/><rect x="12.5" y="23" width="11" height="9" rx="1" fill="#d8323f"/><rect x="24.5" y="23" width="11" height="9" rx="1" fill="#3268cf"/><rect x="12.5" y="32.5" width="11" height="9" rx="1" fill="#33a464"/><rect x="24.5" y="32.5" width="11" height="9" rx="1" fill="#f6c844"/><rect x="6" y="43" width="36" height="3.5" rx="1.5" fill="#8a6646"/></svg>'
+};
+
+/* ---------- game state ---------- */
+/* square states: 0 frosted (open), 1 glass, 2 marked clear, 3 cracked (a wrong fill; counts as clear) */
+let G = null;
+let mode = 'fill';
+let drag = null, hovering = false;
+let cursor = { r: 0, c: 0, show: false };
+let winTimer = 0, hintTimer = 0, saveTimer = 0, lastSound = 0;
+let cellEls = [], hlF = null, hlA = null, hlB = null, kcur = null;
+const board = $('#board'), gclip = $('#gclip'), winEl = $('#win'), fan = $('#fan');
+
+function loadLevel(idx) {
+  idx = Math.max(0, idx | 0);
+  startLevel(idx, getLevel(idx));
+  const nxt = idx + 1;
+  setTimeout(() => getLevel(nxt), 400);
+}
+
+function startLevel(idx, L) {
+  clearTimeout(winTimer); clearHint();
+  if (disarmRestart) disarmRestart();
+  $('#restartIcon').innerHTML = ICON.restart;
+  const N = L.w * L.h;
+  let total = 0;
+  for (let i = 0; i < N; i++) total += L.sol[i];
+  G = { idx, L, w: L.w, h: L.h, N, sol: L.sol, clue: L.clue, B: boardFor(L.w, L.h), total, cells: new Uint8Array(N), cst: new Uint8Array(N),
+        lives: MAX_LIVES, filled: 0, over: false, won: false, chimes: 0 };
+  /* pick up where you left off on this level */
+  if (save.cur && save.cur.i === idx && typeof save.cur.c === 'string' && save.cur.c.length === N) {
+    for (let i = 0; i < N; i++) {
+      let v = +save.cur.c[i] || 0;
+      if (v > 3 || (v === 1 && !L.sol[i]) || (v === 3 && L.sol[i])) v = 0;
+      G.cells[i] = v;
+      if (v === 1) G.filled++;
+    }
+    G.lives = Math.max(1, Math.min(MAX_LIVES, save.cur.l | 0));
+  }
+  save.level = idx; persist();
+  cursor = { r: 0, c: 0, show: false };
+  $('#lvTitle').textContent = 'Level ' + (idx + 1);
+  $('#lvSub').textContent = L.w + ' × ' + L.h + (L.kind === 'window' ? ' window' : ' pane');
+  winEl.classList.remove('lit'); gclip.classList.remove('lit');
+  buildBoard();
+  for (let k = 0; k < N; k++) if (G.clue[k] >= 0) G.cst[k] = clueState(k);
+  for (let i = 0; i < N; i++) renderCell(i);
+  renderLives(); renderCount();
+  closeModal();
+  zoom.reset();
+  zoom.tip();
+  if (G.filled === G.total) win();
+}
+
+/* ---------- layout: size the squares so the whole window fits, then zoom in from there ---------- */
+let cellPx = 20;
+const fanFor = (bw) => Math.round(Math.max(22, Math.min(52, bw * 0.15)));
+function layout() {
+  const wrap = $('#paneWrap');
+  const top = wrap.getBoundingClientRect().top + window.scrollY;
+  const padB = parseFloat(getComputedStyle($('.app')).paddingBottom) || 20;
+  /* the card and the sash take 34px on each axis, the board's outer lead 4px, the transom 5px */
+  const roomW = wrap.clientWidth - 38;
+  const roomH = Math.max(200, window.innerHeight - top - $('#foot').offsetHeight - 12 - padB) - 43;
+  const csW = Math.min(56, roomW / G.w);
+  const cs0 = Math.max(13, Math.floor(Math.min(csW, (roomH - fanFor(csW * G.w)) / G.h)));
+  const fanH = fanFor(cs0 * G.w);
+  /* zoom in until the squares are a comfortable fingertip wide */
+  zoom.max = Math.max(1, Math.min(4, 50 / cs0));
+  const cs = cs0 * zoom.z, cw = G.w * cs + 4, ch = G.h * cs + 4;
+  const fitW = G.w * cs0 + 4, fitH = G.h * cs0 + 4;
+  /* zoomed in, the window can grow to fill the space across and down to the footer */
+  const vw = Math.min(cw, Math.max(roomW + 4, fitW)), vh = Math.min(ch, Math.max(roomH + 4 - fanH, fitH));
+  board.style.setProperty('--cs', cs + 'px');
+  board.style.setProperty('--fs', Math.max(9, Math.min(26, Math.round(cs * 0.54))) + 'px');
+  winEl.style.setProperty('--fanh', fanH + 'px');
+  gclip.style.width = vw + 'px';
+  gclip.style.height = vh + 'px';
+  cellPx = cs;
+  const r = gclip.getBoundingClientRect();
+  return { cw, ch, vw, vh, left: r.left, top: r.top };
+}
+function panBoard() {
+  board.style.transform = zoom.x || zoom.y ? 'translate(' + -zoom.x + 'px,' + -zoom.y + 'px)' : '';
+}
+/* when zoomed in, slide a box of squares into view (the keyboard cursor, or a hint) */
+function showBox(b) { zoom.show(2 + b[1] * cellPx, 2 + b[0] * cellPx, b[3] * cellPx, b[2] * cellPx); }
+window.addEventListener('resize', () => { if (G) zoom.refresh(); });
+
+/* ---------- the board ---------- */
+function fanSVG() {
+  const n = 9, pt = (a, rx, ry) => (100 - Math.cos(a) * rx).toFixed(2) + ' ' + (40 - Math.sin(a) * ry).toFixed(2);
+  let wedges = '', lines = '';
+  for (let k = 0; k < n; k++) {
+    const a0 = Math.PI * k / n, a1 = Math.PI * (k + 1) / n;
+    wedges += '<path class="p' + (k % 2) + '" style="--d:' + (0.15 + Math.abs(k - 4) * 0.09).toFixed(2) + 's" d="M100 40L' + pt(a0, 100, 40) + 'A100 40 0 0 1 ' + pt(a1, 100, 40) + 'Z"/>';
+    if (k) lines += 'M' + pt(a0, 22, 13) + 'L' + pt(a0, 100, 40);
+  }
+  return wedges + '<path class="core" style="--d:0s" d="M78 40A22 13 0 0 1 122 40Z"/>' +
+    '<path class="lead" d="M0 40A100 40 0 0 1 200 40Z' + lines + 'M78 40A22 13 0 0 1 122 40"/>';
+}
+function buildBoard() {
+  const { w, h, N, L } = G;
+  board.style.setProperty('--w', w);
+  board.style.setProperty('--h', h);
+  board.classList.remove('lit');
+  let html = '';
+  for (let i = 0; i < N; i++) {
+    const cls = 'cell' + (G.clue[i] >= 0 ? ' n' : '') + (L.sol[i] ? ' gl' : ' cl'), pc = L.colors[i];
+    html += '<div class="' + cls + '" data-cls="' + cls + '"' +
+      (pc ? ' style="--pc:' + pc + ';--pc-hi:' + shade(pc, 0.38) + ';--pc-lo:' + shade(pc, -0.3) + '"' : '') + '><i></i>' +
+      (G.clue[i] >= 0 ? '<b>' + G.clue[i] + '</b>' : '') + '</div>';
+  }
+  board.innerHTML = html + '<div class="hl"></div><div class="hl"></div><div class="hl"></div><div class="kcur"></div>';
+  const kids = Array.from(board.children);
+  cellEls = kids.slice(0, N);
+  [hlF, hlA, hlB, kcur] = kids.slice(N);
+}
+function renderCell(i, pop) {
+  const el = cellEls[i], s = G.cells[i];
+  let cls = el.dataset.cls;
+  if (s === 1) cls += ' s'; else if (s === 2) cls += ' m'; else if (s === 3) cls += ' x';
+  if (pop) cls += ' pop';
+  if (G.over && G.sol[i] && s !== 1) cls += ' g';
+  if (G.cst[i] === 1) cls += ' done'; else if (G.cst[i] === 2) cls += ' err';
+  el.className = cls;
+}
+function renderLives(justLost) {
+  const el = $('#lives');
+  el.innerHTML = heartsHTML(G.lives, MAX_LIVES, justLost ? 'pop' : '');
+  el.setAttribute('aria-label', G.lives + ' lives left');
+}
+function renderCount() {
+  $('#count').innerHTML = '<small>Glass</small>' + G.filled + ' / ' + G.total;
+}
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!G || G.won || G.over) { if (save.cur) { delete save.cur; persist(); } return; }
+    save.cur = { i: G.idx, c: G.cells.join(''), l: G.lives };
+    persist();
+  }, 300);
+}
+
+/* a number's 3x3 block as [top row, left column, rows, columns], trimmed at the edges */
+function blockBox(k) {
+  const r = Math.floor(k / G.w), c = k % G.w, r0 = Math.max(0, r - 1), c0 = Math.max(0, c - 1);
+  return [r0, c0, Math.min(G.h - 1, r + 1) - r0 + 1, Math.min(G.w - 1, c + 1) - c0 + 1];
+}
+function placeBox(el, b, cls) {
+  if (!b) { el.className = 'hl'; return; }
+  el.style.left = 'calc(2px + ' + b[1] + ' * var(--cs))';
+  el.style.top = 'calc(2px + ' + b[0] + ' * var(--cs))';
+  el.style.width = 'calc(' + b[3] + ' * var(--cs))';
+  el.style.height = 'calc(' + b[2] + ' * var(--cs))';
+  el.className = 'hl on ' + cls;
+}
+/* outline the block of the number under a finger, the mouse or the cursor */
+function focusBlock(i) { if (G && hlF) placeBox(hlF, i >= 0 && G.clue[i] >= 0 && !G.won && !G.over ? blockBox(i) : null, 'soft'); }
+function placeCursor() {
+  if (!kcur) return;
+  kcur.className = 'kcur' + (cursor.show ? ' on' : '');
+  kcur.style.left = 'calc(2px + ' + cursor.c + ' * var(--cs))';
+  kcur.style.top = 'calc(2px + ' + cursor.r + ' * var(--cs))';
+}
+
+/* ---------- numbers: finished ones fade, impossible ones turn red ---------- */
+function clueState(k) {
+  const blk = G.B.blk;
+  let g = 0, u = 0;
+  for (let s = 0; s < 9; s++) {
+    const j = blk[k * 9 + s];
+    if (j < 0) continue;
+    if (G.cells[j] === 1) g++; else if (G.cells[j] === 0) u++;
+  }
+  if (g > G.clue[k] || g + u < G.clue[k]) return 2;
+  return u ? 0 : 1;
+}
+/* recheck the numbers around some changed squares; returns how many just finished */
+function refreshAround(list) {
+  const seen = new Set(), blk = G.B.blk;
+  let done = 0;
+  for (const i of list) for (let s = 0; s < 9; s++) {
+    const k = blk[i * 9 + s];
+    if (k < 0 || G.clue[k] < 0 || seen.has(k)) continue;
+    seen.add(k);
+    const st = clueState(k);
+    if (st === G.cst[k]) continue;
+    if (st === 1) done++;
+    G.cst[k] = st;
+    renderCell(k, cellEls[k].classList.contains('pop'));
+  }
+  return done;
+}
+/* once a number has all its glass, the rest of its block gets a dot */
+function autoDots(i, changed) {
+  const blk = G.B.blk;
+  for (let s = 0; s < 9; s++) {
+    const k = blk[i * 9 + s];
+    if (k < 0 || G.clue[k] < 0) continue;
+    let g = 0;
+    for (let t = 0; t < 9; t++) { const j = blk[k * 9 + t]; if (j >= 0 && G.cells[j] === 1) g++; }
+    if (g !== G.clue[k]) continue;
+    for (let t = 0; t < 9; t++) {
+      const j = blk[k * 9 + t];
+      if (j >= 0 && G.cells[j] === 0) { G.cells[j] = 2; renderCell(j); changed.push(j); }
+    }
+  }
+}
+
+/* ---------- input: tap, or drag to paint a trail of squares ---------- */
+function cellFromPoint(x, y, clamp) {
+  /* only squares in the visible window count; a drag past its edge stops at the edge */
+  const win = gclip.getBoundingClientRect();
+  if (!clamp && (x < win.left || x >= win.right || y < win.top || y >= win.bottom)) return null;
+  x = Math.max(win.left, Math.min(win.right - 1, x));
+  y = Math.max(win.top, Math.min(win.bottom - 1, y));
+  const rect = board.getBoundingClientRect();
+  const cs = (rect.width - 4) / G.w;
+  let c = Math.floor((x - rect.left - 2) / cs), r = Math.floor((y - rect.top - 2) / cs);
+  if (clamp) { c = Math.max(0, Math.min(G.w - 1, c)); r = Math.max(0, Math.min(G.h - 1, r)); }
+  else if (c < 0 || r < 0 || c >= G.w || r >= G.h) return null;
+  return { r, c };
+}
+/* apply the current stroke's action to one square; returns false to stop the stroke */
+function applyAt(r, c) {
+  const i = r * G.w + c, s = G.cells[i];
+  if (drag.act === 'fill') {
+    if (s !== 0) return true;
+    if (G.sol[i]) {
+      G.cells[i] = 1; G.filled++; drag.count++;
+      renderCell(i, true);
+      const changed = [i];
+      autoDots(i, changed);
+      const done = refreshAround(changed), now = performance.now();
+      if (done) { sfx('chime', G.chimes++); lastSound = now; }
+      else if (now - lastSound > 45) { sfx('fill', drag.count); lastSound = now; }
+      renderCount();
+      if (G.filled === G.total) { win(); return false; }
+      return true;
+    }
+    G.cells[i] = 3; G.lives--;
+    renderCell(i, true); refreshAround([i]); renderLives(true);
+    haptic(70); sfx('crack');
+    if (G.lives <= 0) lose();
+    return false;
+  }
+  if ((drag.act === 'mark' && s === 0) || (drag.act === 'unmark' && s === 2)) {
+    G.cells[i] = drag.act === 'mark' ? 2 : 0;
+    renderCell(i); drag.count++;
+    if (refreshAround([i])) sfx('chime', G.chimes++);
+    else if (drag.count === 1) sfx('mark');
+  }
+  return true;
+}
+
+function playDown(e) {
+  if (!G || G.over || G.won || drag) return;
+  if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 2) return;
+  const p = cellFromPoint(e.clientX, e.clientY);
+  if (!p) return;
+  if (e.preventDefault) e.preventDefault();
+  clearHint();
+  try { board.setPointerCapture(e.pointerId); } catch (err) {}
+  const m = e.button === 2 ? 'mark' : mode, s = G.cells[p.r * G.w + p.c];
+  drag = { id: e.pointerId, act: m === 'fill' ? 'fill' : s === 2 ? 'unmark' : 'mark', r: p.r, c: p.c, count: 0, live: true };
+  if (cursor.show) { cursor.show = false; placeCursor(); }
+  focusBlock(p.r * G.w + p.c);
+  drag.live = applyAt(p.r, p.c);
+  queueSave();
+}
+function playMove(e) {
+  if (!drag || e.pointerId !== drag.id || !drag.live) return;
+  const p = cellFromPoint(e.clientX, e.clientY, true);
+  const r0 = drag.r, c0 = drag.c, n = Math.max(Math.abs(p.r - r0), Math.abs(p.c - c0));
+  /* walk every square between the last one and this one, so a quick swipe never skips any */
+  for (let k = 1; k <= n && drag.live; k++) {
+    const r = Math.round(r0 + (p.r - r0) * k / n), c = Math.round(c0 + (p.c - c0) * k / n);
+    if (r === drag.r && c === drag.c) continue;
+    drag.r = r; drag.c = c;
+    focusBlock(r * G.w + c);
+    drag.live = applyAt(r, c);
+  }
+  queueSave();
+}
+function endDrag(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  drag = null;
+  if (!hovering) focusBlock(-1);
+  queueSave();
+}
+board.addEventListener('contextmenu', (e) => e.preventDefault());
+/* with a mouse, hovering over a number outlines its block */
+board.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'mouse' || drag || !G) return;
+  const p = cellFromPoint(e.clientX, e.clientY);
+  hovering = !!p;
+  focusBlock(p ? p.r * G.w + p.c : -1);
+});
+board.addEventListener('pointerleave', () => { hovering = false; if (!drag) focusBlock(-1); });
+
+const zoom = makeZoom({
+  el: $('#paneWrap'),
+  fit: $('#zoomFit'),
+  layout, pan: panBoard,
+  down: playDown, move: playMove, up: endDrag, cancel: endDrag,
+  /* zoomed in, a one-finger drag on the frame slides the board */
+  canPan: (e) => !cellFromPoint(e.clientX, e.clientY),
+  focus: () => {
+    if (!cursor.show) return null;
+    const r = board.getBoundingClientRect();
+    return { x: r.left + 2 + (cursor.c + 0.5) * cellPx, y: r.top + 2 + (cursor.r + 0.5) * cellPx };
+  },
+  tip: 'Tip: pinch the window to zoom in. Drag with two fingers, or along the frame, to look around.'
+});
+
+/* keyboard: arrows move a cursor, Enter/Space fills, X / . / M marks */
+board.addEventListener('keydown', (e) => {
+  if (!G || G.over || G.won) return;
+  const k = e.key;
+  const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+  if (moves[k]) {
+    e.preventDefault();
+    if (cursor.show) {
+      cursor.r = Math.max(0, Math.min(G.h - 1, cursor.r + moves[k][0]));
+      cursor.c = Math.max(0, Math.min(G.w - 1, cursor.c + moves[k][1]));
+    }
+    cursor.show = true;
+    placeCursor();
+    focusBlock(cursor.r * G.w + cursor.c);
+    showBox([cursor.r, cursor.c, 1, 1]);
+    return;
+  }
+  const i = cursor.r * G.w + cursor.c;
+  let act = null;
+  if (k === 'Enter' || k === ' ') act = 'fill';
+  else if (/^[xXmM.]$/.test(k)) act = G.cells[i] === 2 ? 'unmark' : 'mark';
+  if (!act) return;
+  e.preventDefault();
+  cursor.show = true;
+  placeCursor();
+  clearHint();
+  drag = { act, count: 0, live: true };
+  applyAt(cursor.r, cursor.c);
+  drag = null;
+  queueSave();
+});
+board.addEventListener('blur', () => { if (cursor.show && G) { cursor.show = false; placeCursor(); focusBlock(-1); } });
+
+function setMode(m) {
+  mode = m;
+  $('#modeFill').setAttribute('aria-pressed', String(m === 'fill'));
+  $('#modeMark').setAttribute('aria-pressed', String(m === 'mark'));
+}
+$('#modeFill').addEventListener('click', () => setMode('fill'));
+$('#modeMark').addEventListener('click', () => setMode('mark'));
+
+/* ---------- hint: find a number (or two) that settles a square, and say why ---------- */
+const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const more = (n) => WORDS[n] + ' more glass ' + (n === 1 ? 'square' : 'squares');
+function findHint() {
+  const { N, B, clue, sol } = G, blk = B.blk;
+  /* a dot on a square that is really glass: no logic can get round that, so point at it first */
+  const badDots = [];
+  for (let i = 0; i < N; i++) if (G.cells[i] === 2 && sol[i]) badDots.push(i);
+  if (badDots.length) return { badDot: badDots[Math.floor(Math.random() * badDots.length)] };
+  const known = (j) => (G.cells[j] === 1 ? 1 : G.cells[j] === 0 ? -1 : 0);
+  const nums = [];
+  for (let k = 0; k < N; k++) if (clue[k] >= 0) nums.push(k);
+  shuffleArr(nums, Math.random);
+  const look = (k) => {
+    let g = 0; const open = [];
+    for (let s = 0; s < 9; s++) { const j = blk[k * 9 + s]; if (j < 0) continue; const v = known(j); if (v < 0) open.push(j); else g += v; }
+    return { need: clue[k] - g, open };
+  };
+  /* one number on its own: glass first, then clear */
+  for (const want of [1, 0]) {
+    for (const k of nums) {
+      const { need, open } = look(k);
+      if (!open.length) continue;
+      if (want === 1 && need === open.length) return { kind: 'one', k, v: 1, cells: open };
+      if (want === 0 && need === 0) return { kind: 'one', k, v: 0, cells: open };
+    }
+  }
+  /* two overlapping numbers, compared through the squares only one of them covers */
+  let clearHintFound = null;
+  for (const a of nums) {
+    const A = look(a);
+    if (!A.open.length) continue;
+    for (let y = 0; y < B.nbN[a]; y++) {
+      const b = B.nb[a * 24 + y];
+      if (clue[b] < 0) continue;
+      const Bn = look(b);
+      if (!Bn.open.length) continue;
+      const inB = new Set(Bn.open), inA = new Set(A.open);
+      const shared = A.open.filter((j) => inB.has(j)), aOnly = A.open.filter((j) => !inB.has(j)), bOnly = Bn.open.filter((j) => !inA.has(j));
+      if (!shared.length) continue;
+      const lo = Math.max(0, A.need - aOnly.length, Bn.need - bOnly.length), hi = Math.min(shared.length, A.need, Bn.need);
+      for (const [x, yk, X, Y, only, yOnly] of [[a, b, A, Bn, aOnly, bOnly], [b, a, Bn, A, bOnly, aOnly]]) {
+        if (!only.length) continue;
+        const base = { kind: 'pair', x, y: yk, needX: X.need, needY: Y.need, xU: only.length, yU: yOnly.length, lo, hi, cells: only };
+        if (X.need - hi === only.length) return Object.assign(base, { v: 1 });
+        if (X.need === lo && !clearHintFound) clearHintFound = Object.assign(base, { v: 0 });
+      }
+    }
+  }
+  return clearHintFound;
+}
+function hintText(h) {
+  if (h.badDot != null) return 'This dot is on a square that has to be glass, so the numbers around it can\'t work out. Tap it in Mark mode to lift the dot.';
+  if (h.kind === 'one') {
+    const v = G.clue[h.k], size = POP9[G.B.full[h.k]], clear = size - v, them = h.cells.length === 1 ? 'square is' : 'squares are';
+    if (h.v) {
+      if (!clear) return size === 9 ? 'This 9 needs all nine squares of its block, itself included, to be glass.'
+        : 'This ' + v + ' is on the edge, so its block has only ' + WORDS[size] + ' squares, and every one of them is glass.';
+      return 'This ' + v + ' needs every square around it but ' + WORDS[clear] + ', and ' + (clear === 1 ? 'one is' : 'those ' + WORDS[clear] + ' are') +
+        ' already clear, so the glowing ' + them + ' glass.';
+    }
+    if (!v) return 'This 0 means no glass at all in its block, itself included, so the glowing ' + them + ' clear.';
+    return 'This ' + v + ' already has all its glass, so the rest of its block is clear.';
+  }
+  const vx = G.clue[h.x], vy = G.clue[h.y], them = h.xU === 1 ? 'square is' : 'squares are';
+  if (h.v) return 'The ringed ' + vy + ' needs just ' + more(h.needY) + ', so at most ' + WORDS[h.needY] + ' can be where it overlaps this ' + vx +
+    '. This ' + vx + ' still needs ' + WORDS[h.needX] + ', so its other ' + (h.xU === 1 ? 'open square is' : WORDS[h.xU] + ' open squares are') + ' glass.';
+  return 'The ringed ' + vy + ' needs ' + more(h.needY) + ' but has ' + (h.yU ? 'only ' + WORDS[h.yU] + ' open ' + (h.yU === 1 ? 'square' : 'squares') + ' of its own' : 'no open squares of its own') +
+    ', so at least ' + WORDS[h.lo] + ' must be where it overlaps this ' + vx + '. That\'s all this ' + vx + ' still needs, so its other open ' + them + ' clear.';
+}
+function clearHint() {
+  clearTimeout(hintTimer);
+  for (const el of board.querySelectorAll('.cell.hint,.cell.hint2,.cell.pulse')) el.classList.remove('hint', 'hint2', 'pulse');
+  if (hlA) { placeBox(hlA, null); placeBox(hlB, null); }
+}
+$('#btnHint').addEventListener('click', () => {
+  if (!G || G.over || G.won) return;
+  clearHint();
+  const h = findHint();
+  if (!h) { toast('Every square left is already worked out — fill in the glass!'); return; }
+  let box;
+  if (h.badDot != null) {
+    box = [Math.floor(h.badDot / G.w), h.badDot % G.w, 1, 1];
+    placeBox(hlA, box, 'hint');
+  } else {
+    const x = h.kind === 'one' ? h.k : h.x;
+    box = blockBox(x);
+    cellEls[x].classList.add('hint');
+    placeBox(hlA, box, 'hint');
+    for (const j of h.cells) cellEls[j].classList.add('pulse');
+    if (h.kind === 'pair') {
+      const b2 = blockBox(h.y);
+      cellEls[h.y].classList.add('hint2');
+      placeBox(hlB, b2, 'two');
+      const r0 = Math.min(box[0], b2[0]), c0 = Math.min(box[1], b2[1]);
+      box = [r0, c0, Math.max(box[0] + box[2], b2[0] + b2[2]) - r0, Math.max(box[1] + box[3], b2[1] + b2[3]) - c0];
+    }
+  }
+  showBox(box);
+  const msg = hintText(h);
+  toast(msg, Math.max(3200, msg.length * 55));
+  hintTimer = setTimeout(clearHint, Math.max(3600, msg.length * 55 + 400));
+  sfx('hint');
+});
+
+/* ---------- win and lose ---------- */
+const WIN_TITLES = ['Let there be light!', 'Pane-stakingly done!', 'A glass act!', 'Simply radiant!', 'Sun-sational!'];
+function win() {
+  if (G.won) return;
+  G.won = true;
+  clearHint(); focusBlock(-1);
+  cursor.show = false; placeCursor();
+  $('#restartLabel').textContent = 'Next';
+  $('#restartIcon').innerHTML = ICON.chevR;
+  save.done[G.idx] = Math.max(save.done[G.idx] || 0, G.lives);
+  delete save.cur;
+  persist();
+  /* sunlight sweeps in from the top-left corner, pane by pane */
+  const span = Math.max(1, G.w + G.h - 2);
+  for (let i = 0; i < G.N; i++) cellEls[i].style.setProperty('--d', ((Math.floor(i / G.w) + (i % G.w)) / span * 1.1).toFixed(2) + 's');
+  zoom.reset(true);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    board.classList.add('lit'); gclip.classList.add('lit'); winEl.classList.add('lit');
+  }));
+  sfx('shimmer');
+  winTimer = setTimeout(showWin, 2400);
+}
+function lose() {
+  G.over = true;
+  clearHint(); focusBlock(-1);
+  $('#restartLabel').textContent = 'Retry';
+  delete save.cur; persist();
+  for (let i = 0; i < G.N; i++) renderCell(i);
+  zoom.reset(true);
+  sfx('fail');
+  winTimer = setTimeout(showLose, 900);
+}
+function showWin() {
+  const L = G.L;
+  openModal(
+    '<div class="arch">' + archSVG(L) + '</div>' +
+    '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
+    '<p>Sunlight pours through your <b>' + L.name.toLowerCase() + '</b>.</p>' +
+    '<div class="badge-row">' + heartsHTML(G.lives, MAX_LIVES) + '</div>' +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="next">Next level</button>' +
+    '<button class="btn" data-act="levels">Your windows</button>' +
+    '<button class="btn" data-act="close">Admire it</button>' +
+    '</div>'
+  );
+}
+function showLose() {
+  openModal(
+    '<div class="arch dim">' + archSVG(G.L, true) + '</div>' +
+    '<h2>Too many cracks</h2>' +
+    '<p>The finished window shows faintly behind the frost. Have another go?</p>' +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="retry">Try again</button>' +
+    '<button class="btn" data-act="close">View the window</button>' +
+    '<button class="btn" data-act="levels">Choose level</button>' +
+    '</div>'
+  );
+}
+
+GAME.showHelp = () => {
+  openModal(
+    '<div class="logo">' + SC_ICON.logo + '<h2>Sun Catcher</h2></div>' +
+    '<p>Fill in the glass to reveal a stained-glass picture.</p>' +
+    '<ul class="rules">' +
+    '<li><span class="mini">' + SC_ICON.block + '</span><span>Each number counts the glass squares in the 3×3 block around it, itself included.</span></li>' +
+    '<li><span class="mini">' + SC_ICON.glass + '</span><span>Tap or drag to fill glass. A wrong square cracks and costs one of your 3 hearts.</span></li>' +
+    '<li><span class="mini">' + SC_ICON.dot + '</span><span>Switch to <b>Mark</b> to dot squares you know are clear.</span></li>' +
+    '<li><span class="mini">' + SC_ICON.fade + '</span><span>A number fades once its block is settled, and turns red if it can\'t be right.</span></li>' +
+    '<li><span class="mini">' + ICON.hint + '</span><span>Stuck? The bulb lights up a number you can use, and says why.</span></li>' +
+    '<li><span class="mini">' + ZOOM_ICON.in + '</span><span>Big window? Pinch to zoom in, and drag with two fingers to look around.</span></li>' +
+    '</ul>' +
+    '<p style="font-size:15px;margin-top:-4px">Every window has one answer, reachable by logic alone. Fill all its glass and the sun pours through; finished windows join your collection.</p>' +
+    '<div class="stack"><button class="btn primary" data-act="close">Let the light in</button></div>'
+  );
+};
+
+/* ---------- music: bells and harp, bright and airy ---------- */
+const HARP = {
+  D: 'D3 A3 D4 F#4 A4 F#4 D4 A3', Bm: 'B2 F#3 B3 D4 F#4 D4 B3 F#3', G: 'G2 D3 G3 B3 D4 B3 G3 D3',
+  A: 'A2 E3 A3 C#4 E4 C#4 A3 E3', Em: 'E3 B3 E4 G4 B4 G4 E4 B3', AD: 'A2 E3 A3 C#4 D3 A3 D4 F#4'
+};
+GAME.music = {
+  tempo: 92,
+  tracks: [
+    { inst: INST.bell, vol: 0.09, seq: track('F#5 A5 D6:1.5 C#6:.5 B5 A5 F#5:2 G5 B5 E6:1.5 D6:.5 C#6 A5 E5:2 ' +
+      'F#5 A5 D6 E6:.5 F#6:.5 G6 F#6:.5 E6:.5 D6:2 B5 D6 C#6:.5 B5:.5 A5 G5 E5 D5:2') },
+    { inst: INST.harp, vol: 0.055, seq: track(['D', 'Bm', 'G', 'A', 'D', 'G', 'Em', 'AD'].map((c) => HARP[c].split(' ').map((n) => n + ':.5').join(' ')).join(' ')) },
+    { inst: INST.bass, vol: 0.06, seq: track('D2:4 B1:4 G1:4 A1:4 D2:4 G1:4 E2:4 A1:2 D2:2') },
+    { inst: INST.bell, vol: 0.028, seq: track('r:3 A6 r:4 r:3 F#6 r:4 r:3 B6 r:4 r:3 E6 r:4') }
+  ]
+};
+GAME.sfx = {
+  /* a glassy tap that climbs as a drag goes on */
+  fill(t, k) {
+    const st = [0, 2, 4, 7, 9][(k || 0) % 5] + 12 * (Math.floor((k || 0) / 5) % 2);
+    const f = noteFreq('E6') * Math.pow(2, st / 12);
+    tone(t, f, { type: 'sine', a: 0.002, dur: 0.18, vol: 0.06 });
+    tone(t, f * 2.76, { type: 'sine', a: 0.001, dur: 0.06, vol: 0.022 });
+    noise(t, { f: 7500, q: 2.5, dur: 0.02, vol: 0.025 });
+  },
+  mark(t) { tone(t, 420, { type: 'triangle', to: 360, a: 0.002, dur: 0.05, vol: 0.06, lp: 1600 }); },
+  crack(t) {
+    noise(t, { f: 2600, q: 0.6, dur: 0.16, vol: 0.18, ftype: 'highpass' });
+    noise(t + 0.04, { f: 6000, q: 4, dur: 0.09, vol: 0.06 });
+    tone(t, 1500, { type: 'sawtooth', to: 240, glide: 0.18, a: 0.002, dur: 0.18, vol: 0.05, lp: 3200 });
+    SFX.warn(t + 0.08);
+  },
+  /* a number is settled: a soft bell, a step higher each time */
+  chime(t, k) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
+    const f = noteFreq('A5') * Math.pow(2, scale[(k || 0) % scale.length] / 12);
+    tone(t, f, { type: 'sine', a: 0.003, dur: 1.1, vol: 0.08 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.45, vol: 0.03 });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.18, vol: 0.012 });
+  },
+  hint(t) {
+    tone(t, 1568, { type: 'sine', a: 0.004, dur: 0.25, vol: 0.05 });
+    tone(t + 0.09, 2093, { type: 'sine', a: 0.004, dur: 0.35, vol: 0.045 });
+  },
+  /* light pours in: a rising arpeggio, a shimmer of glassy bells and a soft held chord */
+  shimmer(t) {
+    let x = t;
+    ['D5', 'F#5', 'A5', 'D6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.18, vol: 0.18 }); x += 0.09; });
+    [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 28].forEach((s, k) => {
+      const f = noteFreq('D6') * Math.pow(2, s / 12), at = x + 0.05 + k * 0.055;
+      tone(at, f, { type: 'sine', a: 0.003, dur: 0.7, vol: 0.04 });
+      tone(at, f * 2.76, { type: 'sine', a: 0.002, dur: 0.12, vol: 0.012 });
+    });
+    ['D4', 'A4', 'D5', 'F#5', 'A5'].forEach((n) => tone(x, noteFreq(n), { type: 'sine', a: 0.35, hold: 0.7, dur: 1.5, vol: 0.035 }));
+  }
+};
+
+/* ---------- boot ---------- */
+$('#icoGlass').innerHTML = SC_ICON.glass;
+$('#icoDot').innerHTML = SC_ICON.dot;
+$('#btnHint').innerHTML = ICON.hint;
+fan.innerHTML = fanSVG();
+const disarmRestart = armConfirm($('#btnRestart'), $('#restartLabel'), 'Restart',
+  () => G && !G.won && !G.over && (G.lives < MAX_LIVES || G.cells.some((v) => v === 1 || v === 2)),
+  () => {
+    if (G.won) { loadLevel(G.idx + 1); return; }
+    delete save.cur; persist(); startLevel(G.idx, G.L);
+  });
+shellBoot();
+loadLevel(save.level || 0);
+if (!save.seenHelp) { GAME.showHelp(); save.seenHelp = true; persist(); }
+</script>
+</body>
+</html>

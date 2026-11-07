@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Fence Line</title>
+<meta name="description" content="Build one fence around the field: a loop-logic puzzle where numbers count the fenced sides of each square.">
+<meta name="theme-color" content="#eff1dc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141a12" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fence Line">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eff1dc;
+  --card:#fbfcf1;
+  --card-edge:#dcdfbd;
+  --ink:#2f3524;
+  --muted:#6f7658;
+  --accent:#a95f2c;
+  --accent-ink:#ffffff;
+  --heart:#e5484d;
+  --star:#f0b23e;
+  --gridink:#2f3524;
+  --mini:#d9ecb8;
+  --shadow:0 10px 28px rgba(60,70,30,.15);
+  --scrim:rgba(28,34,16,.55);
+  --grass:#bcd98c;
+  --grass-edge:#a6c974;
+  --tuft:#93bb5f;
+  --guide:rgba(58,80,28,.17);
+  --lush:#79c04b;
+  --lush-hi:#93d465;
+  --rail:#b97a45;
+  --rail-dark:#6b4220;
+  --rail-hi:#e6b47e;
+  --post:#8a5a32;
+  --post-dark:#55341a;
+  --post-top:#c79868;
+  --stone:#f6f3e8;
+  --stone-edge:#c3b99f;
+  --stone-ink:#37321f;
+  --cross:#5f6545;
+  --wrong:#d63a2a;
+  --wrongbg:#ffd7cf;
+  --glow:#ffe27a;
+  --wool:#fffdf6;
+  --wool-edge:#cfc6b2;
+  --face:#3d3434;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141a12;
+    --card:#1f271c;
+    --card-edge:#34412e;
+    --ink:#eef2df;
+    --muted:#a6af90;
+    --accent:#e39a5f;
+    --accent-ink:#2a1405;
+    --heart:#ff6b86;
+    --star:#f6c35b;
+    --gridink:#0b0f09;
+    --mini:#3a5130;
+    --shadow:0 10px 28px rgba(0,0,0,.5);
+    --scrim:rgba(4,8,3,.7);
+    --grass:#34512d;
+    --grass-edge:#2a4325;
+    --tuft:#44683b;
+    --guide:rgba(225,240,195,.13);
+    --lush:#4f9339;
+    --lush-hi:#66ad4c;
+    --rail:#c78d57;
+    --rail-dark:#4a2c13;
+    --rail-hi:#f2c48f;
+    --post:#9b6a3e;
+    --post-dark:#3e250f;
+    --post-top:#d3a676;
+    --stone:#59604f;
+    --stone-edge:#2c3127;
+    --stone-ink:#f6f4e8;
+    --cross:#cdd4b4;
+    --wrong:#ff6150;
+    --wrongbg:#4d2420;
+    --glow:#ffd75e;
+    --wool:#eeeae0;
+    --wool-edge:#a39c8c;
+    --face:#2b2424;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141a12;--card:#1f271c;--card-edge:#34412e;--ink:#eef2df;--muted:#a6af90;--accent:#e39a5f;--accent-ink:#2a1405;
+  --heart:#ff6b86;--star:#f6c35b;--gridink:#0b0f09;--mini:#3a5130;--shadow:0 10px 28px rgba(0,0,0,.5);--scrim:rgba(4,8,3,.7);
+  --grass:#34512d;--grass-edge:#2a4325;--tuft:#44683b;--guide:rgba(225,240,195,.13);--lush:#4f9339;--lush-hi:#66ad4c;
+  --rail:#c78d57;--rail-dark:#4a2c13;--rail-hi:#f2c48f;--post:#9b6a3e;--post-dark:#3e250f;--post-top:#d3a676;
+  --stone:#59604f;--stone-edge:#2c3127;--stone-ink:#f6f4e8;--cross:#cdd4b4;--wrong:#ff6150;--wrongbg:#4d2420;--glow:#ffd75e;
+  --wool:#eeeae0;--wool-edge:#a39c8c;--face:#2b2424;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Fredoka',ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+a.btn{text-decoration:none;color:inherit}
+svg{display:block}
+
+.app{
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* header */
+.top{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:8px}
+.top-left{display:flex;gap:6px}
+.top-left .icon-btn{width:44px;height:44px;border-radius:14px}
+.top-left .icon-btn svg{width:21px;height:21px}
+.icon-btn{
+  width:48px;height:48px;border-radius:16px;flex:none;
+  background:var(--card);border:2px solid var(--card-edge);
+  display:grid;place-items:center;padding:0;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.title{text-align:center;line-height:1.05;min-width:0}
+.title h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.title p{margin:3px 0 0;font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* status row */
+.status{display:flex;align-items:center;justify-content:space-between;padding:0 4px;min-height:34px;gap:10px}
+.lives{display:flex;gap:6px}
+.lives svg{width:30px;height:30px;overflow:visible}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:1.6;stroke-linejoin:round;transition:fill .2s}
+.heart.lost path{fill:none;stroke:var(--muted);opacity:.55}
+.lives .heart.pop{animation:heartpop .5s ease}
+@keyframes heartpop{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+.count{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.count small{font-size:14px;color:var(--muted);font-weight:500;margin-right:6px}
+.star path{fill:var(--star);stroke:var(--star);stroke-width:1.4;stroke-linejoin:round}
+.star.off path{fill:none;stroke:var(--muted);opacity:.5}
+
+/* control hints */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how > div{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:16px;
+  padding:8px 10px;font-size:14px;font-weight:500;line-height:1.15;color:var(--muted);
+}
+.how b{color:var(--ink);font-weight:600;display:block}
+.how .mini{flex:none;width:34px;height:34px;border-radius:10px;background:var(--mini);display:grid;place-items:center;border:2px solid var(--gridink)}
+.how .mini svg{width:70%;height:70%}
+
+/* footer */
+.foot{display:flex;gap:10px;margin-top:auto}
+.btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 14px;border-radius:16px;
+  background:var(--card);border:2px solid var(--card-edge);
+  font-size:16px;font-weight:600;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn[hidden]{display:none}
+.foot .btn{font-size:15px;gap:6px;padding:0 10px}
+.foot .btn svg{width:18px;height:18px}
+.btn .tag{font-size:12px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.switch{width:38px;height:22px;border-radius:99px;background:var(--card-edge);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s,background .2s}
+.btn[aria-pressed="true"] .switch{background:var(--accent)}
+.btn[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-ink)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;place-items:center;padding:16px;z-index:10}
+.scrim.open{display:grid}
+.sheet{
+  width:100%;max-width:380px;max-height:86dvh;overflow:auto;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:26px;
+  padding:22px 20px 20px;box-shadow:var(--shadow);text-align:center;
+  animation:sheetin .28s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes sheetin{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:32px;font-weight:700;line-height:1.05}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:17px;line-height:1.3}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sheet .art{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center}
+.sheet .art svg{width:100%;height:100%;overflow:visible}
+.sheet .badge-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.sheet .badge-row svg{width:30px;height:30px}
+.sheet .logo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 4px}
+.sheet .logo svg{width:44px;height:44px}
+.rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:flex;flex-direction:column;gap:12px}
+.rules li{display:flex;gap:12px;align-items:center;font-size:17px;line-height:1.25}
+.rules .mini{flex:none;width:40px;height:40px;border-radius:12px;background:var(--mini);border:2.5px solid var(--gridink);display:grid;place-items:center}
+.rules .mini svg{width:74%;height:74%}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lv{
+  position:relative;padding:8px 0 7px;border-radius:14px;background:var(--bg);
+  border:2px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;min-height:66px;
+}
+.lv b{font-size:22px;font-weight:600}
+.lv small{font-size:12px;color:var(--muted);font-weight:500}
+.lv.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.lv.done{background:var(--card)}
+.lv .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;border:2px solid var(--card)}
+.lv .ok svg{width:11px;height:11px}
+.lv .mh{display:flex;gap:2px;margin-top:3px;height:10px}
+.lv .mh svg{width:10px;height:10px}
+.lv .mh .heart path,.lv .mh .star path{stroke:none}
+.lv .mh .lost path,.lv .mh .off path{fill:var(--card-edge);opacity:1}
+.pager{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.pager span{font-size:19px;font-weight:600}
+.pager .icon-btn{width:44px;height:44px;border-radius:14px}
+.spin{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--card-edge);border-top-color:var(--accent);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 74px);
+  transform:translate(-50%,16px);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:15px;font-weight:500;line-height:1.25;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;
+  width:max-content;max-width:min(88vw,420px);text-align:center;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:370px){
+  .top{gap:6px;grid-template-columns:auto 1fr 42px}
+  .top-left{gap:4px}
+  .top-left .icon-btn{width:40px;height:40px;border-radius:13px}
+  .top > .icon-btn{width:42px;height:42px;border-radius:14px}
+  .title h1{font-size:23px}
+  .foot{gap:8px}
+}
+@media (max-width:340px){
+  .title h1{font-size:19px}
+  .title p{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+
+/* ---------- the field: grass, posts, rails and numbered stones ---------- */
+.stars{display:flex;gap:6px}
+.stars svg{width:30px;height:30px;overflow:visible}
+.stars .star.pop{animation:heartpop .5s ease}
+.count{text-align:right;line-height:1.05}
+.count .sub{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
+
+.field-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;touch-action:none}
+.field-card{position:relative;background:var(--card);border-radius:24px;padding:10px;box-shadow:0 0 0 2px var(--card-edge),var(--shadow);touch-action:none;display:grid;place-items:center;max-width:100%}
+.field-card.zoomed #field{overflow:hidden}
+.field-card .zoom-fit{top:-14px;right:-14px}
+#field{display:block;touch-action:none;overflow:visible;outline:none;border-radius:14px}
+#field:focus-visible{box-shadow:0 0 0 3px var(--accent)}
+.grass{fill:var(--grass);stroke:var(--grass-edge);stroke-width:.06}
+.tufts{fill:var(--tuft);stroke:none}
+.guide{fill:none;stroke:var(--guide);stroke-width:.022;transition:opacity .6s}
+
+/* a numbered stone; it fades once its count is met, and blushes red when it can't be */
+.stone-sh{fill:rgba(40,50,20,.16)}
+.stone{fill:var(--stone);stroke:var(--stone-edge);stroke-width:.035;transition:fill .2s}
+.num{font-family:'Fredoka',ui-rounded,system-ui,sans-serif;font-size:.42px;font-weight:600;fill:var(--stone-ink);text-anchor:middle;transition:fill .2s}
+.clue .stone-in{transition:opacity .3s;transform-box:fill-box;transform-origin:center}
+.clue.done .stone-in{opacity:.38}
+.clue.over .stone{fill:var(--wrong);stroke:var(--wrong)}
+.clue.over .num{fill:#fff}
+.clue.over .stone-in{opacity:1;animation:wobble .4s ease}
+@keyframes wobble{0%,100%{transform:none}30%{transform:rotate(-9deg)}65%{transform:rotate(6deg)}}
+.clue.hint .stone-in{opacity:1;animation:stonepulse 1s ease-in-out 3}
+@keyframes stonepulse{50%{transform:scale(1.22)}}
+
+/* rails: a warm plank with a dark seam (so it reads as two rails) and a little grain */
+.rail line{fill:none;stroke-linecap:round}
+.rail .r0{stroke:var(--rail-dark);stroke-width:.2}
+.rail .r1{stroke:var(--rail);stroke-width:.14}
+.rail .r2{stroke:var(--rail-dark);stroke-width:.026;opacity:.5;stroke-linecap:butt}
+.rail .r3{stroke:var(--rail-hi);stroke-width:.022;stroke-dasharray:.2 .07 .12 .09;opacity:.85;stroke-linecap:butt}
+.rail.warn{--rail:var(--wrong);--rail-dark:#7a1d14;--rail-hi:#ffb3a6}
+.rail-in{transform-box:fill-box;transform-origin:center}
+.rail-in.pop{animation:railH .24s cubic-bezier(.2,1.5,.4,1) both}
+.rail-in.v.pop{animation-name:railV}
+@keyframes railH{from{transform:scale(.15,1.4)}}
+@keyframes railV{from{transform:scale(1.4,.15)}}
+.xm{fill:none;stroke:var(--cross);stroke-width:.04;stroke-linecap:round;opacity:.7;transition:opacity .4s}
+.xm.pop{animation:xin .2s ease-out both;transform-box:fill-box;transform-origin:center}
+@keyframes xin{from{transform:scale(.2);opacity:0}}
+
+/* posts: small pegs until a rail meets them, red when three or more rails crowd one */
+.post .pb{fill:var(--post);stroke:var(--post-dark);stroke-width:.03;transition:fill .2s}
+.post .pt{fill:var(--post-top);opacity:.75}
+.post.bad .pb{fill:var(--wrong);stroke:#7a1d14}
+.ring{fill:none;stroke:var(--wrong);stroke-width:.05;transform-box:fill-box;transform-origin:center;animation:ring 1s ease-out infinite}
+@keyframes ring{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(2.6)}}
+.cursor{fill:none;stroke:var(--accent);stroke-width:.06;stroke-dasharray:.12 .08}
+.hl{fill:none;stroke:var(--glow);stroke-width:.4;stroke-linecap:round;animation:hlpulse 1s ease-in-out 3;opacity:.0}
+@keyframes hlpulse{0%,100%{opacity:.15}50%{opacity:.95}}
+.hl-post{fill:var(--glow);animation:hlpulse 1s ease-in-out 3;opacity:0}
+
+/* finished: the paddock turns lush, flowers open and the flock hops in */
+.lush{fill:var(--lush);transform-box:fill-box;transform-origin:center;animation:lushin .5s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes lushin{from{transform:scale(.3);opacity:0;fill:var(--lush-hi)}}
+.flower{transform-box:fill-box;transform-origin:center;animation:flowerin .4s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes flowerin{from{transform:scale(0) rotate(-40deg)}}
+.field-card.won .xm,.field-card.won .guide{opacity:0}
+.field-card.won .clue .stone-in{opacity:.3}
+.field-card.won .post:not(.on){opacity:0;transition:opacity .5s}
+.sheep .head{transform-box:fill-box;transform-origin:30% 80%}
+.sheep.graze .head{animation:graze 2.6s ease-in-out infinite}
+@keyframes graze{0%,55%,100%{transform:none}65%,90%{transform:rotate(28deg) translate(0,.03px)}}
+
+/* footer */
+.btn .lbl-s{display:none}
+@media (max-width:370px){.btn .lbl-l{display:none}.btn .lbl-s{display:inline}}
+
+/* picker thumbnails and the win card: the finished paddock */
+.lv .thumb{width:36px;height:30px;display:grid;place-items:center;margin-bottom:2px}
+.lv .thumb svg{max-width:100%;max-height:100%}
+.lv.done small{font-weight:600;color:var(--ink)}
+.pd-grass{fill:var(--grass)}
+.pd-lush{fill:var(--lush)}
+.pd-fence{fill:none;stroke:var(--rail);stroke-linecap:round;stroke-linejoin:round}
+.pd-edge{fill:none;stroke:var(--rail-dark);stroke-linecap:round;stroke-linejoin:round}
+.sheet .paddock{width:176px;height:176px;margin:4px auto 16px;border-radius:26px;background:var(--grass);box-shadow:0 0 0 6px var(--rail),0 0 0 9px var(--card-edge),var(--shadow);display:grid;place-items:center;padding:10px}
+.sheet .paddock svg{width:100%;height:100%;overflow:visible}
+.rules .mini{color:var(--ink)}
+.rules .wood{stroke:var(--rail);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.rules .wood-d{stroke:var(--rail-dark);stroke-width:4.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
+
+/* zoom-out button, shown while zoomed in */
+.zoom-fit{
+  position:absolute;z-index:4;width:40px;height:40px;border-radius:50%;padding:0;display:grid;place-items:center;
+  background:var(--card);border:2px solid var(--card-edge);box-shadow:var(--shadow);color:var(--ink);
+  animation:zoomfit .2s ease;touch-action:manipulation;
+}
+.zoom-fit[hidden]{display:none}
+.zoom-fit svg{width:21px;height:21px}
+.zoom-fit:active{transform:scale(.92)}
+@keyframes zoomfit{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-left">
+      <button class="icon-btn" id="btnLevels" aria-label="Choose level">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMusic" aria-label="Turn music on" aria-pressed="false"><span id="musicIcon"></span></button>
+      <button class="icon-btn" id="btnSfx" aria-label="Turn sound effects on" aria-pressed="false"><span id="sfxIcon"></span></button>
+    </div>
+    <div class="title"><h1 id="lvTitle">Level 1</h1><p id="lvSub">&nbsp;</p></div>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 16.9v.1"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-label="Stars and progress">
+    <div class="stars" id="stars" aria-live="polite"></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <div class="field-wrap" id="fieldWrap">
+    <div class="field-card" id="fieldCard">
+      <svg id="field" tabindex="0" role="application" aria-label="Field of posts. Tap a side to fence it, again to cross it out, again to clear. Drag along the lines to lay fence. Keyboard: arrows move between posts, Shift and an arrow lays or lifts a rail, hold X and press an arrow to cross a side out.">
+        <g id="groundG"></g><g id="lushG"></g><g id="hintG"></g><g id="clueG"></g><g id="crossG"></g><g id="railG"></g><g id="postG"></g><g id="fxG"></g>
+      </svg>
+      <button class="zoom-fit" id="zoomFit" data-zoom-skip hidden aria-label="Zoom out to see the whole field"></button>
+    </div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <button class="btn" id="btnRestart"><span class="ic" id="restartIcon"></span><span id="restartLabel">Restart</span></button>
+    <button class="btn" id="btnUndo"><span class="ic" id="undoIcon"></span><span>Undo</span></button>
+    <button class="btn" id="btnHint"><span class="ic" id="hintIcon"></span><span class="lbl-l">Hint</span><span class="lbl-s">Hint</span></button>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+const GAME = { id: 'fence-line', seed: 9533 };
+/* =====================================================================
+   Shared shell: saves, seeded randomness, icons, live-synthesised audio,
+   modals, toasts and the level picker. The game code below plugs into it
+   through the GAME object and a loadLevel(idx) function.
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const scrim = $('#scrim');
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/* ---------- saved progress (private to this browser) ---------- */
+const STORE_KEY = GAME.id + '-v1';
+let save = Object.assign({ done: {}, seenHelp: false, level: 0 }, GAME.saveDefaults || {});
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
+} catch (e) {}
+if (!save.done || typeof save.done !== 'object') save.done = {};
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- seeded randomness, so level N is the same puzzle on every device ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleArr(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function seedFor(idx, salt) {
+  let h = (0x9e3779b9 ^ (GAME.seed || 0)) >>> 0;
+  h = Math.imul(h ^ (idx + 1), 0x85ebca6b); h ^= h >>> 13;
+  h = Math.imul(h ^ ((salt || 0) + 0x27d4eb2f), 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+}
+const pickOne = (arr, rnd) => arr[Math.floor(rnd() * arr.length)];
+
+/* ---------- icons ---------- */
+const ICON = {
+  tick: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.4 2.4 4.6-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C12 20.6 3.2 15.4 3.2 9.2C3.2 6.4 5.3 4.4 7.9 4.4C9.7 4.4 11.2 5.4 12 6.8C12.8 5.4 14.3 4.4 16.1 4.4C18.7 4.4 20.8 6.4 20.8 9.2C20.8 15.4 12 20.6 12 20.6Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  hint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21.2h4"/><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.6.5.9 1.2.9 2V16.6h6v-.3c0-.8.3-1.5.9-2A6.4 6.4 0 0 0 12 2.8z"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  musicOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>',
+  musicOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke-width="2.4"/></svg>',
+  sfxOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/></svg>',
+  sfxOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none" opacity=".45"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0" opacity=".45"/><path d="M5.5 5.5l13 13" stroke-width="2.6"/></svg>'
+};
+function heartsHTML(left, max, cls) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<span class="heart' + (k >= left ? ' lost' : '') + (cls && k === left ? ' ' + cls : '') + '">' + ICON.heart + '</span>';
+  return h;
+}
+function starsHTML(n, max) {
+  let h = '';
+  for (let k = 0; k < (max || 3); k++) h += '<span class="star' + (k >= n ? ' off' : '') + '">' + ICON.star + '</span>';
+  return h;
+}
+
+/* =====================================================================
+   Audio. There are no sound files: every note is built from oscillators,
+   filters and envelopes. Music and sound effects are separate toggles,
+   both off by default and remembered between visits.
+   ===================================================================== */
+const MUSIC_KEY = GAME.id + '-music-v1', SFX_KEY = GAME.id + '-sfx-v1';
+let musicOn = false, sfxOn = false;
+try { musicOn = localStorage.getItem(MUSIC_KEY) === '1'; sfxOn = localStorage.getItem(SFX_KEY) === '1'; } catch (e) {}
+let actx = null, master = null, musicBus = null, sfxBus = null, noiseBuf = null;
+let schedTimer = null, ambientStop = null;
+
+function ensureAudio() {
+  if (actx) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  try { actx = new AC(); } catch (e) { return false; }
+  master = actx.createGain(); master.gain.value = 0.42; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = 0.85; musicBus.connect(master);
+  sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+  return true;
+}
+const NOTE_FREQ = {};
+function noteFreq(note) {
+  if (!note) return 0;
+  if (typeof note === 'number') return note;
+  if (NOTE_FREQ[note]) return NOTE_FREQ[note];
+  const m = /^([A-G])(#|b)?(\d)$/.exec(note);
+  if (!m) return 0;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (NOTE_FREQ[note] = 440 * Math.pow(2, (base + (parseInt(m[3], 10) - 4) * 12 - 9) / 12));
+}
+/* one synth voice: oscillator -> (optional lowpass) -> envelope -> bus */
+function tone(t, f, o) {
+  o = o || {};
+  if (!f) return;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  const a = o.a || 0.006, hold = o.hold || 0, dur = o.dur || 0.25, vol = o.vol == null ? 0.15 : o.vol;
+  const end = t + a + hold + dur;
+  osc.type = o.type || 'triangle';
+  osc.frequency.setValueAtTime(f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + (o.glide || a + hold + dur));
+  if (o.vib) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.vibRate || 5.5; lg.gain.value = f * o.vib;
+    l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end + 0.05);
+  }
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  if (hold) g.gain.setValueAtTime(vol, t + a + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  let node = osc;
+  if (o.lp) {
+    const fl = actx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp;
+    if (o.q) fl.Q.value = o.q;
+    osc.connect(fl); node = fl;
+  }
+  node.connect(g); g.connect(o.bus || sfxBus);
+  osc.start(t); osc.stop(end + 0.05);
+}
+/* a burst of filtered noise: shakers, splashes, rustles */
+function noise(t, o) {
+  o = o || {};
+  if (!noiseBuf) {
+    const len = actx.sampleRate;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = actx.createBufferSource(); src.buffer = noiseBuf;
+  const fl = actx.createBiquadFilter(); fl.type = o.ftype || 'bandpass';
+  const dur = o.dur || 0.08, vol = o.vol || 0.1, a = o.a || 0.003;
+  fl.frequency.setValueAtTime(o.f || 2000, t);
+  if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + a + dur);
+  fl.Q.value = o.q || 1;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dur);
+  src.connect(fl); fl.connect(g); g.connect(o.bus || sfxBus);
+  src.start(t, Math.random() * 0.5); src.stop(t + a + dur + 0.05);
+}
+
+/* instruments for the background music */
+const INST = {
+  pluck: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.008, dur: Math.min(d * 0.9, 0.35), vol: v || 0.16, bus: musicBus }),
+  bell: (t, f, d, v) => {
+    v = v || 0.11;
+    tone(t, f, { type: 'sine', a: 0.004, dur: Math.min(d * 1.8, 1.2), vol: v, bus: musicBus });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: Math.min(d, 0.45), vol: v * 0.32, bus: musicBus });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.12, vol: v * 0.12, bus: musicBus });
+  },
+  marimba: (t, f, d, v) => {
+    v = v || 0.17;
+    tone(t, f, { type: 'sine', a: 0.003, dur: Math.min(d * 0.85, 0.5), vol: v, bus: musicBus });
+    tone(t, f * 3.98, { type: 'sine', a: 0.002, dur: 0.07, vol: v * 0.22, bus: musicBus });
+  },
+  flute: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.06, hold: d * 0.45, dur: d * 0.55 + 0.08, vol: v || 0.1, vib: 0.006, vibRate: 5, bus: musicBus }),
+  reed: (t, f, d, v) => tone(t, f, { type: 'square', a: 0.02, hold: d * 0.35, dur: d * 0.5, vol: v || 0.045, lp: 1500, bus: musicBus }),
+  harp: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.004, dur: Math.min(d * 2.5, 1.3), vol: v || 0.08, lp: 2400, bus: musicBus }),
+  bass: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.02, dur: d, vol: v || 0.13, bus: musicBus }),
+  wbass: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.01, dur: Math.min(d * 0.9, 0.55), vol: v || 0.15, lp: 650, bus: musicBus }),
+  hat: (t, v) => noise(t, { f: 8000, q: 0.7, dur: 0.03, vol: v || 0.025, ftype: 'highpass', bus: musicBus }),
+  shaker: (t, v) => noise(t, { f: 5500, q: 1.2, dur: 0.06, vol: v || 0.03, bus: musicBus }),
+  knock: (t, v) => tone(t, 190, { type: 'sine', to: 120, a: 0.002, dur: 0.08, vol: v || 0.08, bus: musicBus })
+};
+/* "E5:.5 - G5:1" -> [{n:'E5', d:.5}, {n:null, d:1}, ...] ("-" or "r" is a rest, default length 1 beat) */
+function track(str) {
+  return str.trim().split(/\s+/).map((tok) => {
+    const p = tok.split(':');
+    return { n: p[0] === '-' || p[0] === 'r' ? null : p[0], d: p[1] ? parseFloat(p[1]) : 1 };
+  });
+}
+function scheduler() {
+  const M = GAME.music, beat = 60 / M.tempo, until = actx.currentTime + 0.2;
+  for (const tr of M.tracks) {
+    let guard = 0;
+    while (tr.next < until && guard++ < 64) {
+      const s = tr.seq[tr.i];
+      const dur = s.d * beat;
+      if (s.n) {
+        if (tr.perc) tr.inst(tr.next, tr.vol, s.n);
+        else tr.inst(tr.next, noteFreq(s.n), dur * (tr.len || 1), tr.vol);
+      }
+      tr.next += dur;
+      tr.i = (tr.i + 1) % tr.seq.length;
+    }
+  }
+}
+function setMusic(on, fromUser) {
+  musicOn = on;
+  try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnMusic');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  $('#musicIcon').innerHTML = on ? ICON.musicOn : ICON.musicOff;
+  if (on && fromUser && ensureAudio() && actx.state === 'suspended') actx.resume();
+  clearInterval(schedTimer); schedTimer = null;
+  if (ambientStop) { try { ambientStop(); } catch (e) {} ambientStop = null; }
+  if (on && actx) {
+    const t0 = actx.currentTime + 0.06;
+    for (const tr of GAME.music.tracks) { tr.next = t0; tr.i = 0; }
+    if (GAME.music.ambient) ambientStop = GAME.music.ambient();
+    schedTimer = setInterval(scheduler, 25);
+  }
+}
+function setSfx(on) {
+  sfxOn = on;
+  try { localStorage.setItem(SFX_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnSfx');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn sound effects off' : 'Turn sound effects on');
+  $('#sfxIcon').innerHTML = on ? ICON.sfxOn : ICON.sfxOff;
+  if (on && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+/* play a named sound effect from GAME.sfx (or the shared ones below) if effects are on */
+function sfx(name, a, b) {
+  if (!sfxOn || !ensureAudio()) return;
+  if (actx.state === 'suspended') actx.resume();
+  const fn = (GAME.sfx && GAME.sfx[name]) || SFX[name];
+  if (fn) fn(actx.currentTime + 0.012, a, b);
+}
+/* sound effects every game can use */
+const SFX = {
+  warn(t) {
+    tone(t, 330, { type: 'square', a: 0.004, dur: 0.07, vol: 0.06, lp: 1800 });
+    tone(t + 0.09, 247, { type: 'square', a: 0.004, dur: 0.12, vol: 0.06, lp: 1500 });
+  },
+  fail(t) {
+    [['G4', 0.22], ['F#4', 0.22], ['F4', 0.22], ['E4', 0.6]].forEach(([n, d], i) => {
+      const f = noteFreq(n);
+      tone(t, f * 1.03, { type: 'sawtooth', to: f * 0.97, a: 0.02, dur: d, vol: i === 3 ? 0.17 : 0.14, lp: 1100 });
+      t += d;
+    });
+  },
+  win(t) {
+    let x = t;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.16, vol: 0.22 }); x += 0.085; });
+    const c = x + 0.02;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.03, dur: 0.7, vol: 0.1, lp: 3000 }));
+    tone(c, noteFreq('C7'), { type: 'sine', to: noteFreq('E7'), glide: 0.5, a: 0.05, dur: 0.55, vol: 0.07 });
+  },
+  tap(t) { tone(t, 880, { type: 'sine', to: 660, a: 0.002, dur: 0.05, vol: 0.06 }); },
+  bonk(t) { tone(t, 180, { type: 'triangle', to: 110, a: 0.003, dur: 0.14, vol: 0.14 }); },
+  chime(t, step) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const f = noteFreq('C5') * Math.pow(2, scale[Math.min(scale.length - 1, Math.max(0, step || 0))] / 12);
+    tone(t, f, { type: 'sine', a: 0.004, dur: 0.5, vol: 0.13 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.2, vol: 0.04 });
+  }
+};
+/* browsers only allow audio after a tap, so the first tap resumes music left on last visit */
+function primeAudioOnce() {
+  document.removeEventListener('pointerdown', primeAudioOnce, true);
+  if (musicOn) setMusic(true, true);
+  else if (sfxOn && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+document.addEventListener('pointerdown', primeAudioOnce, true);
+document.addEventListener('visibilitychange', () => {
+  if (!actx) return;
+  if (document.hidden) actx.suspend();
+  else if (musicOn || sfxOn) actx.resume();
+});
+
+/* ---------- little helpers ---------- */
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+let toastTimer = 0, toastEl = null;
+function toast(msg, ms) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2200);
+}
+/* a button that asks "Confirm?" before throwing away progress */
+function armConfirm(btn, labelEl, label, isBusy, go) {
+  let armed = 0;
+  btn.addEventListener('click', () => {
+    if (isBusy() && !armed) {
+      labelEl.textContent = 'Confirm?';
+      armed = setTimeout(() => { labelEl.textContent = label; armed = 0; }, 2200);
+      return;
+    }
+    clearTimeout(armed); armed = 0; labelEl.textContent = label;
+    go();
+  });
+  return () => { clearTimeout(armed); armed = 0; labelEl.textContent = label; };
+}
+
+/* ---------- modal plumbing ---------- */
+let modalLocked = false;
+function openModal(html, locked) {
+  modalLocked = !!locked;
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true">' + html + '</div>';
+  scrim.classList.add('open');
+}
+function closeModal() { modalLocked = false; scrim.classList.remove('open'); scrim.innerHTML = ''; }
+function modalOpen() { return scrim.classList.contains('open'); }
+scrim.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) { if (e.target === scrim && !modalLocked) closeModal(); return; }
+  const act = a.dataset.act;
+  if (act === 'close') closeModal();
+  else if (act === 'levels') showLevels();
+  else if (act === 'page') showLevels(+a.dataset.page);
+  else if (act === 'pick') loadLevel(+a.dataset.level);
+  else if (act === 'next') loadLevel(curLevel() + 1);
+  else if (act === 'retry') loadLevel(curLevel());
+  else if (GAME.actions && GAME.actions[act]) GAME.actions[act](a);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOpen() && !modalLocked) closeModal(); });
+
+/* opened from the Puzzle Parlour launcher? then offer a way back to it */
+let FROM_PARLOUR = false;
+try {
+  if (location.hash === '#parlour') sessionStorage.setItem('parlour', '1');
+  FROM_PARLOUR = location.hash === '#parlour' || sessionStorage.getItem('parlour') === '1';
+} catch (e) { FROM_PARLOUR = location.hash === '#parlour'; }
+
+/* ---------- level picker: pages of 20, with each finished level's best result ---------- */
+const PAGE = 20;
+function curLevel() { return (typeof G !== 'undefined' && G) ? G.idx : (save.level || 0); }
+function showLevels(page) {
+  const cur = curLevel();
+  const total = GAME.total || Infinity;
+  if (typeof page !== 'number') page = Math.floor(cur / PAGE);
+  const first = page * PAGE, last = Math.min(first + PAGE, total);
+  let h = '<h2>Levels</h2><div class="pager">' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Earlier levels">' + ICON.chevL + '</button>' +
+    '<span>' + (first + 1) + '–' + last + '</span>' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page + 1) + '"' + (last >= total ? ' disabled' : '') + ' aria-label="Later levels">' + ICON.chevR + '</button>' +
+    '</div><div class="levels">';
+  for (let i = first; i < last; i++) {
+    const done = hasOwn(save.done, i);
+    const label = GAME.levelLabel(i);
+    h += '<button class="lv' + (done ? ' done' : '') + (i === cur ? ' cur' : '') + '" data-act="pick" data-level="' + i +
+      '" aria-label="Level ' + (i + 1) + ', ' + label + (done ? ', completed' : '') + '">' +
+      (done ? '<span class="ok">' + ICON.tick + '</span>' : '') +
+      (GAME.levelTile ? GAME.levelTile(i, done) : '<b>' + (i + 1) + '</b><small>' + label + '</small>') +
+      '<span class="mh">' + (done ? GAME.levelBadge(save.done[i], i) : '') + '</span>' +
+      '</button>';
+  }
+  h += '</div><div class="stack"><button class="btn" data-act="close">Close</button>' +
+    (FROM_PARLOUR ? '<a class="btn" href="../index.html#parlour">All Puzzle Parlour games</a>' : '') + '</div>';
+  openModal(h);
+}
+
+/* installed on a home screen, keep working offline (only on a real web host, never inside a frame) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.self === window.top) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- header buttons ---------- */
+function shellBoot() {
+  $('#btnLevels').addEventListener('click', () => showLevels());
+  $('#btnMusic').addEventListener('click', () => setMusic(!musicOn, true));
+  $('#btnSfx').addEventListener('click', () => setSfx(!sfxOn));
+  $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
+  setMusic(musicOn, false);
+  setSfx(sfxOn);
+}
+
+/* =====================================================================
+   Zoom and pan, for when the board gets big. Pinch with two fingers to
+   zoom (moving them drags the board around), or use the mouse wheel, a
+   trackpad pinch or the + − 0 keys. One finger still plays: a touch waits
+   a moment, or until it moves or lifts, before the game sees it, so the
+   first finger of a pinch never plays a move by accident. The game gives:
+     el                     the area that takes touches
+     layout()               lay the board out at zoom Z.z (setting Z.max on
+                            the way) and return {cw, ch, vw, vh, left, top}:
+                            the board's size at that zoom, the size of the
+                            window onto it, and where that window is on screen
+     pan()                  slide the board so (Z.x, Z.y) sits at the window's
+                            top-left corner
+     down/move/up/cancel(e) one-finger play
+     canPan(e)              optional: when zoomed in, should a one-finger drag
+                            from here slide the board instead of playing?
+     focus()                optional: the screen point the keys zoom around
+     fit, tip               the zoom-out button, and a first-time tip
+   ===================================================================== */
+const ZOOM_ICON = {
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8"/></svg>',
+  in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8M10.5 7.6v5.8"/></svg>'
+};
+function makeZoom(o) {
+  const Z = { z: 1, x: 0, y: 0, max: 1, g: null };
+  const pts = new Map();          /* touches on the board: pointerId -> {x, y} */
+  let mode = '';                  /* '' | 'wait' | 'play' | 'pan' | 'pinch' */
+  let one = null, pinch = null, raf = 0, tween = 0, gs = 0;
+  const WAIT = 220;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* only boards that gain at least a quarter from zooming can zoom */
+  const zoomable = () => Z.max >= 1.25;
+  const top = () => (zoomable() ? Z.max : 1);
+  const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (o.fit) {
+    o.fit.innerHTML = ZOOM_ICON.out;
+    o.fit.addEventListener('click', () => reset(true));
+  }
+
+  function settle() {
+    const g = Z.g;
+    if (Z.z <= 1) { Z.x = 0; Z.y = 0; }
+    Z.x = clamp(Z.x, 0, Math.max(0, g.cw - g.vw));
+    Z.y = clamp(Z.y, 0, Math.max(0, g.ch - g.vh));
+    o.pan();
+    if (o.fit) o.fit.hidden = Z.z <= 1.01;
+  }
+  /* the board point under a screen point, as a fraction of the board's size */
+  function at(cx, cy) { const g = Z.g; return [(cx - g.left + Z.x) / g.cw, (cy - g.top + Z.y) / g.ch]; }
+  /* zoom to z with board point (u, v) under screen point (cx, cy) */
+  function place(z, cx, cy, u, v) {
+    z = clamp(z, 1, top());
+    if (z !== Z.z || !Z.g) { Z.z = z; Z.g = o.layout(); }
+    Z.x = u * Z.g.cw - (cx - Z.g.left);
+    Z.y = v * Z.g.ch - (cy - Z.g.top);
+    settle();
+  }
+  function zoomAt(z, cx, cy) {
+    cancelAnimationFrame(tween);
+    Z.g = o.layout();
+    if (cx == null) { cx = Z.g.left + Z.g.vw / 2; cy = Z.g.top + Z.g.vh / 2; }
+    const [u, v] = at(cx, cy);
+    place(z, cx, cy, u, v);
+  }
+  function panBy(dx, dy) { if (Z.z > 1) { Z.x += dx; Z.y += dy; settle(); } }
+  /* after a resize or a new board: lay out again at the current zoom */
+  function refresh() {
+    Z.g = o.layout();
+    if (Z.z > top()) { Z.z = top(); Z.g = o.layout(); }
+    settle();
+  }
+  /* back to the whole board, gliding there if asked */
+  function reset(glide) {
+    cancelAnimationFrame(tween);
+    if (!glide || Z.z <= 1.01 || calm()) { Z.z = 1; refresh(); return; }
+    Z.g = o.layout();
+    const cx = Z.g.left + Z.g.vw / 2, cy = Z.g.top + Z.g.vh / 2, [u, v] = at(cx, cy), z0 = Z.z, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 260);
+      place(z0 + (1 - z0) * (1 - Math.pow(1 - k, 3)), cx, cy, u, v);
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  /* slide the board so a box (in board pixels at the current zoom) is in view */
+  function show(x, y, w, h) {
+    if (Z.z <= 1 || !Z.g) return;
+    const g = Z.g, m = 10;
+    if (x - m < Z.x) Z.x = x - m; else if (x + w + m > Z.x + g.vw) Z.x = x + w + m - g.vw;
+    if (y - m < Z.y) Z.y = y - m; else if (y + h + m > Z.y + g.vh) Z.y = y + h + m - g.vh;
+    settle();
+  }
+  /* on a phone, mention pinching the first time a board is big enough to need it */
+  function tip() {
+    if (top() < 1.6 || save.zoomTip || !o.tip || !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+    setTimeout(() => {
+      if (save.zoomTip || modalOpen()) return;
+      save.zoomTip = true; persist();
+      toast(o.tip, 4200);
+    }, 900);
+  }
+
+  /* ---------- touches, mouse and pen ---------- */
+  function commit() {
+    if (mode !== 'wait') return;
+    clearTimeout(one.t);
+    mode = 'play';
+    o.down(one.e);
+  }
+  function startPinch(a, b) {
+    cancelAnimationFrame(tween);
+    const p = pts.get(a), q = pts.get(b);
+    pinch = { ids: [a, b], d: Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
+    mode = 'pinch'; one = null;
+    Z.g = o.layout();
+    for (const id of pinch.ids) { try { o.el.setPointerCapture(id); } catch (err) {} }
+  }
+  function pinchFrame() {
+    raf = 0;
+    if (mode !== 'pinch') return;
+    const p = pts.get(pinch.ids[0]), q = pts.get(pinch.ids[1]);
+    if (!p || !q) return;
+    const d = Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    /* keep the point that was between the fingers between them, at the new spread */
+    const [u, v] = at(pinch.mx, pinch.my);
+    place(Z.z * d / pinch.d, mx, my, u, v);
+    pinch.d = d; pinch.mx = mx; pinch.my = my;
+  }
+  const startOne = (e) => ({ id: e.pointerId, e, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, pan: Z.z > 1.01 && (!o.canPan || !!o.canPan(e)) });
+  const quit = (id, x, y) => o.cancel({ pointerId: id, clientX: x, clientY: y, type: 'pointercancel' });
+
+  o.el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest('[data-zoom-skip]')) return;
+    cancelAnimationFrame(tween);
+    if (e.pointerType !== 'touch') {
+      if (mode) return;
+      if (e.button === 1) {
+        if (Z.z > 1) { e.preventDefault(); one = startOne(e); mode = 'pan'; }
+        return;
+      }
+      one = startOne(e); mode = 'play';
+      o.down(e);
+      return;
+    }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === 'pinch') return;
+    if (!mode) {
+      one = startOne(e);
+      if (zoomable()) { mode = 'wait'; one.t = setTimeout(commit, WAIT); }
+      else { mode = 'play'; o.down(e); }
+      return;
+    }
+    /* a second finger turns whatever the first was doing into a pinch (small boards don't zoom, so it's ignored there) */
+    if (!one || !pts.has(one.id) || (mode === 'play' && !zoomable())) return;
+    if (mode === 'wait') clearTimeout(one.t);
+    else if (mode === 'play') { const p = pts.get(one.id); quit(one.id, p.x, p.y); }
+    startPinch(one.id, e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+    if (mode === 'pinch') {
+      if (p && pinch.ids.includes(e.pointerId) && !raf) raf = requestAnimationFrame(pinchFrame);
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const far = Math.hypot(e.clientX - one.x, e.clientY - one.y) > (e.pointerType === 'touch' ? 10 : 5);
+    if (mode === 'wait' && far) {
+      if (one.pan) { clearTimeout(one.t); mode = 'pan'; } else commit();
+    } else if (mode === 'play' && far && one.pan) { quit(one.id, e.clientX, e.clientY); mode = 'pan'; }
+    if (mode === 'play') o.move(e);
+    else if (mode === 'pan') panBy(one.lx - e.clientX, one.ly - e.clientY);
+    one.lx = e.clientX; one.ly = e.clientY;
+  });
+  function end(e) {
+    pts.delete(e.pointerId);
+    if (mode === 'pinch') {
+      if (!pinch.ids.includes(e.pointerId)) return;
+      /* lift one finger and the other carries on sliding the board */
+      const rest = pinch.ids.find((id) => id !== e.pointerId && pts.has(id));
+      pinch = null; cancelAnimationFrame(raf); raf = 0;
+      if (rest !== undefined) { const q = pts.get(rest); one = { id: rest, x: q.x, y: q.y, lx: q.x, ly: q.y }; mode = 'pan'; }
+      else { mode = ''; one = null; }
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const up = e.type === 'pointerup';
+    if (mode === 'wait') { clearTimeout(one.t); if (up) { o.down(one.e); o.up(e); } }
+    else if (mode === 'play') { if (up) o.up(e); else o.cancel(e); }
+    mode = ''; one = null;
+  }
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+
+  /* mouse wheel, and trackpad pinches (which arrive as wheel events with ctrl held) */
+  o.el.addEventListener('wheel', (e) => {
+    if (!zoomable()) return;
+    e.preventDefault();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+    zoomAt(Z.z * Math.exp(-clamp(dy, -150, 150) * (e.ctrlKey ? 0.01 : 0.002)), e.clientX, e.clientY);
+  }, { passive: false });
+  /* Safari: trackpad pinches on a Mac, and stopping iPhones zooming the whole page */
+  o.el.addEventListener('gesturestart', (e) => { e.preventDefault(); gs = pts.size ? 0 : (e.scale || 1); });
+  o.el.addEventListener('gesturechange', (e) => {
+    e.preventDefault();
+    if (!gs || pts.size || !zoomable()) return;
+    zoomAt(Z.z * e.scale / gs, e.clientX, e.clientY);
+    gs = e.scale;
+  });
+  o.el.addEventListener('gestureend', (e) => { e.preventDefault(); gs = 0; });
+  /* keys: + and - zoom, 0 shows the whole board */
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || modalOpen() || !zoomable() || !Z.g) return;
+    const k = e.key;
+    if (k === '0') { e.preventDefault(); reset(true); return; }
+    const f = k === '+' || k === '=' ? 1.3 : k === '-' || k === '_' ? 1 / 1.3 : 0;
+    if (!f) return;
+    e.preventDefault();
+    const p = o.focus && o.focus();
+    zoomAt(Z.z * f, p ? p.x : null, p ? p.y : null);
+  });
+
+  return Object.assign(Z, { refresh, reset, zoomAt, panBy, show, tip });
+}
+
+/* ---------- the field: posts, sides and squares ---------- */
+/* A field of W×H squares has (W+1)×(H+1) posts. Sides are numbered with the horizontal ones first,
+   row by row ((H+1) rows of W), then the vertical ones (H rows of W+1).
+   Side states: 0 open question, 1 fenced (a rail), 2 no fence (a cross). */
+const FIELDS = {};
+function makeField(W, H) {
+  const key = W + 'x' + H;
+  if (FIELDS[key]) return FIELDS[key];
+  const NC = W * H, NP = (W + 1) * (H + 1), NH = (H + 1) * W, NE = NH + H * (W + 1);
+  const hE = (r, c) => r * W + c, vE = (r, c) => NH + r * (W + 1) + c, P = (r, c) => r * (W + 1) + c;
+  const ends = new Int32Array(NE * 2), eC = new Int32Array(NE * 2).fill(-1);
+  for (let r = 0; r <= H; r++) for (let c = 0; c < W; c++) {
+    const e = hE(r, c); ends[2 * e] = P(r, c); ends[2 * e + 1] = P(r, c + 1);
+    if (r > 0) eC[2 * e] = (r - 1) * W + c;
+    if (r < H) eC[2 * e + 1] = r * W + c;
+  }
+  for (let r = 0; r < H; r++) for (let c = 0; c <= W; c++) {
+    const e = vE(r, c); ends[2 * e] = P(r, c); ends[2 * e + 1] = P(r + 1, c);
+    if (c > 0) eC[2 * e] = r * W + c - 1;
+    if (c < W) eC[2 * e + 1] = r * W + c;
+  }
+  /* each post's sides: up, right, down, left (-1 at the edge of the field) */
+  const pE = new Int32Array(NP * 4).fill(-1);
+  for (let r = 0; r <= H; r++) for (let c = 0; c <= W; c++) {
+    const p = P(r, c);
+    if (r > 0) pE[4 * p] = vE(r - 1, c);
+    if (c < W) pE[4 * p + 1] = hE(r, c);
+    if (r < H) pE[4 * p + 2] = vE(r, c);
+    if (c > 0) pE[4 * p + 3] = hE(r, c - 1);
+  }
+  /* each square's sides: top, right, bottom, left */
+  const cE = new Int32Array(NC * 4);
+  for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+    const i = r * W + c;
+    cE[4 * i] = hE(r, c); cE[4 * i + 1] = vE(r, c + 1); cE[4 * i + 2] = hE(r + 1, c); cE[4 * i + 3] = vE(r, c);
+  }
+  /* corner pairs: the two sides that meet at a post in one quadrant (0 up-left, 1 up-right,
+     2 down-right, 3 down-left), which are also two sides of the square in that quadrant.
+     Square corners (top-left, top-right, bottom-right, bottom-left) map to pairs in qOf. */
+  const qa = new Int32Array(NP * 4), qb = new Int32Array(NP * 4), qCell = new Int32Array(NP * 4).fill(-1);
+  for (let r = 0; r <= H; r++) for (let c = 0; c <= W; c++) {
+    const p = P(r, c), U = pE[4 * p], R = pE[4 * p + 1], D = pE[4 * p + 2], L = pE[4 * p + 3];
+    qa[4 * p] = U; qb[4 * p] = L; qa[4 * p + 1] = U; qb[4 * p + 1] = R;
+    qa[4 * p + 2] = D; qb[4 * p + 2] = R; qa[4 * p + 3] = D; qb[4 * p + 3] = L;
+    if (r > 0 && c > 0) qCell[4 * p] = (r - 1) * W + c - 1;
+    if (r > 0 && c < W) qCell[4 * p + 1] = (r - 1) * W + c;
+    if (r < H && c < W) qCell[4 * p + 2] = r * W + c;
+    if (r < H && c > 0) qCell[4 * p + 3] = r * W + c - 1;
+  }
+  const qOf = new Int32Array(NC * 4);
+  for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+    const i = r * W + c;
+    qOf[4 * i] = 4 * P(r, c) + 2; qOf[4 * i + 1] = 4 * P(r, c + 1) + 3;
+    qOf[4 * i + 2] = 4 * P(r + 1, c + 1); qOf[4 * i + 3] = 4 * P(r + 1, c) + 1;
+  }
+  return (FIELDS[key] = { W, H, NC, NP, NH, NE, ends, eC, pE, cE, qa, qb, qCell, qOf });
+}
+
+/* corner reasoning keeps, for every corner pair, which totals (0, 1 or 2 rails) are still possible,
+   as a 3-bit mask. These tables say what one pair allows given its partner's mask. */
+const POST_OK = new Uint8Array(8), CELL_OK = [0, 1, 2, 3].map(() => new Uint8Array(8));
+for (let m = 0; m < 8; m++) {
+  /* diagonal pairs at a post together hold all four of its sides: 0 or 2 rails in total */
+  POST_OK[m] = ((m & 5) ? 1 : 0) | ((m & 2) ? 2 : 0) | ((m & 1) ? 4 : 0);
+  /* opposite corners of a square together hold all four of its sides: k rails in total */
+  for (let k = 0; k < 4; k++) for (let s = 0; s <= 2; s++) if (k - s >= 0 && k - s <= 2 && (m >> (k - s)) & 1) CELL_OK[k][m] |= 1 << s;
+}
+const BAD = { bad: true }, STOP = { stop: true };
+
+/* Solve as far as logic goes, without ever guessing. clues: Int8Array (-1 = no number);
+   st: Int8Array of side states, filled in place. level 0 uses the counting, post and loop rules;
+   level 1 adds corner reasoning. Returns 'solved', 'stuck' or 'bad'.
+   With first set, it stops at the first side it settles and returns {e, v, why, at, m}. */
+function solveField(F, clues, st, level, first) {
+  const { NE, NC, NP, ends, eC, pE, cE, qa, qb, qCell, qOf } = F;
+  const mask = new Uint8Array(NP * 4);
+  const inC = new Uint8Array(NC), inP = new Uint8Array(NP);
+  const cq = new Int32Array(NC + 1), pq = new Int32Array(NP + 1);
+  let cn = 0, pn = 0, found = null;
+  const qCellF = (c) => { if (c >= 0 && !inC[c] && clues[c] >= 0) { inC[c] = 1; cq[cn++] = c; } };
+  const qPostF = (p) => { if (!inP[p]) { inP[p] = 1; pq[pn++] = p; } };
+  function set(e, v, why, at, m) {
+    if (st[e] === v) return;
+    if (st[e]) throw BAD;
+    st[e] = v;
+    if (first) { found = { e, v, why, at, m }; throw STOP; }
+    qCellF(eC[2 * e]); qCellF(eC[2 * e + 1]); qPostF(ends[2 * e]); qPostF(ends[2 * e + 1]);
+  }
+  function narrow(q, m) {
+    if (m === mask[q]) return;
+    if (!m) throw BAD;
+    mask[q] = m;
+    qPostF(q >> 2); qCellF(qCell[q]);
+  }
+  for (let q = 0; q < NP * 4; q++) mask[q] = qa[q] < 0 && qb[q] < 0 ? 1 : qa[q] < 0 || qb[q] < 0 ? 3 : 7;
+  for (let c = NC - 1; c >= 0; c--) qCellF(c);
+  for (let p = NP - 1; p >= 0; p--) qPostF(p);
+
+  function doCell(c) {
+    const k = clues[c];
+    let on = 0, un = 0;
+    for (let j = 0; j < 4; j++) { const s = st[cE[4 * c + j]]; if (s === 1) on++; else if (!s) un++; }
+    if (on > k || on + un < k) throw BAD;
+    if (un && (on === k || on + un === k)) {
+      const v = on === k ? 2 : 1;
+      for (let j = 0; j < 4; j++) { const e = cE[4 * c + j]; if (!st[e]) set(e, v, v === 2 ? 'cellDone' : 'cellNeed', c); }
+      return;
+    }
+    if (level < 1) return;
+    for (let j = 0; j < 2; j++) {
+      const a = qOf[4 * c + j], b = qOf[4 * c + j + 2];
+      const ma = mask[a], mb = mask[b];
+      narrow(a, ma & CELL_OK[k][mb]);
+      narrow(b, mb & CELL_OK[k][mask[a]]);
+    }
+  }
+  function doPost(p) {
+    let on = 0, un = 0, last = -1;
+    for (let j = 0; j < 4; j++) { const e = pE[4 * p + j]; if (e < 0) continue; if (st[e] === 1) on++; else if (!st[e]) { un++; last = e; } }
+    if (on > 2 || (on === 1 && !un)) throw BAD;
+    if (un) {
+      if (on === 2) { for (let j = 0; j < 4; j++) { const e = pE[4 * p + j]; if (e >= 0 && !st[e]) set(e, 2, 'postFull', p); } return; }
+      if (un === 1) { set(last, on ? 1 : 2, on ? 'postEnd' : 'postLone', p); return; }
+    }
+    if (level < 1) return;
+    for (let j = 0; j < 4; j++) {
+      const q = 4 * p + j, a = qa[q], b = qb[q];
+      const sa = a < 0 ? 2 : st[a], sb = b < 0 ? 2 : st[b];
+      const lo = (sa === 1) + (sb === 1), hi = lo + !sa + !sb;
+      narrow(q, mask[q] & (((1 << (hi + 1)) - 1) & ~((1 << lo) - 1)));
+    }
+    for (let j = 0; j < 2; j++) {
+      const a = 4 * p + j, b = 4 * p + j + 2;
+      narrow(a, mask[a] & POST_OK[mask[b]]);
+      narrow(b, mask[b] & POST_OK[mask[a]]);
+    }
+    for (let j = 0; j < 4; j++) {
+      const q = 4 * p + j, a = qa[q], b = qb[q], m = mask[q];
+      const sa = a < 0 ? 2 : st[a], sb = b < 0 ? 2 : st[b];
+      if (sa && sb) continue;
+      if (!sa && !sb) {
+        if (m === 1) { set(a, 2, 'pair', q, m); set(b, 2, 'pair', q, m); }
+        else if (m === 4) { set(a, 1, 'pair', q, m); set(b, 1, 'pair', q, m); }
+        continue;
+      }
+      const x = sa ? b : a, v = (sa || sb) === 1 ? 1 : 0;
+      const canOn = (m >> (v + 1)) & 1, canOff = (m >> v) & 1;
+      if (!canOn && !canOff) throw BAD;
+      if (canOn !== canOff) set(x, canOn ? 1 : 2, 'pair', q, m);
+    }
+  }
+  /* the loop rules: a rail may not close a loop early, and once one loop is closed nothing else is fenced */
+  const par = new Int32Array(NP), size = new Int32Array(NP);
+  const find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  function doLoops() {
+    for (let p = 0; p < NP; p++) { par[p] = p; size[p] = 0; }
+    let total = 0, cycle = -1;
+    for (let e = 0; e < NE; e++) {
+      if (st[e] !== 1) continue;
+      total++;
+      const a = find(ends[2 * e]), b = find(ends[2 * e + 1]);
+      if (a === b) { if (cycle >= 0 && cycle !== a) throw BAD; cycle = a; size[a]++; }
+      else { par[a] = b; size[b] += size[a] + 1; }
+    }
+    if (cycle >= 0) {
+      if (size[find(cycle)] !== total) throw BAD;
+      let any = false;
+      for (let e = 0; e < NE; e++) if (!st[e]) { set(e, 2, 'loopDone', -1); any = true; }
+      return any;
+    }
+    let any = false;
+    for (let e = 0; e < NE; e++) {
+      if (st[e]) continue;
+      const a = find(ends[2 * e]);
+      if (a !== find(ends[2 * e + 1])) continue;
+      if (size[a] !== total) { set(e, 2, 'loopSmall', e); any = true; continue; }
+      /* this rail would finish the only loop: allowed only if every number then agrees */
+      let ok = true;
+      for (let c = 0; c < NC && ok; c++) {
+        const k = clues[c];
+        if (k < 0) continue;
+        let on = 0;
+        for (let j = 0; j < 4; j++) { const x = cE[4 * c + j]; if (st[x] === 1 || x === e) on++; }
+        if (on !== k) ok = false;
+      }
+      if (!ok) { set(e, 2, 'loopEarly', e); any = true; }
+    }
+    return any;
+  }
+  try {
+    for (;;) {
+      while (cn || pn) {
+        if (cn) { const c = cq[--cn]; inC[c] = 0; doCell(c); }
+        else { const p = pq[--pn]; inP[p] = 0; doPost(p); }
+      }
+      if (!doLoops()) break;
+    }
+  } catch (x) {
+    if (x === STOP) return found;
+    if (x === BAD) return first ? null : 'bad';
+    throw x;
+  }
+  if (first) return null;
+  for (let e = 0; e < NE; e++) if (!st[e]) return 'stuck';
+  return 'solved';
+}
+
+/* ---------- paddocks: a region of squares, and the fence around it ---------- */
+/* the fence around a region: a side is fenced when exactly one of its squares is inside */
+function loopOf(F, region) {
+  const st = new Int8Array(F.NE);
+  for (let e = 0; e < F.NE; e++) {
+    const a = F.eC[2 * e], b = F.eC[2 * e + 1];
+    st[e] = (a >= 0 && region[a] ? 1 : 0) !== (b >= 0 && region[b] ? 1 : 0) ? 1 : 2;
+  }
+  return st;
+}
+function cluesOf(F, st) {
+  const k = new Int8Array(F.NC);
+  for (let c = 0; c < F.NC; c++) for (let j = 0; j < 4; j++) if (st[F.cE[4 * c + j]] === 1) k[c]++;
+  return k;
+}
+/* the squares a closed fence encloses (flood the outside through unfenced sides) */
+function regionOf(F, st) {
+  const { W, H, NC } = F, out = new Uint8Array(NC), stack = [];
+  const go = (c, e) => { if (st[e] !== 1 && !out[c]) { out[c] = 1; stack.push(c); } };
+  for (let c = 0; c < W; c++) { go(c, F.cE[4 * c]); go((H - 1) * W + c, F.cE[4 * ((H - 1) * W + c) + 2]); }
+  for (let r = 0; r < H; r++) { go(r * W, F.cE[4 * r * W + 3]); go(r * W + W - 1, F.cE[4 * (r * W + W - 1) + 1]); }
+  while (stack.length) {
+    const c = stack.pop();
+    for (let j = 0; j < 4; j++) {
+      const e = F.cE[4 * c + j], n = F.eC[2 * e] === c ? F.eC[2 * e + 1] : F.eC[2 * e];
+      if (n >= 0) go(n, e);
+    }
+  }
+  const reg = new Uint8Array(NC);
+  for (let c = 0; c < NC; c++) reg[c] = out[c] ? 0 : 1;
+  return reg;
+}
+
+/* Grow a random paddock one square at a time. It stays in one piece with no holes, and never has two
+   squares meeting only at a corner (inside or out), so its outline is one loop that never touches itself. */
+function growRegion(W, H, rnd, target) {
+  const W2 = W + 2, N2 = W2 * (H + 2);
+  const inr = new Uint8Array(N2), seen = new Uint8Array(N2), stack = new Int32Array(N2);
+  const at = (r, c) => (r + 1) * W2 + c + 1;
+  const ok = (x) => {
+    /* no checkerboard 2×2 block around it */
+    inr[x] = 1;
+    let fine = true;
+    for (const d of [-W2 - 1, -W2, -1, 0]) {
+      const a = x + d, b = a + 1, c = a + W2, e = c + 1;
+      if (inr[a] === inr[e] && inr[b] === inr[c] && inr[a] !== inr[b]) { fine = false; break; }
+    }
+    /* the outside must stay in one piece */
+    if (fine) {
+      seen.fill(0);
+      let sp = 0, cnt = 0, outs = 0;
+      for (let i = 0; i < N2; i++) if (!inr[i]) outs++;
+      stack[sp++] = 0; seen[0] = 1;
+      while (sp) {
+        const i = stack[--sp]; cnt++;
+        const r = Math.floor(i / W2), c = i % W2;
+        if (r > 0 && !inr[i - W2] && !seen[i - W2]) { seen[i - W2] = 1; stack[sp++] = i - W2; }
+        if (r < H + 1 && !inr[i + W2] && !seen[i + W2]) { seen[i + W2] = 1; stack[sp++] = i + W2; }
+        if (c > 0 && !inr[i - 1] && !seen[i - 1]) { seen[i - 1] = 1; stack[sp++] = i - 1; }
+        if (c < W2 - 1 && !inr[i + 1] && !seen[i + 1]) { seen[i + 1] = 1; stack[sp++] = i + 1; }
+      }
+      fine = cnt === outs;
+    }
+    inr[x] = 0;
+    return fine;
+  };
+  const r0 = Math.floor(H * (0.25 + rnd() * 0.5)), c0 = Math.floor(W * (0.25 + rnd() * 0.5));
+  inr[at(r0, c0)] = 1;
+  let n = 1, stuck = 0;
+  while (n < target && stuck < 60) {
+    /* frontier squares, favouring ones that touch the paddock on just one side (for wiggly shapes) */
+    const cand = [], wt = [];
+    let sum = 0;
+    for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+      const x = at(r, c);
+      if (inr[x]) continue;
+      const k = inr[x - 1] + inr[x + 1] + inr[x - W2] + inr[x + W2];
+      if (!k) continue;
+      const w = k === 1 ? 4 : k === 2 ? 1 : 0.25;
+      cand.push(x); wt.push(w); sum += w;
+    }
+    if (!cand.length) break;
+    let pick = rnd() * sum, j = 0;
+    while (j < cand.length - 1 && (pick -= wt[j]) > 0) j++;
+    if (ok(cand[j])) { inr[cand[j]] = 1; n++; stuck = 0; } else stuck++;
+  }
+  const reg = new Uint8Array(W * H);
+  for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) reg[r * W + c] = inr[at(r, c)];
+  return reg;
+}
+
+/* how many squares the furthest square is from the fence */
+function spreadOf(F, sol) {
+  const { W, H, NC } = F, d = new Int32Array(NC).fill(-1), q = [];
+  for (let c = 0; c < NC; c++) for (let j = 0; j < 4; j++) if (sol[F.cE[4 * c + j]] === 1 && d[c] < 0) { d[c] = 0; q.push(c); }
+  let far = 0;
+  for (let i = 0; i < q.length; i++) {
+    const c = q[i], r = Math.floor(c / W), x = c % W;
+    far = Math.max(far, d[c]);
+    for (const n of [r > 0 ? c - W : -1, r < H - 1 ? c + W : -1, x > 0 ? c - 1 : -1, x < W - 1 ? c + 1 : -1]) if (n >= 0 && d[n] < 0) { d[n] = d[c] + 1; q.push(n); }
+  }
+  return far;
+}
+
+/* Make a puzzle: grow a paddock, number every square, then rub numbers out in a random order for as long
+   as the logic solver can still finish the fence. keep is the share of numbers that must stay. */
+function makePuzzle(W, H, rnd, level, keep, far) {
+  const F = makeField(W, H);
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const target = Math.round(W * H * (0.42 + rnd() * 0.18));
+    const region = growRegion(W, H, rnd, target);
+    let n = 0, rows = 0, cols = 0;
+    for (let c = 0; c < F.NC; c++) n += region[c];
+    for (let r = 0; r < H; r++) { let a = 0; for (let c = 0; c < W; c++) a |= region[r * W + c]; rows += a; }
+    for (let c = 0; c < W; c++) { let a = 0; for (let r = 0; r < H; r++) a |= region[r * W + c]; cols += a; }
+    /* the paddock should reach across the field, with no wide empty patches far from the fence */
+    if (n < target * 0.85 || rows < H - 1 || cols < W - 1) continue;
+    const sol = loopOf(F, region), full = cluesOf(F, sol);
+    if (spreadOf(F, sol) > (far || 2)) continue;
+    const clues = Int8Array.from(full);
+    const order = shuffleArr([...Array(F.NC).keys()], rnd);
+    const floor = Math.ceil(F.NC * (keep || 0));
+    let shown = F.NC;
+    for (const c of order) {
+      if (shown <= floor) break;
+      clues[c] = -1;
+      if (solveField(F, clues, new Int8Array(F.NE), level) === 'solved') shown--;
+      else clues[c] = full[c];
+    }
+    const st = new Int8Array(F.NE);
+    if (solveField(F, clues, st, level) !== 'solved' || st.some((v, e) => v !== sol[e])) continue;
+    return { w: W, h: H, region, clues, sol };
+  }
+  return null;
+}
+
+/* ---------- compact level codes: size, paddock bits, then which squares show their number ---------- */
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+function bitsTo64(bits) {
+  let s = '';
+  for (let i = 0; i < bits.length; i += 6) { let v = 0; for (let j = 0; j < 6; j++) v |= (bits[i + j] ? 1 : 0) << j; s += B64[v]; }
+  return s;
+}
+function bitsFrom64(s, n) {
+  const out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) out[i] = (B64.indexOf(s[Math.floor(i / 6)]) >> (i % 6)) & 1;
+  return out;
+}
+function encodeLevel(L) {
+  const shown = Array.from(L.clues, (k) => (k >= 0 ? 1 : 0));
+  return L.w.toString(36) + L.h.toString(36) + bitsTo64(L.region) + '.' + bitsTo64(shown);
+}
+function decodeLevel(code) {
+  const w = parseInt(code[0], 36), h = parseInt(code[1], 36), [a, b] = code.slice(2).split('.');
+  const F = makeField(w, h), region = bitsFrom64(a, w * h), shown = bitsFrom64(b, w * h);
+  const sol = loopOf(F, region), full = cluesOf(F, sol), clues = new Int8Array(w * h);
+  for (let c = 0; c < w * h; c++) clues[c] = shown[c] ? full[c] : -1;
+  return { w, h, region, clues, sol };
+}
+/* one of the 8 turns and flips of a level (t = 0..7); odd turns swap width and height */
+function transformLevel(L, t) {
+  if (!t) return L;
+  const { w, h } = L, sw = t & 1, W = sw ? h : w, H = sw ? w : h;
+  const region = new Uint8Array(W * H), clues = new Int8Array(W * H);
+  for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+    let R = r, C = c;
+    if (t & 4) C = w - 1 - C;
+    if (t & 2) { R = h - 1 - R; C = w - 1 - C; }
+    if (sw) { const x = R; R = C; C = h - 1 - x; }
+    region[R * W + C] = L.region[r * w + c]; clues[R * W + C] = L.clues[r * w + c];
+  }
+  return { w: W, h: H, region, clues, sol: loopOf(makeField(W, H), region) };
+}
+
+if (typeof module !== 'undefined') module.exports = { makeField, solveField, loopOf, cluesOf, regionOf, growRegion, spreadOf, makePuzzle, encodeLevel, decodeLevel, transformLevel, bitsTo64, bitsFrom64 };
+
+/* pre-built, solver-checked fields, easiest first: size (base 36), the paddock's squares, then which squares show a number */
+const BANK = [
+'33YG.vF','44u8C.q5O','441nA.TLO','55b3pRA.mqH9A','55tTLDB.JHyfA','55KH34B.OxvMB','55k-rjB.kbSpA','55bnWDA.ueo9A',
+'55MPS9B.rWIjB','55O-TDB.KullA','55htbHB.OY9SA','55_VeFA.xlG5A','55I-H-B.InH4B','55kyrDB.FpXoB','66DXyfyX.KCyDTz','66L6O_MH.0RhXU6',
+'66Gf9YPY.TNwG8N','66r-P5gg.u6mGho','66a_jvCD.SyGnWS','664MfY-q.aToF4K','66GU_WC_.xCb4Sh','66q_I-ou.jKoqPg','662_N5LI._ASF5t','668E8-by.Hk1Bhu',
+'66IcGz-z.yS7gvi','66GfGHS_.gfUFJg','66F9HCef.5IL1B9','66X3cOLK.7QDwTG','667PY-rg.QPRYpG','66bPDeLa.C3RCli','66BT28vG.mgKipJ','66Mk3cPE.FsIdhH',
+'66ASfJ8n.FRA1Ds','66qr6fEe.qQDliq','66Cnh_6L.Kokt8a','66eH8uk2.UHKSQx','66Kr_VEM.TkQqrI','66fFU-GC.cSZiKL','77Q6Etel-nB.Od7AKD1IB','77w2ofm_lDA.xqg3IhozA',
+'77HDWtevH-A.QJ4Cp9jgA','77Qy1o3_qVB.WEwPU30jA','77W4jw_ziEB.KTg0LlJoA','77Ow8HpnJ5A.-A64KSYuA','77chSvyf1rA.SU7ToK2FB','77s6n8TheYA.obISDSVKA','77fkfkztAHA.yVQKyKHAA','77K-g4XHKXA.vAU5FB0lA',
+'779T0_SdYcA.NoKtTKA0B','77DSs6fVqUB.UMWWtypNB','77dOw_obi0B.RfnIErAMA','77-R8nkNyPB.-CF16QwGA','77L-IQ736VB.IWYyEAU3A','77HYnv_ROHA.OTYWenQlA','77-1A_j9pYA.JnoNyGJWB','77n8T4fViGA.7QGtyEgmA',
+'77aWs7ng7dA.qpkeh0w-A','77Qux5AfXnB.SSJcFaqVA','885v8mJ8zFVVH.NBrMug5nRJI','88ADmyK_dc8fN.wioRy_CkJ0H','88wJ2K_gxj6vF.nDgjSR0ocNE','88nzy59h2bNDG.GqE1vkKoB6B','88wDU059vE7pC.io4bgqIshKD','88vEWN_VQHVQD.pKJRElCVOpH',
+'88eDl-aMv58gO.iSpOEmM1D0J','8877A_gwH3XQP.rA9UBjloz8J','88smev_WZEzEC.nQaMFSHQosC','88quvj-eRB8cH.qE6D2C1SRDB','88F8TBtw_1VRN.arERVoOWXSA','88Kp-uK8nC4_K.aBRUSsl2BgG','88wR-LsiP0eQP.SifBTieCUmK','88OMq9fp8QwDC.E3AKjrUwxhI',
+'88owjpgr0_1WL.TJojYVatFzN','88r_Cvg7PR0TO.FcK4rBx8VKJ','88_foL_b0XYxA.CqUMkapaGhL','88G-Ov_IwfIxB.lWo9LSVzUwI','88n7_E5yP48CK.nRsyE31ssAH','88E3XE_zz7qpM.o3jxTFUjFqD','88ujT_XTlVUDF.1wOe3Ep0JVH','88S7F0V9PqsCC.-hbRTDpkXQL',
+'88Wx1_bpMavwO.VJXgt6gaHSI','88sgmzk33Nk7E.i0kIorFQ3WE','99eFu4cy2jPx5bJB.CLMcpaonThoTmE','99Xrekg9-4xaHPsA.g1CGrmFGeaGNlA','99fDxr_ftGRfjxGE.rLWFbUTVqLExSA','99m-e9I9s0Nk140B.Huu4cGCMcIQvrD','990rDRpPnB-fhKHB.KoygdVFAuTcvJE','99PxoE1t_HS-aG2D.3nBUZLYdIa6qAC',
+'99Rs2_Cy_DNMH7cF.ZRjHh6IMZpExtG','99oz_AR_vVlolFvB.jC1jiGQpcnAwWD','99Kc5a8rxl_ox5aD._FANBIorLBB26G','999vBn5Zi5H7L1rE.MowuAQpCy3sAqF','99CYZZ5p4fH-HT_G.rwcQqzKuQwE1pA','995shfF_96y2i2AC.OmWlykA7SWG6OB','99F4nEsy1-S8_G1D.VlRqIg0OiaIqKE','99F-QOHNs33TIvtH.pkgpdPTuZZOHCB',
+'99sBt5c0yez-efqD.J7sQIrPEoQuY2F','99ZfP_d83FueVhAG.8LVTkfUNIS2phC','99rV5_RdjWWaaWCA.ksHAsbAbDjVXGG','99e4WzHLeXz7CS-C.Oy2QI-bwBjkyqG','997OX_vjNMv5ckgF.allIwsgSLcPj1G','99ma0u214_vNtoFE.muSHihMz00HX3C','aalwbxz_HS_1JY_0BFA.FY9OggAJ1NEUmwzJA','aauDR8lY7T-lZL_j-uJ.OhIngAyvVIyDqvMSI',
+'aand8tDzxdQNfY9XJ1O.EmNh1Zw0GLHLo5A9G','aaYHnkr_Po-rQ4_YHjD.hHDKIl5LlHCfRJqKI','aanfTQePB_c7E0Xof7A.RPIpi3Eh_GA2W4lSJ','aaa9ypOvCK8Xx_cYdTN.W8SQ5h0JCjOTTmuYA','aa0injzsV4_DzvYpzgN.DvurAMWUEpYEgM9lG','aaqzfCv-Is3vRx3ro6K.iArGNzKNzJhAQMSrK','aaWHV8fwgd8jsL6DI-P.SoqmUSAEXNyiCFFCK','aaoBbh-54_k-gh8_5UE.JkchRbiinNgo0E12E',
+'aaRx1zHJ06rDvHR_BzA.-4ps5Qk4qknQJkq7C','aata7-7rKo87lSjR8GN.hqnVINUkIijEWYpaN','aaaivCp6q_68rZysEKA.JDG-KA_cLKCKV4FjA','aa2_YvE_P0851OkyrcC.5YgbNiGehYqQVBPbK','aaQv_CLZ6zjFPfj0BYA.2ygpxaNKbJAiCeUyE','aagBOgoN67zC-12jcfN.Al2InJHAOKok8SlOC','aagb8WuNa2_FxbZ2_VN.FBcSqSbtGrQSraLJN','aaBQAcahy4nCvvvMB7H.JU4QSSVRlg5ztNAIM',
+'aa9RC9_G1HkvtfTmtNJ.8-wsTThu3gK3rohFF','aafNWN__g4bDkPRZ0wB.ZA8mw_nhLtoDIrgdC','aat-5yq_Y_0Chx9FEfA.LbAN0a5dEwrTJXRWD','aaYHUkvbuw8Hg7vDreK.YNi1itBhAnRmW6baN','aaKl290uJO8XI8_natO.1iAbtKXk7gQdYNL0M','aafpw-_Xw8F_XZx2AEA.0Y1GTLpsFFpuhkSoA','8cAAIrtm6q6vwvSu_U.keFPGBC6AX5IBsLK','8czYBtV-_1G8frM-RF.mMgsh0JsVEiNEwYr',
+'8ctmfXH71C6v2SpjEG.4c4Ex6EOhAfhAfSk','8cm87gr-6_ZjQfXTAH.l1M5PUpwQUnx5YEo','8cojyb6AvO_PS-sSKN.KRQbGiGQfClIChrV','8cABddnRjl3z_faDp3.i1sE7uiE2i0aKhls','8c8gzEZtd07r37LJOu.Q_gMGbIaGXaCEbGb','8cV_HCf3ftVWZ0bucA.qmFUkJovsSASpriV','8cz45z4_P6vawE58QH.Q3yi3YGDUWFCwa7K','8cwTM90R-_Q8vvH2dS.WrCgZS9hqMY6Qz50',
+'8cExeK_io2z7Pc6_ep.YIteRAqQlVBimCh2','8cosj-Lky_D4_9m66q.ly1yiY1wlRViOX8l','aeff0Q9_7Qg_D792tM63qoCKwC.A7QxErFwlgkuEKClACpeiTgB','ae1V93J_qB-3LVGvfJ9WrEaHSA.JlVFGuSmLyMhDpoqyABzw3SC','aewIoH_9QsXv1SPcvG-PWw9QFA.K6kjKaUyUSMuIhQrimgZ5oHA','aedUR9-uHL8667Ykz9PoirsCpB.VoUo7AzOGKj1UnMKJtdgOD4C','ae0qvDS8PwhGt7fe9S3mDtez1D.rs_gQFTjbHRCmLjRgWj1mhzC','aevr6jC_PU89JWvk4bUcHFZACA.CvZXx0RysyKXKghRMVzBCYdA',
+'aevLh-oY7eux_I4_nRL3SlW7RC.Ye0_axES7mISkT6NaFiATqRB','ae4Ckyr9_xV3g9O6JwnnAb8kFA.klIuUGAUd5wkVJpASmZTYlbB','aegXcEGrnTgFPPWMvm6vbLnerC.4VQZnQhTJuJbs5ay1lSmFDLD','aewMHGlV71y5fz-D2153qsjx7D.BV_6IoYgZ9le0NhuYY6ECzmB','ae4G4rKO67TI_ves_rqqIYwDoD.KFhlcrSiSbFUhLwcdp8QQCZB','aeEl79b4-CsrPK-_g5bbg8szLA.FLSui6HC0-JKjKZmo8YqBCMC'
+];
+
+/* ---------- levels: the bank first, then fresh fields grown on your device ---------- */
+const levelCache = {};
+const ENDLESS = [[8, 8], [9, 9], [10, 10], [10, 10], [8, 12], [10, 14]];
+function levelSize(idx) {
+  if (idx < BANK.length) return [parseInt(BANK[idx][0], 36), parseInt(BANK[idx][1], 36)];
+  return ENDLESS[Math.floor(mulberry32(seedFor(idx, 3))() * ENDLESS.length)];
+}
+function getLevel(idx) {
+  if (!levelCache[idx]) {
+    let L;
+    if (idx < BANK.length) L = decodeLevel(BANK[idx]);
+    else {
+      /* grown and checked here, the same on every device; a turned bank field if that ever fails */
+      const [w, h] = levelSize(idx);
+      L = makePuzzle(w, h, mulberry32(seedFor(idx, 11)), 1, 0, 2) ||
+        transformLevel(decodeLevel(BANK[BANK.length - 1 - (idx % 40)]), idx % 8);
+    }
+    levelCache[idx] = L;
+  }
+  return levelCache[idx];
+}
+/* just the finished paddock of a level (cheap for the bank, remembered for fresh fields) */
+function padOf(i) {
+  const code = i < BANK.length ? BANK[i].split('.')[0] : save.pads && save.pads[i];
+  if (typeof code === 'string' && code.length > 2) {
+    const w = parseInt(code[0], 36), h = parseInt(code[1], 36);
+    return { w, h, region: bitsFrom64(code.slice(2), w * h) };
+  }
+  return getLevel(i);
+}
+
+/* ---------- little pictures: sheep, flowers, stones and the finished paddock ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const f2 = (v) => +v.toFixed(3);
+/* a sheep seen from the side, feet at (0, 0), facing right */
+const SHEEP = '<path d="M-.17 -.13v.13M-.06 -.13v.12M.08 -.13v.12M.18 -.13v.13" stroke="var(--face)" stroke-width=".055" stroke-linecap="round"/>' +
+  '<g fill="var(--wool)" stroke="var(--wool-edge)" stroke-width=".022"><circle cx="-.2" cy="-.26" r=".11"/><circle cx="-.07" cy="-.33" r=".13"/>' +
+  '<circle cx=".08" cy="-.31" r=".12"/><circle cx="-.13" cy="-.17" r=".11"/><circle cx=".04" cy="-.18" r=".12"/><circle cx=".16" cy="-.22" r=".1"/></g>' +
+  '<g class="head"><ellipse cx=".27" cy="-.29" rx=".1" ry=".075" fill="var(--face)"/><ellipse cx=".2" cy="-.35" rx=".055" ry=".026" fill="var(--face)" transform="rotate(-28 .2 -.35)"/>' +
+  '<circle cx=".29" cy="-.31" r=".017" fill="#fff"/><circle cx=".2" cy="-.36" r=".05" fill="var(--wool)" stroke="var(--wool-edge)" stroke-width=".02"/></g>';
+const SHEEP_FACE = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="#fffdf6" stroke="#cfc6b2" stroke-width="1.4"><circle cx="13" cy="22" r="8"/><circle cx="19" cy="13" r="8"/>' +
+  '<circle cx="29" cy="13" r="8"/><circle cx="35" cy="22" r="8"/><circle cx="34" cy="32" r="8"/><circle cx="24" cy="37" r="8"/><circle cx="14" cy="32" r="8"/><circle cx="24" cy="24" r="11"/></g>' +
+  '<ellipse cx="13.5" cy="25" rx="5.4" ry="2.6" fill="#3d3434" transform="rotate(-24 13.5 25)"/><ellipse cx="34.5" cy="25" rx="5.4" ry="2.6" fill="#3d3434" transform="rotate(24 34.5 25)"/>' +
+  '<ellipse cx="24" cy="29" rx="7.2" ry="8.6" fill="#3d3434"/><g fill="#fffdf6" stroke="#cfc6b2" stroke-width="1.2"><circle cx="20.5" cy="20.5" r="3.6"/><circle cx="24" cy="19" r="4"/><circle cx="27.5" cy="20.5" r="3.6"/></g>' +
+  '<circle cx="21.2" cy="27.5" r="1.6" fill="#fff"/><circle cx="26.8" cy="27.5" r="1.6" fill="#fff"/><path d="M22.3 33.2q1.7 1.3 3.4 0" stroke="#bfb5a6" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>';
+const PETALS = ['#ffffff', '#ffd3e2', '#fff1a6', '#e6d8ff', '#ffe0c2'];
+function flowerMarkup(color, s) {
+  let h = '';
+  for (let i = 0; i < 5; i++) { const a = i * 1.2566 - 1.5708; h += '<circle cx="' + f2(Math.cos(a) * 0.052 * s) + '" cy="' + f2(Math.sin(a) * 0.052 * s) + '" r="' + f2(0.042 * s) + '" fill="' + color + '"/>'; }
+  return h + '<circle r="' + f2(0.028 * s) + '" fill="#f2b632"/>';
+}
+const STONE = 'M-.27 .02C-.29-.16-.14-.25.02-.25C.18-.26.29-.14.28.01C.28.17.15.25-.01.25C-.17.25-.26.17-.27.02Z';
+/* the finished paddock: lush squares inside a fence (the level picker and the win card) */
+function paddockSVG(P, big, spots) {
+  const { w, h, region } = P;
+  const inside = (r, c) => r >= 0 && c >= 0 && r < h && c < w && region[r * w + c];
+  let lush = '', fence = '', extra = '';
+  for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+    if (!inside(r, c)) continue;
+    lush += 'M' + c + ' ' + r + 'h1v1h-1z';
+    if (!inside(r - 1, c)) fence += 'M' + c + ' ' + r + 'h1';
+    if (!inside(r + 1, c)) fence += 'M' + c + ' ' + (r + 1) + 'h1';
+    if (!inside(r, c - 1)) fence += 'M' + c + ' ' + r + 'v1';
+    if (!inside(r, c + 1)) fence += 'M' + (c + 1) + ' ' + r + 'v1';
+  }
+  const m = Math.max(w, h), pad = big ? 0.35 : 0.3, sw = big ? Math.max(0.16, m * 0.026) : m * 0.06;
+  if (big) {
+    const rnd = mulberry32(w * 977 + h * 31 + lush.length);
+    for (let i = 0; i < w * h; i++) if (region[i] && rnd() < 0.5) extra += '<g transform="translate(' + f2(i % w + 0.2 + rnd() * 0.6) + ' ' + f2(Math.floor(i / w) + 0.2 + rnd() * 0.6) + ')">' + flowerMarkup(PETALS[Math.floor(rnd() * PETALS.length)], 1.4) + '</g>';
+    for (const [x, y, d] of spots || []) extra += '<g transform="translate(' + f2(x) + ' ' + f2(y) + ') scale(' + (d < 0 ? '-1.3 1.3' : '1.3') + ')">' + SHEEP + '</g>';
+  }
+  return '<svg viewBox="' + -pad + ' ' + -pad + ' ' + (w + 2 * pad) + ' ' + (h + 2 * pad) + '" aria-hidden="true">' +
+    '<path class="pd-lush" d="' + lush + '"/>' + extra +
+    '<path class="pd-edge" stroke-width="' + f2(sw * 1.5) + '" d="' + fence + '"/><path class="pd-fence" stroke-width="' + f2(sw) + '" d="' + fence + '"/></svg>';
+}
+
+GAME.total = Infinity;
+GAME.levelLabel = (i) => { const s = levelSize(i); return s[0] + '×' + s[1]; };
+GAME.levelTile = (i, done) => done
+  ? '<span class="thumb">' + paddockSVG(padOf(i)) + '</span><small>' + (i + 1) + '</small>'
+  : '<b>' + (i + 1) + '</b><small>' + GAME.levelLabel(i) + '</small>';
+GAME.levelBadge = (stars) => starsHTML(stars);
+
+/* ---------- game state ---------- */
+let G = null, drag = null, cursor = { p: 0, show: false }, xHeld = false;
+let winTimer = 0, hintTimer = 0, saveTimer = 0, lastKnock = 0;
+const svg = $('#field'), card = $('#fieldCard');
+const groundG = $('#groundG'), lushG = $('#lushG'), hintG = $('#hintG'), clueG = $('#clueG'), crossG = $('#crossG'), railG = $('#railG'), postG = $('#postG'), fxG = $('#fxG');
+const calmMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const starsNow = () => (!G || !G.hints ? 3 : G.hints === 1 ? 2 : 1);
+
+function loadLevel(idx) {
+  idx = Math.max(0, idx | 0);
+  startLevel(idx, getLevel(idx));
+  setTimeout(() => getLevel(idx + 1), 400);
+}
+
+function startLevel(idx, L, hints) {
+  clearTimeout(winTimer); clearHint();
+  if (disarmRestart) disarmRestart();
+  $('#restartIcon').innerHTML = ICON.restart;
+  $('#restartLabel').textContent = 'Restart';
+  const F = makeField(L.w, L.h);
+  G = { idx, L, F, w: L.w, h: L.h, st: new Int8Array(F.NE), hints: hints || 0, undo: [], won: false,
+        focusE: -1, warns: 0, closedSaid: false };
+  /* pick up where you left off on this level */
+  if (save.cur && save.cur.i === idx && typeof save.cur.e === 'string' && save.cur.e.length === F.NE) {
+    for (let e = 0; e < F.NE; e++) G.st[e] = Math.max(0, Math.min(2, +save.cur.e[e] || 0));
+    G.hints = Math.max(0, save.cur.h | 0);
+  }
+  save.level = idx; persist();
+  cursor = { p: 0, show: false };
+  $('#lvTitle').textContent = 'Level ' + (idx + 1);
+  $('#lvSub').textContent = L.w + ' × ' + L.h + ' field';
+  buildBoard();
+  const res = render();
+  G.warns = res.warns;
+  closeModal();
+}
+
+/* ---------- drawing the field ---------- */
+const M = 0.6;          /* grass around the outer posts */
+const DEAD = 0.15;      /* taps this close to a post are too ambiguous to count */
+let VB = { x: -M, y: -M, w: 1, h: 1 }, VIEW = { x: -M, y: -M, w: 1, h: 1 }, pxPerUnit = 1;
+const postXY = (p) => [p % (G.w + 1), Math.floor(p / (G.w + 1))];
+const postAt = (x, y) => y * (G.w + 1) + x;
+function sideEnds(e) {
+  if (e < G.F.NH) { const r = Math.floor(e / G.w), c = e % G.w; return [c, r, c + 1, r]; }
+  const k = e - G.F.NH, r = Math.floor(k / (G.w + 1)), c = k % (G.w + 1);
+  return [c, r, c, r + 1];
+}
+function sideMid(e) { const [x1, y1, x2, y2] = sideEnds(e); return [(x1 + x2) / 2, (y1 + y2) / 2]; }
+function sideBetween(p, q) {
+  const [x1, y1] = postXY(p), [x2, y2] = postXY(q);
+  return y1 === y2 ? y1 * G.w + Math.min(x1, x2) : G.F.NH + Math.min(y1, y2) * (G.w + 1) + x1;
+}
+
+function buildBoard() {
+  const { w, h, F, L } = G;
+  VB = { x: -M, y: -M, w: w + 2 * M, h: h + 2 * M };
+  for (const g of [groundG, lushG, hintG, clueG, crossG, railG, postG, fxG]) g.innerHTML = '';
+  card.classList.remove('won');
+  el('rect', { class: 'grass', x: -M, y: -M, width: w + 2 * M, height: h + 2 * M, rx: 0.42 }, groundG);
+  /* tufts of grass, scattered the same way every time, kept off the fence lines */
+  const rnd = mulberry32(seedFor(G.idx, 7));
+  let d = '';
+  for (let i = 0; i < (w + 2) * (h + 2) * 2.2; i++) {
+    const x = -M + 0.2 + rnd() * (w + 2 * M - 0.4), y = -M + 0.3 + rnd() * (h + 2 * M - 0.45), s = 0.7 + rnd() * 0.6;
+    const inField = x > -0.2 && y > -0.2 && x < w + 0.2 && y < h + 0.2;
+    if (inField && (Math.abs(x - Math.round(x)) < 0.2 || Math.abs(y - Math.round(y)) < 0.24)) continue;
+    if (inField && Math.hypot(x % 1 - 0.5, y % 1 - 0.5) < 0.33 && L.clues[Math.floor(y) * w + Math.floor(x)] >= 0) continue;
+    /* three tapered blades leaning out from one root */
+    for (const [bx, tx, ty] of [[-0.022, -0.075, -0.1], [-0.006, 0.004, -0.15], [0.012, 0.07, -0.095]]) {
+      d += 'M' + f2(x + bx * s) + ' ' + f2(y) + 'Q' + f2(x + (bx + tx * 0.25) * s) + ' ' + f2(y + ty * 0.6 * s) + ' ' + f2(x + tx * s) + ' ' + f2(y + ty * s) +
+        'Q' + f2(x + (bx + 0.03 + tx * 0.3) * s) + ' ' + f2(y + ty * 0.5 * s) + ' ' + f2(x + (bx + 0.03) * s) + ' ' + f2(y) + 'Z';
+    }
+  }
+  el('path', { class: 'tufts', d }, groundG);
+  d = '';
+  for (let r = 0; r <= h; r++) d += 'M0 ' + r + 'H' + w;
+  for (let c = 0; c <= w; c++) d += 'M' + c + ' 0V' + h;
+  el('path', { class: 'guide', d }, groundG);
+  /* the numbers, painted on stones */
+  G.clueEls = new Array(F.NC).fill(null);
+  G.clueS = new Int8Array(F.NC).fill(-1);
+  for (let c = 0; c < F.NC; c++) {
+    const k = L.clues[c];
+    if (k < 0) continue;
+    const g = el('g', { class: 'clue', transform: 'translate(' + (c % w + 0.5) + ' ' + (Math.floor(c / w) + 0.5) + ')' }, clueG);
+    const rot = ((c * 37) % 23) - 11;
+    g.innerHTML = '<g class="stone-in"><path class="stone-sh" d="' + STONE + '" transform="translate(0 .045) rotate(' + rot + ')"/>' +
+      '<path class="stone" d="' + STONE + '" transform="rotate(' + rot + ')"/><text class="num" y=".148">' + k + '</text></g>';
+    G.clueEls[c] = g;
+  }
+  G.postEls = []; G.postS = new Int8Array(F.NP).fill(-1);
+  for (let p = 0; p < F.NP; p++) {
+    const [x, y] = postXY(p), g = el('g', { class: 'post', transform: 'translate(' + x + ' ' + y + ')' }, postG);
+    g.innerHTML = '<circle class="pb"/><circle class="pt" cx="-.012" cy="-.014"/>';
+    G.postEls.push(g);
+  }
+  G.railEls = new Array(F.NE).fill(null); G.crossEls = new Array(F.NE).fill(null); G.warnS = new Uint8Array(F.NE);
+  for (let e = 0; e < F.NE; e++) drawSide(e, false);
+  G.ringG = el('g', {}, fxG);
+  G.cursorEl = el('circle', { class: 'cursor', r: 0.2, style: 'display:none' }, fxG);
+  zoom.reset();
+  zoom.tip();
+}
+const RAIL_H = '<line class="r0" x2="1"/><line class="r1" x2="1"/><line class="r2" x1=".06" x2=".94"/><line class="r3" x1=".12" y1="-.045" x2=".88" y2="-.045"/>';
+const RAIL_V = '<line class="r0" y2="1"/><line class="r1" y2="1"/><line class="r2" y1=".06" y2=".94"/><line class="r3" x1="-.045" y1=".12" x2="-.045" y2=".88"/>';
+function drawSide(e, pop) {
+  const s = G.st[e];
+  if (s === 1 && !G.railEls[e]) {
+    const [x1, y1, , y2] = sideEnds(e), hz = y1 === y2;
+    const g = el('g', { class: 'rail', transform: 'translate(' + x1 + ' ' + y1 + ')' }, railG);
+    g.innerHTML = '<g class="rail-in' + (hz ? '' : ' v') + (pop ? ' pop' : '') + '">' + (hz ? RAIL_H : RAIL_V) + '</g>';
+    G.railEls[e] = g; G.warnS[e] = 0;
+  } else if (s !== 1 && G.railEls[e]) { G.railEls[e].remove(); G.railEls[e] = null; }
+  if (s === 2 && !G.crossEls[e]) {
+    const [mx, my] = sideMid(e);
+    const g = el('g', { transform: 'translate(' + mx + ' ' + my + ')' }, crossG);
+    el('path', { class: 'xm' + (pop ? ' pop' : ''), d: 'M-.075-.075L.075.075M.075-.075L-.075.075' }, g);
+    G.crossEls[e] = g;
+  } else if (s !== 2 && G.crossEls[e]) { G.crossEls[e].remove(); G.crossEls[e] = null; }
+}
+function setSide(e, v, pop) { G.st[e] = v; drawSide(e, pop); G.focusE = e; }
+
+/* ---------- layout: the field fits the screen at full view, and zooming makes the svg a window onto it ---------- */
+function layout() {
+  const wrap = $('#fieldWrap');
+  const availW = Math.min(wrap.clientWidth, 452) - 20;
+  const top = wrap.getBoundingClientRect().top + window.scrollY;
+  const availH = Math.max(220, window.innerHeight - top - $('#foot').offsetHeight - 52);
+  const fit = Math.min(availW / VB.w, availH / VB.h);
+  /* zoom in until a square is a comfortable fingertip wide */
+  zoom.max = Math.max(1, Math.min(4, 64 / fit));
+  const s = fit * zoom.z, cw = VB.w * s, ch = VB.h * s;
+  const vw = Math.min(cw, Math.max(availW, VB.w * fit)), vh = Math.min(ch, Math.max(availH, VB.h * fit));
+  svg.style.width = vw + 'px';
+  svg.style.height = vh + 'px';
+  card.classList.toggle('zoomed', zoom.z > 1);
+  pxPerUnit = s;
+  const r = svg.getBoundingClientRect();
+  return { cw, ch, vw, vh, left: r.left, top: r.top };
+}
+function panView() {
+  const s = pxPerUnit, g = zoom.g;
+  VIEW = { x: VB.x + zoom.x / s, y: VB.y + zoom.y / s, w: g.vw / s, h: g.vh / s };
+  svg.setAttribute('viewBox', [VIEW.x, VIEW.y, VIEW.w, VIEW.h].map((v) => v.toFixed(4)).join(' '));
+}
+/* zoomed in, slide a spot on the field (in field units) into view */
+function showSpot(x, y, r) {
+  const s = pxPerUnit;
+  zoom.show((x - r - VB.x) * s, (y - r - VB.y) * s, 2 * r * s, 2 * r * s);
+}
+window.addEventListener('resize', () => { if (G) zoom.refresh(); });
+
+/* ---------- checking: met and over-full numbers, crowded posts, loops closed too early ---------- */
+function render() {
+  const { F, st, L } = G;
+  const deg = new Uint8Array(F.NP);
+  let rails = 0;
+  for (let e = 0; e < F.NE; e++) if (st[e] === 1) { rails++; deg[F.ends[2 * e]]++; deg[F.ends[2 * e + 1]]++; }
+  let rings = '', crowded = 0;
+  for (let p = 0; p < F.NP; p++) {
+    const s = deg[p] > 2 ? 2 : deg[p] ? 1 : 0;
+    if (G.postS[p] !== s) {
+      G.postS[p] = s;
+      const g = G.postEls[p];
+      g.setAttribute('class', 'post' + (s ? ' on' : '') + (s === 2 ? ' bad' : ''));
+      g.firstChild.setAttribute('r', s ? 0.1 : 0.066);
+      g.lastChild.setAttribute('r', s ? 0.055 : 0.034);
+    }
+    if (s === 2) { crowded++; const [x, y] = postXY(p); rings += '<circle class="ring" cx="' + x + '" cy="' + y + '" r=".12"/>'; }
+  }
+  if (G.ringG.innerHTML !== rings) G.ringG.innerHTML = rings;
+  let met = 0, allMet = 0, total = 0;
+  for (let c = 0; c < F.NC; c++) {
+    const k = L.clues[c];
+    if (k < 0) continue;
+    let on = 0, off = 0;
+    for (let j = 0; j < 4; j++) { const s = st[F.cE[4 * c + j]]; if (s === 1) on++; else if (s === 2) off++; }
+    /* a 0 only fades once its sides are crossed out, so it doesn't look finished from the start */
+    const s = on > k || 4 - off < k ? 2 : on === k && (k || off === 4) ? 1 : 0;
+    total++;
+    if (on === k) { allMet++; if (s === 1) met++; }
+    if (G.clueS[c] !== s) { G.clueS[c] = s; G.clueEls[c].classList.toggle('done', s === 1); G.clueEls[c].classList.toggle('over', s === 2); }
+  }
+  /* rails in one piece? a piece that closes on itself while other rails lie outside it is wrong */
+  const par = new Int32Array(F.NP), nodes = new Int32Array(F.NP), edges = new Int32Array(F.NP);
+  for (let p = 0; p < F.NP; p++) par[p] = p;
+  const find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  for (let e = 0; e < F.NE; e++) if (st[e] === 1) { const a = find(F.ends[2 * e]), b = find(F.ends[2 * e + 1]); if (a !== b) par[a] = b; }
+  for (let p = 0; p < F.NP; p++) if (deg[p]) nodes[find(p)]++;
+  for (let e = 0; e < F.NE; e++) if (st[e] === 1) edges[find(F.ends[2 * e])]++;
+  let pieces = 0, loopsBad = 0, closed = false;
+  for (let p = 0; p < F.NP; p++) if (deg[p] && find(p) === p) pieces++;
+  for (let e = 0; e < F.NE; e++) {
+    if (st[e] !== 1) continue;
+    const r = find(F.ends[2 * e]);
+    const bad = edges[r] >= nodes[r] && edges[r] < rails ? 1 : 0;
+    if (bad && !loopsBad) loopsBad = 1;
+    if (G.warnS[e] !== bad && G.railEls[e]) { G.warnS[e] = bad; G.railEls[e].classList.toggle('warn', !!bad); }
+  }
+  if (pieces === 1 && !crowded) { const r = find(F.ends[2 * st.indexOf(1)]); closed = edges[r] === nodes[r]; }
+  $('#count').innerHTML = '<small>Rails</small>' + rails + '<span class="sub">' + met + ' of ' + total + ' numbers met</span>';
+  const stars = starsNow();
+  if (G.starsShown !== stars) {
+    $('#stars').innerHTML = starsHTML(stars);
+    $('#stars').setAttribute('aria-label', stars + (stars === 1 ? ' star' : ' stars'));
+    if (G.starsShown > stars) { const s = $('#stars').children[stars]; if (s) s.classList.add('pop'); }
+    G.starsShown = stars;
+  }
+  $('#btnUndo').disabled = !G.undo.length || G.won;
+  return { rails, met, total, warns: crowded + loopsBad, closed, solved: closed && allMet === total };
+}
+/* after a move: celebrate, or point out what just went wrong */
+function settle(quiet) {
+  const res = render();
+  queueSave();
+  if (res.solved) { win(); return; }
+  if (!quiet && res.warns > G.warns) { sfx('warn'); haptic(40); }
+  G.warns = res.warns;
+  if (res.closed && !G.closedSaid) {
+    G.closedSaid = true;
+    if (!quiet) { toast('The loop is closed, but some numbers don\'t agree yet.', 2600); sfx('bonk'); }
+  } else if (!res.closed) G.closedSaid = false;
+}
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!G || G.won) { if (save.cur) { delete save.cur; persist(); } return; }
+    save.cur = { i: G.idx, e: G.st.join(''), h: G.hints };
+    persist();
+  }, 300);
+}
+
+/* ---------- input: tap a side to cycle rail / cross / clear, or drag along the lines ---------- */
+function svgPoint(e, keepIn) {
+  const r = svg.getBoundingClientRect();
+  let x = e.clientX, y = e.clientY;
+  /* zoomed in, a stroke can't run on past the edge of the window */
+  if (keepIn && zoom.z > 1) { x = Math.max(r.left, Math.min(r.right, x)); y = Math.max(r.top, Math.min(r.bottom, y)); }
+  return { x: VIEW.x + (x - r.left) / r.width * VIEW.w, y: VIEW.y + (y - r.top) / r.height * VIEW.h };
+}
+/* the side nearest a point, or -1 off the field or right on top of a post */
+function sideAt(pt, loose) {
+  const { w, h } = G, x = pt.x, y = pt.y;
+  if (x < -0.42 || y < -0.42 || x > w + 0.42 || y > h + 0.42) return -1;
+  if (!loose && Math.hypot(x - Math.round(x), y - Math.round(y)) < DEAD) return -1;
+  const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+  const hr = cl(Math.round(y), 0, h), hc = cl(Math.floor(x), 0, w - 1);
+  const dh = Math.abs(y - hr) + Math.max(0, hc - x, x - hc - 1);
+  const vc = cl(Math.round(x), 0, w), vr = cl(Math.floor(y), 0, h - 1);
+  const dv = Math.abs(x - vc) + Math.max(0, vr - y, y - vr - 1);
+  return dh <= dv ? hr * w + hc : G.F.NH + vr * (w + 1) + vc;
+}
+function knock(k) {
+  const now = performance.now();
+  if (now - lastKnock > 45) { sfx('rail', k); lastKnock = now; }
+}
+function playDown(e) {
+  if (!G || G.won || drag || modalOpen()) return;
+  if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 2) return;
+  if (!svg.contains(e.target)) return;
+  const pt = svgPoint(e);
+  if (pt.x < -0.42 || pt.y < -0.42 || pt.x > G.w + 0.42 || pt.y > G.h + 0.42) return;
+  e.preventDefault();
+  try { svg.setPointerCapture(e.pointerId); } catch (err) {}
+  clearHint();
+  if (cursor.show) { cursor.show = false; drawCursor(); }
+  drag = { id: e.pointerId, x0: pt.x, y0: pt.y, sx: e.clientX, sy: e.clientY, alt: e.button === 2, pen: -1, mode: '', stack: [], orig: new Map(), n: 0 };
+}
+/* a stroke starts at the post under the finger, or at the end of the side it is moving away from */
+function startPost(x, y, dx, dy) {
+  const c = Math.max(0, Math.min(G.w, Math.round(x))), r = Math.max(0, Math.min(G.h, Math.round(y)));
+  if (Math.hypot(x - c, y - r) < 0.3) return postAt(c, r);
+  const s = sideAt({ x, y }, true);
+  if (s < 0) return postAt(c, r);
+  const [ax, ay, bx, by] = sideEnds(s);
+  return (bx - ax) * dx + (by - ay) * dy >= 0 ? postAt(ax, ay) : postAt(bx, by);
+}
+function playMove(e) {
+  if (!drag || e.pointerId !== drag.id || drag.alt || !G || G.won) return;
+  const pt = svgPoint(e, true);
+  if (drag.pen < 0) {
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 8 && Math.hypot(pt.x - drag.x0, pt.y - drag.y0) < 0.3) return;
+    drag.pen = startPost(drag.x0, drag.y0, pt.x - drag.x0, pt.y - drag.y0);
+  }
+  /* walk post by post towards the finger, so a quick swipe doesn't skip any */
+  let moved = false;
+  for (let guard = 0; guard < 60; guard++) {
+    const [px, py] = postXY(drag.pen), dx = pt.x - px, dy = pt.y - py;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 0.62) break;
+    let nx = px, ny = py;
+    if (Math.abs(dx) >= Math.abs(dy)) nx += Math.sign(dx); else ny += Math.sign(dy);
+    if (nx < 0 || ny < 0 || nx > G.w || ny > G.h) break;
+    const q = postAt(nx, ny);
+    strokeSide(sideBetween(drag.pen, q));
+    drag.pen = q; moved = true;
+  }
+  if (moved) render();
+}
+function strokeSide(e) {
+  const top = drag.stack[drag.stack.length - 1];
+  /* back over the side just laid: put it back the way it was */
+  if (top && top.e === e) {
+    drag.stack.pop();
+    if (G.st[e] !== top.prev) { setSide(e, top.prev); sfx('lift'); }
+    return;
+  }
+  if (!drag.mode) drag.mode = G.st[e] === 1 ? 'lift' : 'lay';
+  if (!drag.orig.has(e)) drag.orig.set(e, G.st[e]);
+  const prev = G.st[e];
+  drag.stack.push({ e, prev });
+  if (drag.mode === 'lay' && prev !== 1) { setSide(e, 1, true); knock(drag.n++); }
+  else if (drag.mode === 'lift' && prev === 1) { setSide(e, 0); sfx('lift'); }
+}
+function playUp(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  const d = drag;
+  drag = null;
+  if (!G || G.won) return;
+  if (d.pen < 0) {
+    const s = sideAt({ x: d.x0, y: d.y0 });
+    if (s < 0) return;
+    const prev = G.st[s], next = d.alt ? (prev === 2 ? 0 : 2) : (prev + 1) % 3;
+    setSide(s, next, true);
+    G.undo.push([[s, prev]]);
+    if (next === 1) { sfx('rail', 0); haptic(8); } else sfx(next === 2 ? 'cross' : 'clear');
+  } else {
+    const ch = [];
+    for (const [s, v] of d.orig) if (G.st[s] !== v) ch.push([s, v]);
+    if (!ch.length) { render(); return; }
+    G.undo.push(ch);
+    if (G.undo.length > 300) G.undo.shift();
+  }
+  settle();
+}
+/* a pinch or pan took over the finger: put back anything the stroke changed, so pinching never plays */
+function playCancel(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  const d = drag;
+  drag = null;
+  if (!G || G.won) return;
+  for (const [s, v] of d.orig) if (G.st[s] !== v) setSide(s, v);
+  render();
+}
+svg.addEventListener('contextmenu', (e) => e.preventDefault());
+
+const zoom = makeZoom({
+  el: $('#fieldWrap'),
+  fit: $('#zoomFit'),
+  layout, pan: panView,
+  down: playDown, move: playMove, up: playUp, cancel: playCancel,
+  /* zoomed in, a one-finger drag from the middle of a square (or off the field) slides it around */
+  canPan: (e) => {
+    if (!G || G.won || !svg.contains(e.target)) return true;
+    const pt = svgPoint(e);
+    if (pt.x < -0.3 || pt.y < -0.3 || pt.x > G.w + 0.3 || pt.y > G.h + 0.3) return true;
+    return Math.min(Math.abs(pt.x - Math.round(pt.x)), Math.abs(pt.y - Math.round(pt.y))) > 0.3;
+  },
+  focus: () => {
+    if (!cursor.show) return null;
+    const r = svg.getBoundingClientRect(), [x, y] = postXY(cursor.p);
+    return { x: r.left + (x - VIEW.x) / VIEW.w * r.width, y: r.top + (y - VIEW.y) / VIEW.h * r.height };
+  },
+  tip: 'Tip: pinch the field to zoom in. Drag with two fingers, or from the middle of a square, to look around.'
+});
+
+/* keyboard: arrows walk between posts, Shift+arrow lays or lifts a rail, hold X and press an arrow to cross a side out */
+function drawCursor() {
+  if (!G) return;
+  const c = G.cursorEl;
+  if (!cursor.show || G.won) { c.style.display = 'none'; return; }
+  const [x, y] = postXY(cursor.p);
+  c.setAttribute('cx', x); c.setAttribute('cy', y); c.style.display = '';
+}
+svg.addEventListener('keydown', (e) => {
+  if (!G || G.won) return;
+  if (e.key === 'x' || e.key === 'X') { xHeld = true; return; }
+  if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); return; }
+  const d = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  if (!cursor.show) { cursor.show = true; drawCursor(); const [x, y] = postXY(cursor.p); showSpot(x, y, 0.8); return; }
+  const [x, y] = postXY(cursor.p), nx = x + d[0], ny = y + d[1];
+  if (nx < 0 || ny < 0 || nx > G.w || ny > G.h) return;
+  const q = postAt(nx, ny), s = sideBetween(cursor.p, q), prev = G.st[s];
+  clearHint();
+  if (e.shiftKey || xHeld) {
+    const next = xHeld ? (prev === 2 ? 0 : 2) : (prev === 1 ? 0 : 1);
+    setSide(s, next, true);
+    G.undo.push([[s, prev]]);
+    sfx(next === 1 ? 'rail' : next === 2 ? 'cross' : 'lift');
+    if (!xHeld) cursor.p = q;
+    drawCursor();
+    settle();
+  } else { cursor.p = q; drawCursor(); }
+  if (G && !G.won) showSpot(...postXY(cursor.p), 0.8);
+});
+document.addEventListener('keyup', (e) => { if (e.key === 'x' || e.key === 'X') xHeld = false; });
+svg.addEventListener('blur', () => { xHeld = false; if (cursor.show) { cursor.show = false; drawCursor(); } });
+
+function undo() {
+  if (!G || G.won || !G.undo.length) return;
+  clearHint();
+  for (const [s, v] of G.undo.pop().reverse()) setSide(s, v);
+  sfx('lift');
+  settle(true);
+}
+$('#btnUndo').addEventListener('click', undo);
+
+/* ---------- hint: put right a mistake, or settle the next side that logic decides, and say why ---------- */
+/* every side the counting and post rules settle straight away */
+function basicSteps(F, clues, st) {
+  const out = [];
+  for (let c = 0; c < F.NC; c++) {
+    const k = clues[c];
+    if (k < 0) continue;
+    let on = 0, un = 0;
+    for (let j = 0; j < 4; j++) { const s = st[F.cE[4 * c + j]]; if (s === 1) on++; else if (!s) un++; }
+    if (!un || (on !== k && on + un !== k)) continue;
+    for (let j = 0; j < 4; j++) { const e = F.cE[4 * c + j]; if (!st[e]) out.push({ e, v: on === k ? 2 : 1, why: on === k ? 'cellDone' : 'cellNeed', at: c }); }
+  }
+  for (let p = 0; p < F.NP; p++) {
+    let on = 0, un = 0, last = -1;
+    for (let j = 0; j < 4; j++) { const e = F.pE[4 * p + j]; if (e < 0) continue; if (st[e] === 1) on++; else if (!st[e]) { un++; last = e; } }
+    if (!un) continue;
+    if (on === 2) { for (let j = 0; j < 4; j++) { const e = F.pE[4 * p + j]; if (e >= 0 && !st[e]) out.push({ e, v: 2, why: 'postFull', at: p }); } }
+    else if (un === 1 && on < 2) out.push({ e: last, v: on ? 1 : 2, why: on ? 'postEnd' : 'postLone', at: p });
+  }
+  return out;
+}
+function focusPoint() {
+  if (G.focusE >= 0) return sideMid(G.focusE);
+  return [G.w / 2, G.h / 2];
+}
+function nearestOf(list) {
+  const [fx, fy] = focusPoint();
+  let best = null, bd = Infinity;
+  for (const s of list) { const [x, y] = sideMid(s.e), d = Math.hypot(x - fx, y - fy); if (d < bd) { bd = d; best = s; } }
+  return best;
+}
+function nextStep() {
+  const { F, st, L } = G, sol = L.sol;
+  const ok = (s) => s && !st[s.e] && sol[s.e] === s.v;
+  const now = basicSteps(F, L.clues, st).filter(ok);
+  if (now.length) { const rails = now.filter((s) => s.v === 1); return nearestOf(rails.length ? rails : now); }
+  for (const level of [0, 1]) { const s = solveField(F, L.clues, Int8Array.from(st), level, true); if (ok(s)) return s; }
+  const rest = [];
+  for (let e = 0; e < F.NE; e++) if (!st[e]) rest.push({ e, v: sol[e], why: 'answer', at: -1 });
+  return nearestOf(rest);
+}
+/* corner reasoning, told in words */
+function pairText(s) {
+  const F = G.F, q = s.at, p = q >> 2, c = F.qCell[q], k = c >= 0 ? G.L.clues[c] : -1, m = s.m;
+  const outer = [0, 1, 2, 3].map((j) => F.pE[4 * p + j]).filter((x) => x !== F.qa[q] && x !== F.qb[q]);
+  const corner = outer.every((x) => x < 0), shut = outer.every((x) => x < 0 || G.st[x] === 2);
+  const what = s.v === 1 ? 'fenced.' : 'open.';
+  if (k === 3 && m === 4) {
+    if (corner) return 'A 3 in a corner of the field fences both corner sides.';
+    if (shut) return 'A 3 in a corner fences both outer sides.';
+    const j = [0, 1, 2, 3].find((x) => F.qOf[4 * c + x] === q), o = (j + 2) % 4;
+    const r2 = Math.floor(c / G.w) + (o === 0 || o === 1 ? -1 : 1), c2 = c % G.w + (o === 0 || o === 3 ? -1 : 1);
+    if (r2 >= 0 && c2 >= 0 && r2 < G.h && c2 < G.w && G.L.clues[r2 * G.w + c2] === 3) return 'Two 3s on a diagonal fence both of their far corners.';
+    return 'This 3 has to wrap around this corner, so both sides here are fenced.';
+  }
+  if (k === 1 && m === 1) return corner || shut ? 'A 1 in a corner leaves both corner sides open.' : 'This 1 can\'t wrap around this corner, so both sides here stay open.';
+  if (m === 2) return 'The fence passes this corner' + (k >= 0 ? ' of the ' + k : '') + ' on exactly one side, so this side is ' + what;
+  if (m === 5) return 'At this corner both sides go together, fenced or open, so this side is ' + what;
+  if (m === 3) return 'This corner can take at most one rail, so this side stays open.';
+  if (m === 6) return 'This corner needs at least one rail, so this side is fenced.';
+  if (m === 1) return 'The fence can\'t reach this corner at all, so both sides stay open.';
+  if (m === 4) return 'The fence has to wrap around this corner, so both sides are fenced.';
+  return 'Following the corners around here, this side must be ' + what;
+}
+function hintText(s) {
+  const k = s.why === 'cellDone' || s.why === 'cellNeed' ? G.L.clues[s.at] : -1;
+  switch (s.why) {
+    case 'wrong1': return 'This rail isn\'t part of the fence, so it comes down.';
+    case 'wrong2': return 'This side does need a rail after all.';
+    case 'cellDone': return k === 0 ? 'A 0 has no fence on any side.' : 'This ' + k + ' already has ' + k + ' rail' + (k > 1 ? 's' : '') + ', so its other sides stay open.';
+    case 'cellNeed': {
+      let x = 0;
+      for (let j = 0; j < 4; j++) if (G.st[G.F.cE[4 * s.at + j]] === 2) x++;
+      return x ? 'This ' + k + ' needs every side that isn\'t crossed out.' : 'This ' + k + ' needs every side it has left.';
+    }
+    case 'postFull': return 'This post already has two rails, so no more can join it.';
+    case 'postEnd': return 'A post can\'t have a dead end: the fence must carry on along its only free side.';
+    case 'postLone': return 'Only one side is free at this post, so a rail there would be a dead end.';
+    case 'loopSmall': return 'This would close a small loop, leaving other rails outside it.';
+    case 'loopEarly': return 'Closing the loop here would leave some numbers short, so this side stays open.';
+    case 'loopDone': return 'The fence is already one closed loop, so nothing else is fenced.';
+    case 'pair': return pairText(s);
+    default: return 'This side is ' + (s.v === 1 ? 'part of the fence.' : 'left open.');
+  }
+}
+function clearHint() {
+  clearTimeout(hintTimer);
+  hintG.innerHTML = '';
+  for (const g of clueG.querySelectorAll('.clue.hint')) g.classList.remove('hint');
+}
+function hint() {
+  if (!G || G.won) return;
+  clearHint();
+  const { F, st, L } = G;
+  /* a wrong rail or cross gets put right first */
+  const wrong = [];
+  for (let e = 0; e < F.NE; e++) if (st[e] && st[e] !== L.sol[e]) wrong.push({ e, v: L.sol[e], why: 'wrong' + st[e], at: -1 });
+  const s = wrong.length ? nearestOf(wrong) : nextStep();
+  if (!s) return;
+  const text = hintText(s);
+  G.undo.push([[s.e, st[s.e]]]);
+  setSide(s.e, s.v, true);
+  G.hints++;
+  /* glow on the side, and on the number or post that decides it */
+  const [x1, y1, x2, y2] = sideEnds(s.e);
+  el('line', { class: 'hl', x1, y1, x2, y2 }, hintG);
+  const cell = s.why.startsWith('cell') ? s.at : s.why === 'pair' ? F.qCell[s.at] : -1;
+  const post = s.why.startsWith('post') ? s.at : s.why === 'pair' ? s.at >> 2 : -1;
+  if (cell >= 0 && G.clueEls[cell]) G.clueEls[cell].classList.add('hint');
+  if (post >= 0) { const [px, py] = postXY(post); el('circle', { class: 'hl-post', cx: px, cy: py, r: 0.24 }, hintG); }
+  const [mx, my] = sideMid(s.e);
+  showSpot(mx, my, 1.3);
+  sfx('hint');
+  toast(text, 3800);
+  hintTimer = setTimeout(clearHint, 3300);
+  settle(true);
+}
+$('#btnHint').addEventListener('click', hint);
+
+/* ---------- winning: the paddock turns lush, the gate opens and the flock hops in ---------- */
+const WIN_TITLES = ['Ewe did it!', 'Well penned!', 'Pasture perfect!', 'Fenced in!', 'Shear brilliance!'];
+function win() {
+  if (G.won) return;
+  G.won = true;
+  const stars = starsNow();
+  save.done[G.idx] = Math.max(save.done[G.idx] || 0, stars);
+  if (G.idx >= BANK.length) { save.pads = save.pads || {}; save.pads[G.idx] = G.w.toString(36) + G.h.toString(36) + bitsTo64(G.L.region); }
+  delete save.cur;
+  persist();
+  clearHint(); drawCursor();
+  $('#restartLabel').textContent = 'Next';
+  $('#restartIcon').innerHTML = ICON.chevR;
+  $('#btnUndo').disabled = true;
+  zoom.reset(true);
+  card.classList.add('won');
+  const spots = celebrate();
+  sfx('win');
+  haptic(30);
+  winTimer = setTimeout(() => showWin(stars, spots), calmMotion() ? 900 : 2900);
+}
+function celebrate() {
+  const { w, h, L } = G, region = L.region, calm = calmMotion();
+  /* the gate: a rail low on the paddock with open grass (or the edge of the field) below it */
+  let gr = -1, gc = -1, best = Infinity;
+  for (let r = 1; r <= h; r++) for (let c = 0; c < w; c++) {
+    if (!region[(r - 1) * w + c] || (r < h && region[r * w + c])) continue;
+    const score = (h - r) * 10 + Math.abs(c + 0.5 - w / 2);
+    if (score < best) { best = score; gr = r; gc = c; }
+  }
+  const inner = (gr - 1) * w + gc;
+  /* walk the paddock outward from the gate */
+  const dist = new Int32Array(w * h).fill(-1), from = new Int32Array(w * h).fill(-1), queue = [inner];
+  dist[inner] = 0;
+  for (let i = 0; i < queue.length; i++) {
+    const c = queue[i], r = Math.floor(c / w), x = c % w;
+    for (const n of [r > 0 ? c - w : -1, r < h - 1 ? c + w : -1, x > 0 ? c - 1 : -1, x < w - 1 ? c + 1 : -1]) {
+      if (n >= 0 && region[n] && dist[n] < 0) { dist[n] = dist[c] + 1; from[n] = c; queue.push(n); }
+    }
+  }
+  let html = '';
+  for (const c of queue) html += '<rect class="lush" x="' + (c % w - 0.02) + '" y="' + (Math.floor(c / w) - 0.02) + '" width="1.04" height="1.04" style="animation-delay:' + (calm ? 0 : dist[c] * 55) + 'ms"/>';
+  const rnd = mulberry32(seedFor(G.idx, 21));
+  for (const c of queue) {
+    for (let k = 0; k < 2; k++) {
+      if (rnd() > 0.42) continue;
+      const fx = c % w + (rnd() < 0.5 ? 0.2 : 0.8) + (rnd() - 0.5) * 0.12, fy = Math.floor(c / w) + (rnd() < 0.5 ? 0.22 : 0.8) + (rnd() - 0.5) * 0.1;
+      html += '<g transform="translate(' + f2(fx) + ' ' + f2(fy) + ')"><g class="flower" style="animation-delay:' + (calm ? 0 : 380 + dist[c] * 55 + Math.floor(rnd() * 200)) + 'ms">' +
+        flowerMarkup(PETALS[Math.floor(rnd() * PETALS.length)], 1) + '</g></g>';
+    }
+  }
+  lushG.innerHTML = html;
+  /* where the sheep settle: spread out, not too far from the gate */
+  const n = Math.min(queue.length, Math.max(2, Math.min(5, Math.round(queue.length / 6))));
+  const pool = shuffleArr(queue.slice(), rnd), targets = [];
+  for (const gap of [3, 2, 1, 0]) {
+    for (const c of pool) {
+      if (targets.length >= n) break;
+      if (targets.includes(c) || (dist[c] > 9 && gap)) continue;
+      if (targets.every((t) => Math.abs(t % w - c % w) + Math.abs(Math.floor(t / w) - Math.floor(c / w)) >= gap)) targets.push(c);
+    }
+  }
+  const flock = targets.map((t, i) => {
+    const path = [];
+    for (let c = t; c >= 0; c = from[c]) path.unshift(c);
+    const pts = [[gc + 0.5, gr + 0.5]].concat(path.map((c) => [c % w + 0.5, Math.floor(c / w) + 0.5]));
+    const g = el('g', { class: 'sheep', opacity: 0 }, fxG);
+    g.innerHTML = '<ellipse rx=".24" ry=".055" fill="rgba(30,40,10,.22)"/><g>' + SHEEP + '</g>';
+    return { g, body: g.lastChild, pts, start: 500 + i * 260, hop: Math.max(110, Math.min(250, 1250 / (pts.length - 1))), dir: i % 2 ? -1 : 1, done: false, k: i };
+  });
+  const spots = flock.map((s) => { const p = s.pts[s.pts.length - 1]; return [p[0], p[1] + 0.27, s.dir]; });
+  /* the gate itself, hinged on its left post */
+  const gateE = gr * w + gc;
+  if (G.railEls[gateE]) { G.railEls[gateE].remove(); G.railEls[gateE] = null; }
+  const gate = el('g', { transform: 'translate(' + gc + ' ' + gr + ')' }, railG);
+  gate.innerHTML = '<g><path d="M.08-.06H.94M.08.06H.94M.12-.09V.09M.9-.09V.09M.14.05L.88-.05" stroke="var(--rail-dark)" stroke-width=".09" stroke-linecap="round" fill="none"/>' +
+    '<path d="M.08-.06H.94M.08.06H.94M.12-.09V.09M.9-.09V.09M.14.05L.88-.05" stroke="var(--rail-hi)" stroke-width=".045" stroke-linecap="round" fill="none"/></g>';
+  const leaf = gate.firstChild;
+  const place = (s, x, y, lift, dir) => {
+    s.g.setAttribute('transform', 'translate(' + f2(x) + ' ' + f2(y + 0.27) + ')');
+    s.body.setAttribute('transform', 'translate(0 ' + f2(-lift) + ') scale(' + dir + ' 1)');
+  };
+  if (calm || !flock.length) {
+    for (const s of flock) { const p = s.pts[s.pts.length - 1]; place(s, p[0], p[1], 0, s.dir); s.g.setAttribute('opacity', 1); s.g.classList.add('graze'); }
+    return spots;
+  }
+  const last = flock[flock.length - 1], shutAt = last.start + last.hop * 1.6;
+  let t0 = 0;
+  const frame = (now) => {
+    if (!gate.isConnected) return;
+    if (!t0) t0 = now;
+    const t = now - t0;
+    /* swing open, wait for the last sheep, swing shut */
+    const open = Math.min(1, Math.max(0, (t - 150) / 320)) * (1 - Math.min(1, Math.max(0, (t - shutAt) / 320)));
+    leaf.setAttribute('transform', 'rotate(' + f2(100 * (1 - Math.pow(1 - open, 2))) + ')');
+    let busy = t < shutAt + 340;
+    for (const s of flock) {
+      if (s.done) continue;
+      busy = true;
+      const u = (t - s.start) / s.hop;
+      if (u < 0) continue;
+      const seg = Math.floor(u), f = u - seg;
+      if (seg >= s.pts.length - 1) {
+        const p = s.pts[s.pts.length - 1];
+        place(s, p[0], p[1], 0, s.dir);
+        s.done = true; s.g.classList.add('graze');
+        if (s.k === 0 || s === last) sfx('baa', s.k);
+        continue;
+      }
+      const a = s.pts[seg], b = s.pts[seg + 1];
+      if (b[0] !== a[0]) s.dir = b[0] > a[0] ? 1 : -1;
+      place(s, a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, Math.sin(Math.PI * f) * 0.2, s.dir);
+      s.g.setAttribute('opacity', seg ? 1 : f2(Math.min(1, f * 2.5)));
+    }
+    if (busy) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+  return spots;
+}
+function showWin(stars, spots) {
+  const L = G.L;
+  let size = 0;
+  for (let c = 0; c < L.w * L.h; c++) size += L.region[c];
+  openModal(
+    '<div class="paddock">' + paddockSVG(L, true, spots) + '</div>' +
+    '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
+    '<p>The flock has a new paddock: ' + size + ' squares of fresh grass.</p>' +
+    '<div class="badge-row">' + starsHTML(stars) + '</div>' +
+    (stars < 3 ? '<p style="font-size:15px;margin-top:-6px">Finish without a hint for three stars.</p>' : '') +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="next">Next level</button>' +
+    '<button class="btn" data-act="levels">Your paddocks</button>' +
+    '<button class="btn" data-act="close">Admire it</button>' +
+    '</div>'
+  );
+}
+
+/* ---------- how to play ---------- */
+const POSTDOT = (x, y) => '<circle cx="' + x + '" cy="' + y + '" r="2" fill="var(--post)"/>';
+GAME.showHelp = () => {
+  const wood = (d) => '<path class="wood-d" d="' + d + '"/><path class="wood" d="' + d + '"/>';
+  openModal(
+    '<div class="logo">' + SHEEP_FACE + '<h2>Fence Line</h2></div>' +
+    '<p>Build one fence around the field for the flock.</p>' +
+    '<ul class="rules">' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M5 19V5h14') + POSTDOT(5, 5) + POSTDOT(19, 5) + POSTDOT(5, 19) + POSTDOT(19, 19) +
+      '<text x="13" y="16.4" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="Fredoka,system-ui">2</text></svg></span><span>Each number says how many of its square\'s four sides are fenced.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M4 5h10v6h6v8H4z') + '</svg></span><span>Make one closed loop: no branches, no crossings, no loose ends.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M4 7h16') + '<path d="M9.5 13.5l5 5M14.5 13.5l-5 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".7"/></svg></span><span>Tap a side for a rail, again for an x (no fence), again to clear.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M4 20v-8h8V4h7') + '<circle cx="19" cy="4" r="3" fill="var(--accent)"/></svg></span><span>Drag along the lines to lay fence; drag back to take it up.</span></li>' +
+    '<li><span class="mini">' + ICON.hint + '</span><span>Stuck? A hint settles one side and says why. Fewer hints, more stars.</span></li>' +
+    '<li><span class="mini">' + ZOOM_ICON.in + '</span><span>Big field? Pinch to zoom in, and drag with two fingers to look around.</span></li>' +
+    '</ul>' +
+    '<p style="font-size:15px;margin-top:-4px">Every field has one answer, reachable by logic alone. Close the loop and the flock moves in.</p>' +
+    '<div class="stack"><button class="btn primary" data-act="close">Start fencing</button></div>'
+  );
+};
+
+/* ---------- music: a lazy pastoral tune on a pipe over soft strings ---------- */
+const PIPE = (t, f, d, v) => {
+  v = v || 0.085;
+  tone(t, f, { type: 'sine', a: 0.07, hold: d * 0.5, dur: d * 0.5 + 0.12, vol: v, vib: 0.007, vibRate: 4.8, bus: musicBus });
+  tone(t, f * 2, { type: 'sine', a: 0.06, hold: d * 0.3, dur: d * 0.4, vol: v * 0.12, bus: musicBus });
+  noise(t, { f: Math.min(9000, f * 3), q: 5, dur: 0.07, vol: v * 0.2, bus: musicBus });
+};
+const STRINGS = (t, f, d, v) => {
+  v = v || 0.02;
+  tone(t, f, { type: 'sawtooth', a: 0.5, hold: d * 0.45, dur: d * 0.55, vol: v, lp: 760, bus: musicBus });
+  tone(t, f * 1.005, { type: 'sawtooth', a: 0.6, hold: d * 0.4, dur: d * 0.55, vol: v * 0.8, lp: 700, bus: musicBus });
+};
+GAME.music = {
+  tempo: 80,
+  tracks: [
+    { inst: PIPE, vol: 0.085, seq: track('D5:1.5 E5:.5 D5 B4 G4:2 A4 B4 C5:1.5 B4:.5 A4 G4 A4:3 - B4:1.5 C5:.5 D5 G5 E5:2 D5 B4 C5:1.5 A4:.5 B4 A4 G4:3 - ' +
+      'G5:1.5 F#5:.5 E5 D5 E5:2 D5 B4 C5:1.5 D5:.5 E5 C5 D5:3 - B4:1.5 C5:.5 D5 B4 C5:1.5 B4:.5 A4 G4 A4:1.5 B4:.5 A4 F#4 G4:3 -') },
+    { inst: STRINGS, vol: 0.022, seq: track('G2:4 E2:4 C3:4 D3:4 G2:4 E2:4 A2:4 G2:4 G2:4 E2:4 C3:4 D3:4 G2:4 A2:4 D3:4 G2:4') },
+    { inst: STRINGS, vol: 0.016, seq: track('B3:4 G3:4 E3:4 F#3:4 B3:4 G3:4 C4:4 B3:4 B3:4 G3:4 E3:4 F#3:4 B3:4 C4:4 F#3:4 B3:4') },
+    { inst: INST.harp, vol: 0.045, seq: track('G3 D4 G4 D4 E3 B3 E4 B3 C3 G3 C4 G3 D3 A3 D4 A3 G3 D4 G4 D4 E3 B3 E4 B3 A2 E3 A3 E3 G3 D4 G4 D4 ' +
+      'G3 D4 G4 D4 E3 B3 E4 B3 C3 G3 C4 G3 D3 A3 D4 A3 G3 D4 G4 D4 A2 E3 A3 E3 D3 A3 D4 A3 G3 D4 G4 D4') }
+  ]
+};
+GAME.sfx = {
+  /* a wooden knock as a rail goes up */
+  rail(t, k) {
+    const f = 1 + ((k || 0) % 5) * 0.045;
+    tone(t, 215 * f, { type: 'sine', to: 140 * f, a: 0.002, dur: 0.08, vol: 0.17 });
+    tone(t, 560 * f, { type: 'triangle', to: 410 * f, a: 0.001, dur: 0.03, vol: 0.05 });
+    noise(t, { f: 1250, q: 2.2, dur: 0.035, vol: 0.06 });
+  },
+  lift(t) { tone(t, 300, { type: 'sine', to: 220, a: 0.002, dur: 0.05, vol: 0.06 }); noise(t, { f: 900, q: 2, dur: 0.025, vol: 0.03 }); },
+  /* a soft pluck for an x */
+  cross(t) { tone(t, 784, { type: 'triangle', a: 0.002, dur: 0.15, vol: 0.075, lp: 2600 }); tone(t, 1568, { type: 'sine', a: 0.002, dur: 0.05, vol: 0.02 }); },
+  clear(t) { tone(t, 520, { type: 'sine', to: 440, a: 0.002, dur: 0.045, vol: 0.04 }); },
+  hint(t) { tone(t, 1175, { type: 'sine', a: 0.004, dur: 0.25, vol: 0.06 }); tone(t + 0.09, 1568, { type: 'sine', a: 0.004, dur: 0.3, vol: 0.05 }); },
+  baa(t, k) {
+    const f = [392, 440, 349, 415, 370][(k || 0) % 5];
+    tone(t, f * 1.04, { type: 'sawtooth', to: f * 0.94, glide: 0.45, a: 0.03, hold: 0.14, dur: 0.3, vol: 0.035, lp: 1500, vib: 0.05, vibRate: 10 });
+    tone(t, f * 2.02, { type: 'sawtooth', to: f * 1.9, glide: 0.45, a: 0.03, hold: 0.1, dur: 0.25, vol: 0.012, lp: 2400, vib: 0.05, vibRate: 10 });
+  },
+  /* a little fanfare, then a bleating chord: wobbly saws that sag in pitch */
+  win(t) {
+    SFX.win(t);
+    const c = t + 0.5;
+    ['G4', 'B4', 'D5'].forEach((n, i) => {
+      const f = noteFreq(n);
+      tone(c + i * 0.025, f * 1.03, { type: 'sawtooth', to: f * 0.97, glide: 0.6, a: 0.04, hold: 0.25, dur: 0.45, vol: 0.055, lp: 1700, vib: 0.035, vibRate: 9 });
+    });
+  }
+};
+
+/* ---------- boot ---------- */
+$('#undoIcon').innerHTML = ICON.undo;
+$('#hintIcon').innerHTML = ICON.hint;
+$('#restartIcon').innerHTML = ICON.restart;
+const disarmRestart = armConfirm($('#btnRestart'), $('#restartLabel'), 'Restart',
+  () => G && !G.won && G.st.some((v) => v),
+  () => {
+    if (G.won) { loadLevel(G.idx + 1); return; }
+    delete save.cur; persist();
+    startLevel(G.idx, G.L, G.hints);
+  });
+shellBoot();
+loadLevel(save.level || 0);
+if (!save.seenHelp) { GAME.showHelp(); save.seenHelp = true; persist(); }
+</script>
+</body>
+</html>

@@ -1,0 +1,2315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Fair Isle</title>
+<meta name="description" content="A colour knitting picture-logic puzzle: use the coloured number clues to knit a hidden picture.">
+<meta name="theme-color" content="#f4ede4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17131c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fair Isle">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4ede4;
+  --card:#fffaf5;
+  --card-edge:#e7d8c9;
+  --ink:#33283a;
+  --muted:#85768a;
+  --accent:#7a4c9f;
+  --accent-ink:#ffffff;
+  --heart:#e5484d;
+  --star:#f2b84b;
+  --gridink:#33283a;
+  --mini:#ecdff6;
+  --shadow:0 10px 28px rgba(60,35,50,.14);
+  --scrim:rgba(30,20,35,.55);
+  --fabric:#ebe0d1;
+  --hole:rgba(110,80,60,.2);
+  --line:rgba(110,80,60,.18);
+  --line5:rgba(80,55,45,.45);
+  --frame:#c9ae93;
+  --thread:#7a4c9f;
+  --thread-hi:#a77fc9;
+  --dot:#9a8b84;
+  --wrong:#d3182f;
+  --wrongbg:#f9d4d4;
+  --hl:rgba(122,76,159,.13);
+  --ghost:rgba(122,76,159,.3);
+  --weave:rgba(120,85,60,.085);
+  --chip-edge:rgba(40,20,30,.2);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#17131c;
+    --card:#231d2a;
+    --card-edge:#3c3247;
+    --ink:#f3edf6;
+    --muted:#ad9fb7;
+    --accent:#c49be8;
+    --accent-ink:#22162e;
+    --heart:#ff6b86;
+    --star:#f6c35b;
+    --gridink:#0d0a10;
+    --mini:#41305a;
+    --shadow:0 10px 28px rgba(0,0,0,.45);
+    --scrim:rgba(6,4,10,.7);
+    --fabric:#342d3e;
+    --hole:rgba(0,0,0,.35);
+    --line:rgba(255,255,255,.08);
+    --line5:rgba(255,255,255,.24);
+    --frame:#6e5a6a;
+    --thread:#c49be8;
+    --thread-hi:#e4cff7;
+    --dot:#8c8098;
+    --wrong:#ff5c6c;
+    --wrongbg:#4a2230;
+    --hl:rgba(196,155,232,.16);
+    --ghost:rgba(196,155,232,.3);
+    --weave:rgba(255,255,255,.05);
+    --chip-edge:rgba(255,255,255,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#17131c;--card:#231d2a;--card-edge:#3c3247;--ink:#f3edf6;--muted:#ad9fb7;--accent:#c49be8;--accent-ink:#22162e;
+  --heart:#ff6b86;--star:#f6c35b;--gridink:#0d0a10;--mini:#41305a;--shadow:0 10px 28px rgba(0,0,0,.45);--scrim:rgba(6,4,10,.7);
+  --fabric:#342d3e;--hole:rgba(0,0,0,.35);--line:rgba(255,255,255,.08);--line5:rgba(255,255,255,.24);--frame:#6e5a6a;
+  --thread:#c49be8;--thread-hi:#e4cff7;--dot:#8c8098;--wrong:#ff5c6c;--wrongbg:#4a2230;--hl:rgba(196,155,232,.16);--ghost:rgba(196,155,232,.3);
+  --weave:rgba(255,255,255,.05);--chip-edge:rgba(255,255,255,.3);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Fredoka',ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+a.btn{text-decoration:none;color:inherit}
+svg{display:block}
+
+.app{
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* header */
+.top{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:8px}
+.top-left{display:flex;gap:6px}
+.top-left .icon-btn{width:44px;height:44px;border-radius:14px}
+.top-left .icon-btn svg{width:21px;height:21px}
+.icon-btn{
+  width:48px;height:48px;border-radius:16px;flex:none;
+  background:var(--card);border:2px solid var(--card-edge);
+  display:grid;place-items:center;padding:0;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.title{text-align:center;line-height:1.05;min-width:0}
+.title h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.title p{margin:3px 0 0;font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* status row */
+.status{display:flex;align-items:center;justify-content:space-between;padding:0 4px;min-height:34px;gap:10px}
+.lives{display:flex;gap:6px}
+.lives svg{width:30px;height:30px;overflow:visible}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:1.6;stroke-linejoin:round;transition:fill .2s}
+.heart.lost path{fill:none;stroke:var(--muted);opacity:.55}
+.lives .heart.pop{animation:heartpop .5s ease}
+@keyframes heartpop{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+.count{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.count small{font-size:14px;color:var(--muted);font-weight:500;margin-right:6px}
+.star path{fill:var(--star);stroke:var(--star);stroke-width:1.4;stroke-linejoin:round}
+.star.off path{fill:none;stroke:var(--muted);opacity:.5}
+
+/* control hints */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how > div{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:16px;
+  padding:8px 10px;font-size:14px;font-weight:500;line-height:1.15;color:var(--muted);
+}
+.how b{color:var(--ink);font-weight:600;display:block}
+.how .mini{flex:none;width:34px;height:34px;border-radius:10px;background:var(--mini);display:grid;place-items:center;border:2px solid var(--gridink)}
+.how .mini svg{width:70%;height:70%}
+
+/* footer */
+.foot{display:flex;gap:10px;margin-top:auto}
+.btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 14px;border-radius:16px;
+  background:var(--card);border:2px solid var(--card-edge);
+  font-size:16px;font-weight:600;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn[hidden]{display:none}
+.foot .btn{font-size:15px;gap:6px;padding:0 10px}
+.foot .btn svg{width:18px;height:18px}
+.btn .tag{font-size:12px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.switch{width:38px;height:22px;border-radius:99px;background:var(--card-edge);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s,background .2s}
+.btn[aria-pressed="true"] .switch{background:var(--accent)}
+.btn[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-ink)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;place-items:center;padding:16px;z-index:10}
+.scrim.open{display:grid}
+.sheet{
+  width:100%;max-width:380px;max-height:86dvh;overflow:auto;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:26px;
+  padding:22px 20px 20px;box-shadow:var(--shadow);text-align:center;
+  animation:sheetin .28s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes sheetin{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:32px;font-weight:700;line-height:1.05}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:17px;line-height:1.3}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sheet .art{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center}
+.sheet .art svg{width:100%;height:100%;overflow:visible}
+.sheet .badge-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.sheet .badge-row svg{width:30px;height:30px}
+.sheet .logo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 4px}
+.sheet .logo svg{width:44px;height:44px}
+.rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:flex;flex-direction:column;gap:12px}
+.rules li{display:flex;gap:12px;align-items:center;font-size:17px;line-height:1.25}
+.rules .mini{flex:none;width:40px;height:40px;border-radius:12px;background:var(--mini);border:2.5px solid var(--gridink);display:grid;place-items:center}
+.rules .mini svg{width:74%;height:74%}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lv{
+  position:relative;padding:8px 0 7px;border-radius:14px;background:var(--bg);
+  border:2px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;min-height:66px;
+}
+.lv b{font-size:22px;font-weight:600}
+.lv small{font-size:12px;color:var(--muted);font-weight:500}
+.lv.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.lv.done{background:var(--card)}
+.lv .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;border:2px solid var(--card)}
+.lv .ok svg{width:11px;height:11px}
+.lv .mh{display:flex;gap:2px;margin-top:3px;height:10px}
+.lv .mh svg{width:10px;height:10px}
+.lv .mh .heart path,.lv .mh .star path{stroke:none}
+.lv .mh .lost path,.lv .mh .off path{fill:var(--card-edge);opacity:1}
+.pager{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.pager span{font-size:19px;font-weight:600}
+.pager .icon-btn{width:44px;height:44px;border-radius:14px}
+.spin{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--card-edge);border-top-color:var(--accent);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 74px);
+  transform:translate(-50%,16px);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:15px;font-weight:500;line-height:1.25;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;
+  width:max-content;max-width:min(88vw,420px);text-align:center;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:370px){
+  .top{gap:6px;grid-template-columns:auto 1fr 42px}
+  .top-left{gap:4px}
+  .top-left .icon-btn{width:40px;height:40px;border-radius:13px}
+  .top > .icon-btn{width:42px;height:42px;border-radius:14px}
+  .title h1{font-size:23px}
+  .foot{gap:8px}
+}
+@media (max-width:340px){
+  .title h1{font-size:19px}
+  .title p{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+
+/* ---------- the knitting: coloured clues on the top and left, the fabric in the corner ---------- */
+.board-wrap{display:flex;justify-content:center;align-items:center;width:100%;flex:1;touch-action:none}
+.board{
+  position:relative;display:grid;grid-template-columns:var(--rw,auto) var(--vw,auto);grid-template-rows:var(--ch,auto) var(--vh,auto);
+  background:var(--card);border:2px solid var(--card-edge);border-radius:20px;
+  padding:8px 10px 10px 8px;box-shadow:var(--shadow);
+}
+.corner{display:grid;place-items:center;padding:0 6px 6px 0}
+.corner canvas{display:block;image-rendering:pixelated;border-radius:6px;background:var(--fabric);box-shadow:0 0 0 2px var(--frame)}
+/* zoomed in, each part is a window: the clues slide along with the grid but stay pinned to its edges */
+.clip{overflow:hidden;overflow:clip;min-width:0;min-height:0;touch-action:none}
+.cclip{display:flex;align-items:flex-end}
+.rclip{display:flex;align-items:flex-start;justify-content:flex-end}
+.gclip{border-radius:6px}
+.cclues,.rclues,.grid{flex:none}
+.cclues{display:grid;grid-template-columns:repeat(var(--w),var(--cs));align-items:end;padding:0 2px}
+.cclue{
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:calc(var(--fs)*.16);
+  font-size:var(--fs);padding:4px 0 calc(var(--fs)*.4);border-radius:9px 9px 0 0;transition:opacity .2s;
+}
+.rclues{display:grid;grid-template-rows:repeat(var(--h),var(--cs));padding:2px 0}
+.rclue{
+  display:flex;align-items:center;justify-content:flex-end;gap:calc(var(--fs)*.36);
+  padding:0 calc(var(--fs)*.45) 0 5px;font-size:var(--fs);border-radius:9px 0 0 9px;white-space:nowrap;transition:opacity .2s;
+}
+/* each number sits on a chip of its yarn, with an edge so pale and dark yarns both stand out */
+.chip{
+  position:relative;flex:none;display:grid;place-items:center;min-width:1.24em;height:1.3em;padding:0 .18em;border-radius:.4em;
+  background:var(--yc);color:var(--yt);font-weight:600;line-height:1;font-variant-numeric:tabular-nums;
+  box-shadow:inset 0 0 0 1px var(--chip-edge);
+}
+/* commas between a row's numbers, so "3 1" can't be read as 31 */
+.rclue .chip:not(:last-child)::after{content:",";position:absolute;right:-.3em;bottom:-.06em;color:var(--muted);font-weight:700}
+.cclue .chip{min-width:min(1.24em,calc(var(--cs) - 3px));padding:0 .1em}
+.zero{color:var(--muted);font-weight:600}
+.cclue.hl,.rclue.hl{background:var(--hl)}
+.cclue.done,.rclue.done{opacity:.4}
+.cclue.done .chip,.rclue.done .chip{filter:saturate(.15)}
+.cclue.hint,.rclue.hint{background:var(--accent);opacity:1}
+.cclue.hint .chip,.rclue.hint .chip{filter:none}
+.rclue.hint .chip::after{color:var(--accent-ink)}
+.y1{--yc:var(--y1);--yl:var(--y1l);--yd:var(--y1d);--yt:var(--y1t)}
+.y2{--yc:var(--y2);--yl:var(--y2l);--yd:var(--y2d);--yt:var(--y2t)}
+.y3{--yc:var(--y3);--yl:var(--y3l);--yd:var(--y3d);--yt:var(--y3t)}
+.y4{--yc:var(--y4);--yl:var(--y4l);--yd:var(--y4d);--yt:var(--y4t)}
+.kb{--yc:var(--bc);--yl:var(--bcl);--yd:var(--bcd)}
+
+.grid{
+  display:grid;grid-template-columns:repeat(var(--w),var(--cs));grid-template-rows:repeat(var(--h),var(--cs));width:max-content;
+  background-color:var(--fabric);
+  border:2px solid var(--frame);border-radius:6px;touch-action:none;position:relative;outline:none;
+}
+.grid:focus-visible{box-shadow:0 0 0 3px var(--accent)}
+/* bare fabric: a faint V in every square, so it reads as plain knitting */
+.cell{
+  position:relative;min-width:0;min-height:0;
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  background-image:linear-gradient(to top right,transparent 42%,var(--weave) 46% 54%,transparent 58%),linear-gradient(to top left,transparent 42%,var(--weave) 46% 54%,transparent 58%);
+  background-size:50% 100%;background-position:0 0,100% 0;background-repeat:no-repeat;
+  transition:border-color .5s,background-color .3s ease var(--d,0s);
+}
+.cell.c5{border-right:2px solid var(--line5)}
+.cell.r5{border-bottom:2px solid var(--line5)}
+.cell.cl{border-right:0}
+.cell.rl{border-bottom:0}
+.cell.cur{box-shadow:inset 0 0 0 2px var(--accent)}
+
+/* a knit stitch is a V: two plump loops leaning in, lit from above, with the yarn's shadow between them */
+.cell.k{background-color:var(--yd)}
+.cell.k::before,.cell.k::after{
+  content:"";position:absolute;top:2%;height:94%;width:38%;border-radius:50%;
+  background:radial-gradient(ellipse 80% 55% at 40% 35%,var(--yl),var(--yc) 70%,var(--yd) 140%);
+  box-shadow:0 .5px 1.2px rgba(0,0,0,.3);z-index:1;
+}
+.cell.k::before{left:12%;transform:rotate(-30deg)}
+.cell.k::after{right:12%;transform:rotate(30deg)}
+.cell.k.pop::before{animation:knitL .22s ease-out both}
+.cell.k.pop::after{animation:knitR .22s ease-out .06s both}
+@keyframes knitL{from{transform:rotate(-30deg) scale(.15);opacity:0}to{transform:rotate(-30deg) scale(1);opacity:1}}
+@keyframes knitR{from{transform:rotate(30deg) scale(.15);opacity:0}to{transform:rotate(30deg) scale(1);opacity:1}}
+.cell.g{background-color:transparent}
+.cell.g::before,.cell.g::after{opacity:.3;box-shadow:none}
+
+.cell.m::before{
+  content:"";position:absolute;left:50%;top:50%;width:20%;height:20%;margin:-10% 0 0 -10%;
+  border-radius:50%;background:var(--dot);
+}
+.cell.x{background-color:var(--wrongbg);animation:shake .4s ease}
+.cell.x::before,.cell.x::after{
+  content:"";position:absolute;left:24%;right:24%;top:50%;height:11%;margin-top:-5.5%;
+  border-radius:99px;background:var(--wrong);z-index:2;
+}
+.cell.x::before{transform:rotate(45deg)}
+.cell.x::after{transform:rotate(-45deg)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10%)}50%{transform:translateX(8%)}75%{transform:translateX(-5%)}}
+.cell.hint{animation:hintpulse 1s ease-in-out 3;z-index:2}
+@keyframes hintpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--accent)}50%{box-shadow:inset 0 0 0 5px var(--accent),0 0 12px var(--accent)}}
+
+/* finished: the gridlines fade, the stitches settle, and the background is knitted in row by row from the bottom */
+.grid.bloom .cell{border-color:transparent}
+.grid.bloom .cell.k::before{animation:settleL .5s ease-out var(--d,0s) both}
+.grid.bloom .cell.k::after{animation:settleR .5s ease-out var(--d,0s) both}
+.grid.bloom .cell.kb::before{animation:knitL .35s ease-out var(--d,0s) both}
+.grid.bloom .cell.kb::after{animation:knitR .35s ease-out calc(var(--d,0s) + .05s) both}
+@keyframes settleL{0%,100%{transform:rotate(-30deg) scale(1)}40%{transform:rotate(-30deg) translateY(-8%) scale(1.16)}}
+@keyframes settleR{0%,100%{transform:rotate(30deg) scale(1)}40%{transform:rotate(30deg) translateY(-8%) scale(1.16)}}
+.board.solved .cclue,.board.solved .rclue{opacity:.25}
+
+/* footer: restart, the yarn basket (one ball per yarn, and the dot), and the hint */
+.yarns{flex:1.6;display:flex;min-width:0;background:var(--card);border:2px solid var(--card-edge);border-radius:16px;padding:2px;gap:2px;min-height:48px}
+.tool{
+  flex:1;min-width:0;border:0;border-radius:12px;background:transparent;padding:0;position:relative;
+  display:grid;place-items:center;color:var(--muted);
+}
+.tool svg{width:30px;height:30px;transition:transform .15s}
+.tool.mark svg{width:22px;height:22px}
+.tool[aria-pressed="true"]{background:var(--hl);box-shadow:inset 0 0 0 2.5px var(--accent);color:var(--ink)}
+.tool[aria-pressed="true"] svg{transform:scale(1.12)}
+.tool:active svg{transform:scale(.92)}
+.tool .key{position:absolute;right:5px;bottom:2px;font-size:10px;font-weight:600;color:var(--muted);display:none;line-height:1}
+@media (hover:hover) and (pointer:fine){.tool .key{display:block}}
+.tool.hint{animation:toolpulse 1s ease-in-out 3}
+@keyframes toolpulse{0%,100%{box-shadow:inset 0 0 0 2.5px var(--accent)}50%{box-shadow:inset 0 0 0 2.5px var(--accent),0 0 0 4px var(--hl)}}
+.btn.sq{flex:0 0 52px;padding:0}
+#restartIcon svg{width:18px;height:18px}
+/* three or four yarns: restart shrinks to an icon with a caption */
+.foot.crowd #btnRestart{flex:0 0 58px;flex-direction:column;gap:1px;padding:0 2px;font-size:11px;line-height:1.05}
+@media (max-width:370px){
+  .foot:not(.crowd) #restartIcon{display:none}
+  .foot.crowd{margin:0 -8px;gap:6px}
+  .foot.crowd #btnRestart{flex-basis:50px}
+  .btn.sq{flex-basis:46px}
+}
+.lv .thumb{width:44px;height:38px;display:grid;place-items:center;margin-bottom:1px}
+.lv .thumb svg{width:100%;height:100%}
+.lv.done small{font-weight:600;color:var(--ink)}
+.sheet .garment{width:180px;height:180px;margin:-6px auto 8px;border-radius:50%;background:radial-gradient(circle,var(--bg) 0 64%,transparent 65%)}
+.sheet .garment svg{width:100%;height:100%;filter:drop-shadow(0 5px 8px rgba(40,20,30,.2))}
+.board .zoom-fit{top:-14px;left:-14px}
+
+/* zoom-out button, shown while zoomed in */
+.zoom-fit{
+  position:absolute;z-index:4;width:40px;height:40px;border-radius:50%;padding:0;display:grid;place-items:center;
+  background:var(--card);border:2px solid var(--card-edge);box-shadow:var(--shadow);color:var(--ink);
+  animation:zoomfit .2s ease;touch-action:manipulation;
+}
+.zoom-fit[hidden]{display:none}
+.zoom-fit svg{width:21px;height:21px}
+.zoom-fit:active{transform:scale(.92)}
+@keyframes zoomfit{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-left">
+      <button class="icon-btn" id="btnLevels" aria-label="Choose level">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMusic" aria-label="Turn music on" aria-pressed="false"><span id="musicIcon"></span></button>
+      <button class="icon-btn" id="btnSfx" aria-label="Turn sound effects on" aria-pressed="false"><span id="sfxIcon"></span></button>
+    </div>
+    <div class="title"><h1 id="lvTitle">Level 1</h1><p id="lvSub">&nbsp;</p></div>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 16.9v.1"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-label="Lives and progress">
+    <div class="lives" id="lives" aria-live="polite"></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <div class="board-wrap" id="boardWrap">
+    <div class="board" id="board">
+      <div class="corner"><canvas id="preview" aria-hidden="true"></canvas></div>
+      <div class="clip cclip"><div class="cclues" id="cclues" aria-hidden="true"></div></div>
+      <div class="clip rclip"><div class="rclues" id="rclues" aria-hidden="true"></div></div>
+      <div class="clip gclip" id="gclip"><div class="grid" id="grid" tabindex="0" role="grid" aria-label="Knitting grid. Arrow keys move, number keys pick a yarn, Enter knits, X marks empty. Plus and minus zoom."></div></div>
+      <button class="zoom-fit" id="zoomFit" data-zoom-skip hidden aria-label="Zoom out to see the whole piece"></button>
+    </div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <button class="btn" id="btnRestart">
+      <span id="restartIcon"></span>
+      <span id="restartLabel">Restart</span>
+    </button>
+    <div class="yarns" id="yarns" role="group" aria-label="Yarn basket: what a tap does"></div>
+    <button class="btn sq" id="btnHint" aria-label="Show a square you can work out"></button>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+const GAME = { id: 'fair-isle', seed: 5813 };
+/* =====================================================================
+   Shared shell: saves, seeded randomness, icons, live-synthesised audio,
+   modals, toasts and the level picker. The game code below plugs into it
+   through the GAME object and a loadLevel(idx) function.
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const scrim = $('#scrim');
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/* ---------- saved progress (private to this browser) ---------- */
+const STORE_KEY = GAME.id + '-v1';
+let save = Object.assign({ done: {}, seenHelp: false, level: 0 }, GAME.saveDefaults || {});
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
+} catch (e) {}
+if (!save.done || typeof save.done !== 'object') save.done = {};
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- seeded randomness, so level N is the same puzzle on every device ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleArr(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function seedFor(idx, salt) {
+  let h = (0x9e3779b9 ^ (GAME.seed || 0)) >>> 0;
+  h = Math.imul(h ^ (idx + 1), 0x85ebca6b); h ^= h >>> 13;
+  h = Math.imul(h ^ ((salt || 0) + 0x27d4eb2f), 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+}
+const pickOne = (arr, rnd) => arr[Math.floor(rnd() * arr.length)];
+
+/* ---------- icons ---------- */
+const ICON = {
+  tick: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.4 2.4 4.6-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C12 20.6 3.2 15.4 3.2 9.2C3.2 6.4 5.3 4.4 7.9 4.4C9.7 4.4 11.2 5.4 12 6.8C12.8 5.4 14.3 4.4 16.1 4.4C18.7 4.4 20.8 6.4 20.8 9.2C20.8 15.4 12 20.6 12 20.6Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  hint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21.2h4"/><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.6.5.9 1.2.9 2V16.6h6v-.3c0-.8.3-1.5.9-2A6.4 6.4 0 0 0 12 2.8z"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  musicOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>',
+  musicOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke-width="2.4"/></svg>',
+  sfxOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/></svg>',
+  sfxOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none" opacity=".45"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0" opacity=".45"/><path d="M5.5 5.5l13 13" stroke-width="2.6"/></svg>'
+};
+function heartsHTML(left, max, cls) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<span class="heart' + (k >= left ? ' lost' : '') + (cls && k === left ? ' ' + cls : '') + '">' + ICON.heart + '</span>';
+  return h;
+}
+function starsHTML(n, max) {
+  let h = '';
+  for (let k = 0; k < (max || 3); k++) h += '<span class="star' + (k >= n ? ' off' : '') + '">' + ICON.star + '</span>';
+  return h;
+}
+
+/* =====================================================================
+   Audio. There are no sound files: every note is built from oscillators,
+   filters and envelopes. Music and sound effects are separate toggles,
+   both off by default and remembered between visits.
+   ===================================================================== */
+const MUSIC_KEY = GAME.id + '-music-v1', SFX_KEY = GAME.id + '-sfx-v1';
+let musicOn = false, sfxOn = false;
+try { musicOn = localStorage.getItem(MUSIC_KEY) === '1'; sfxOn = localStorage.getItem(SFX_KEY) === '1'; } catch (e) {}
+let actx = null, master = null, musicBus = null, sfxBus = null, noiseBuf = null;
+let schedTimer = null, ambientStop = null;
+
+function ensureAudio() {
+  if (actx) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  try { actx = new AC(); } catch (e) { return false; }
+  master = actx.createGain(); master.gain.value = 0.42; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = 0.85; musicBus.connect(master);
+  sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+  return true;
+}
+const NOTE_FREQ = {};
+function noteFreq(note) {
+  if (!note) return 0;
+  if (typeof note === 'number') return note;
+  if (NOTE_FREQ[note]) return NOTE_FREQ[note];
+  const m = /^([A-G])(#|b)?(\d)$/.exec(note);
+  if (!m) return 0;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (NOTE_FREQ[note] = 440 * Math.pow(2, (base + (parseInt(m[3], 10) - 4) * 12 - 9) / 12));
+}
+/* one synth voice: oscillator -> (optional lowpass) -> envelope -> bus */
+function tone(t, f, o) {
+  o = o || {};
+  if (!f) return;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  const a = o.a || 0.006, hold = o.hold || 0, dur = o.dur || 0.25, vol = o.vol == null ? 0.15 : o.vol;
+  const end = t + a + hold + dur;
+  osc.type = o.type || 'triangle';
+  osc.frequency.setValueAtTime(f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + (o.glide || a + hold + dur));
+  if (o.vib) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.vibRate || 5.5; lg.gain.value = f * o.vib;
+    l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end + 0.05);
+  }
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  if (hold) g.gain.setValueAtTime(vol, t + a + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  let node = osc;
+  if (o.lp) {
+    const fl = actx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp;
+    if (o.q) fl.Q.value = o.q;
+    osc.connect(fl); node = fl;
+  }
+  node.connect(g); g.connect(o.bus || sfxBus);
+  osc.start(t); osc.stop(end + 0.05);
+}
+/* a burst of filtered noise: shakers, splashes, rustles */
+function noise(t, o) {
+  o = o || {};
+  if (!noiseBuf) {
+    const len = actx.sampleRate;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = actx.createBufferSource(); src.buffer = noiseBuf;
+  const fl = actx.createBiquadFilter(); fl.type = o.ftype || 'bandpass';
+  const dur = o.dur || 0.08, vol = o.vol || 0.1, a = o.a || 0.003;
+  fl.frequency.setValueAtTime(o.f || 2000, t);
+  if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + a + dur);
+  fl.Q.value = o.q || 1;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dur);
+  src.connect(fl); fl.connect(g); g.connect(o.bus || sfxBus);
+  src.start(t, Math.random() * 0.5); src.stop(t + a + dur + 0.05);
+}
+
+/* instruments for the background music */
+const INST = {
+  pluck: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.008, dur: Math.min(d * 0.9, 0.35), vol: v || 0.16, bus: musicBus }),
+  bell: (t, f, d, v) => {
+    v = v || 0.11;
+    tone(t, f, { type: 'sine', a: 0.004, dur: Math.min(d * 1.8, 1.2), vol: v, bus: musicBus });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: Math.min(d, 0.45), vol: v * 0.32, bus: musicBus });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.12, vol: v * 0.12, bus: musicBus });
+  },
+  marimba: (t, f, d, v) => {
+    v = v || 0.17;
+    tone(t, f, { type: 'sine', a: 0.003, dur: Math.min(d * 0.85, 0.5), vol: v, bus: musicBus });
+    tone(t, f * 3.98, { type: 'sine', a: 0.002, dur: 0.07, vol: v * 0.22, bus: musicBus });
+  },
+  flute: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.06, hold: d * 0.45, dur: d * 0.55 + 0.08, vol: v || 0.1, vib: 0.006, vibRate: 5, bus: musicBus }),
+  reed: (t, f, d, v) => tone(t, f, { type: 'square', a: 0.02, hold: d * 0.35, dur: d * 0.5, vol: v || 0.045, lp: 1500, bus: musicBus }),
+  harp: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.004, dur: Math.min(d * 2.5, 1.3), vol: v || 0.08, lp: 2400, bus: musicBus }),
+  bass: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.02, dur: d, vol: v || 0.13, bus: musicBus }),
+  wbass: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.01, dur: Math.min(d * 0.9, 0.55), vol: v || 0.15, lp: 650, bus: musicBus }),
+  hat: (t, v) => noise(t, { f: 8000, q: 0.7, dur: 0.03, vol: v || 0.025, ftype: 'highpass', bus: musicBus }),
+  shaker: (t, v) => noise(t, { f: 5500, q: 1.2, dur: 0.06, vol: v || 0.03, bus: musicBus }),
+  knock: (t, v) => tone(t, 190, { type: 'sine', to: 120, a: 0.002, dur: 0.08, vol: v || 0.08, bus: musicBus })
+};
+/* "E5:.5 - G5:1" -> [{n:'E5', d:.5}, {n:null, d:1}, ...] ("-" or "r" is a rest, default length 1 beat) */
+function track(str) {
+  return str.trim().split(/\s+/).map((tok) => {
+    const p = tok.split(':');
+    return { n: p[0] === '-' || p[0] === 'r' ? null : p[0], d: p[1] ? parseFloat(p[1]) : 1 };
+  });
+}
+function scheduler() {
+  const M = GAME.music, beat = 60 / M.tempo, until = actx.currentTime + 0.2;
+  for (const tr of M.tracks) {
+    let guard = 0;
+    while (tr.next < until && guard++ < 64) {
+      const s = tr.seq[tr.i];
+      const dur = s.d * beat;
+      if (s.n) {
+        if (tr.perc) tr.inst(tr.next, tr.vol, s.n);
+        else tr.inst(tr.next, noteFreq(s.n), dur * (tr.len || 1), tr.vol);
+      }
+      tr.next += dur;
+      tr.i = (tr.i + 1) % tr.seq.length;
+    }
+  }
+}
+function setMusic(on, fromUser) {
+  musicOn = on;
+  try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnMusic');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  $('#musicIcon').innerHTML = on ? ICON.musicOn : ICON.musicOff;
+  if (on && fromUser && ensureAudio() && actx.state === 'suspended') actx.resume();
+  clearInterval(schedTimer); schedTimer = null;
+  if (ambientStop) { try { ambientStop(); } catch (e) {} ambientStop = null; }
+  if (on && actx) {
+    const t0 = actx.currentTime + 0.06;
+    for (const tr of GAME.music.tracks) { tr.next = t0; tr.i = 0; }
+    if (GAME.music.ambient) ambientStop = GAME.music.ambient();
+    schedTimer = setInterval(scheduler, 25);
+  }
+}
+function setSfx(on) {
+  sfxOn = on;
+  try { localStorage.setItem(SFX_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnSfx');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn sound effects off' : 'Turn sound effects on');
+  $('#sfxIcon').innerHTML = on ? ICON.sfxOn : ICON.sfxOff;
+  if (on && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+/* play a named sound effect from GAME.sfx (or the shared ones below) if effects are on */
+function sfx(name, a, b) {
+  if (!sfxOn || !ensureAudio()) return;
+  if (actx.state === 'suspended') actx.resume();
+  const fn = (GAME.sfx && GAME.sfx[name]) || SFX[name];
+  if (fn) fn(actx.currentTime + 0.012, a, b);
+}
+/* sound effects every game can use */
+const SFX = {
+  warn(t) {
+    tone(t, 330, { type: 'square', a: 0.004, dur: 0.07, vol: 0.06, lp: 1800 });
+    tone(t + 0.09, 247, { type: 'square', a: 0.004, dur: 0.12, vol: 0.06, lp: 1500 });
+  },
+  fail(t) {
+    [['G4', 0.22], ['F#4', 0.22], ['F4', 0.22], ['E4', 0.6]].forEach(([n, d], i) => {
+      const f = noteFreq(n);
+      tone(t, f * 1.03, { type: 'sawtooth', to: f * 0.97, a: 0.02, dur: d, vol: i === 3 ? 0.17 : 0.14, lp: 1100 });
+      t += d;
+    });
+  },
+  win(t) {
+    let x = t;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.16, vol: 0.22 }); x += 0.085; });
+    const c = x + 0.02;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.03, dur: 0.7, vol: 0.1, lp: 3000 }));
+    tone(c, noteFreq('C7'), { type: 'sine', to: noteFreq('E7'), glide: 0.5, a: 0.05, dur: 0.55, vol: 0.07 });
+  },
+  tap(t) { tone(t, 880, { type: 'sine', to: 660, a: 0.002, dur: 0.05, vol: 0.06 }); },
+  bonk(t) { tone(t, 180, { type: 'triangle', to: 110, a: 0.003, dur: 0.14, vol: 0.14 }); },
+  chime(t, step) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const f = noteFreq('C5') * Math.pow(2, scale[Math.min(scale.length - 1, Math.max(0, step || 0))] / 12);
+    tone(t, f, { type: 'sine', a: 0.004, dur: 0.5, vol: 0.13 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.2, vol: 0.04 });
+  }
+};
+/* browsers only allow audio after a tap, so the first tap resumes music left on last visit */
+function primeAudioOnce() {
+  document.removeEventListener('pointerdown', primeAudioOnce, true);
+  if (musicOn) setMusic(true, true);
+  else if (sfxOn && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+document.addEventListener('pointerdown', primeAudioOnce, true);
+document.addEventListener('visibilitychange', () => {
+  if (!actx) return;
+  if (document.hidden) actx.suspend();
+  else if (musicOn || sfxOn) actx.resume();
+});
+
+/* ---------- little helpers ---------- */
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+let toastTimer = 0, toastEl = null;
+function toast(msg, ms) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2200);
+}
+/* a button that asks "Confirm?" before throwing away progress */
+function armConfirm(btn, labelEl, label, isBusy, go) {
+  let armed = 0;
+  btn.addEventListener('click', () => {
+    if (isBusy() && !armed) {
+      labelEl.textContent = 'Confirm?';
+      armed = setTimeout(() => { labelEl.textContent = label; armed = 0; }, 2200);
+      return;
+    }
+    clearTimeout(armed); armed = 0; labelEl.textContent = label;
+    go();
+  });
+  return () => { clearTimeout(armed); armed = 0; labelEl.textContent = label; };
+}
+
+/* ---------- modal plumbing ---------- */
+let modalLocked = false;
+function openModal(html, locked) {
+  modalLocked = !!locked;
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true">' + html + '</div>';
+  scrim.classList.add('open');
+}
+function closeModal() { modalLocked = false; scrim.classList.remove('open'); scrim.innerHTML = ''; }
+function modalOpen() { return scrim.classList.contains('open'); }
+scrim.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) { if (e.target === scrim && !modalLocked) closeModal(); return; }
+  const act = a.dataset.act;
+  if (act === 'close') closeModal();
+  else if (act === 'levels') showLevels();
+  else if (act === 'page') showLevels(+a.dataset.page);
+  else if (act === 'pick') loadLevel(+a.dataset.level);
+  else if (act === 'next') loadLevel(curLevel() + 1);
+  else if (act === 'retry') loadLevel(curLevel());
+  else if (GAME.actions && GAME.actions[act]) GAME.actions[act](a);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOpen() && !modalLocked) closeModal(); });
+
+/* opened from the Puzzle Parlour launcher? then offer a way back to it */
+let FROM_PARLOUR = false;
+try {
+  if (location.hash === '#parlour') sessionStorage.setItem('parlour', '1');
+  FROM_PARLOUR = location.hash === '#parlour' || sessionStorage.getItem('parlour') === '1';
+} catch (e) { FROM_PARLOUR = location.hash === '#parlour'; }
+
+/* ---------- level picker: pages of 20, with each finished level's best result ---------- */
+const PAGE = 20;
+function curLevel() { return (typeof G !== 'undefined' && G) ? G.idx : (save.level || 0); }
+function showLevels(page) {
+  const cur = curLevel();
+  const total = GAME.total || Infinity;
+  if (typeof page !== 'number') page = Math.floor(cur / PAGE);
+  const first = page * PAGE, last = Math.min(first + PAGE, total);
+  let h = '<h2>Levels</h2><div class="pager">' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Earlier levels">' + ICON.chevL + '</button>' +
+    '<span>' + (first + 1) + '–' + last + '</span>' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page + 1) + '"' + (last >= total ? ' disabled' : '') + ' aria-label="Later levels">' + ICON.chevR + '</button>' +
+    '</div><div class="levels">';
+  for (let i = first; i < last; i++) {
+    const done = hasOwn(save.done, i);
+    const label = GAME.levelLabel(i);
+    h += '<button class="lv' + (done ? ' done' : '') + (i === cur ? ' cur' : '') + '" data-act="pick" data-level="' + i +
+      '" aria-label="Level ' + (i + 1) + ', ' + label + (done ? ', completed' : '') + '">' +
+      (done ? '<span class="ok">' + ICON.tick + '</span>' : '') +
+      (GAME.levelTile ? GAME.levelTile(i, done) : '<b>' + (i + 1) + '</b><small>' + label + '</small>') +
+      '<span class="mh">' + (done ? GAME.levelBadge(save.done[i], i) : '') + '</span>' +
+      '</button>';
+  }
+  h += '</div><div class="stack"><button class="btn" data-act="close">Close</button>' +
+    (FROM_PARLOUR ? '<a class="btn" href="../index.html#parlour">All Puzzle Parlour games</a>' : '') + '</div>';
+  openModal(h);
+}
+
+/* installed on a home screen, keep working offline (only on a real web host, never inside a frame) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.self === window.top) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- header buttons ---------- */
+function shellBoot() {
+  $('#btnLevels').addEventListener('click', () => showLevels());
+  $('#btnMusic').addEventListener('click', () => setMusic(!musicOn, true));
+  $('#btnSfx').addEventListener('click', () => setSfx(!sfxOn));
+  $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
+  setMusic(musicOn, false);
+  setSfx(sfxOn);
+}
+
+/* =====================================================================
+   Zoom and pan, for when the board gets big. Pinch with two fingers to
+   zoom (moving them drags the board around), or use the mouse wheel, a
+   trackpad pinch or the + − 0 keys. One finger still plays: a touch waits
+   a moment, or until it moves or lifts, before the game sees it, so the
+   first finger of a pinch never plays a move by accident. The game gives:
+     el                     the area that takes touches
+     layout()               lay the board out at zoom Z.z (setting Z.max on
+                            the way) and return {cw, ch, vw, vh, left, top}:
+                            the board's size at that zoom, the size of the
+                            window onto it, and where that window is on screen
+     pan()                  slide the board so (Z.x, Z.y) sits at the window's
+                            top-left corner
+     down/move/up/cancel(e) one-finger play
+     canPan(e)              optional: when zoomed in, should a one-finger drag
+                            from here slide the board instead of playing?
+     focus()                optional: the screen point the keys zoom around
+     fit, tip               the zoom-out button, and a first-time tip
+   ===================================================================== */
+const ZOOM_ICON = {
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8"/></svg>',
+  in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20 20M7.6 10.5h5.8M10.5 7.6v5.8"/></svg>'
+};
+function makeZoom(o) {
+  const Z = { z: 1, x: 0, y: 0, max: 1, g: null };
+  const pts = new Map();          /* touches on the board: pointerId -> {x, y} */
+  let mode = '';                  /* '' | 'wait' | 'play' | 'pan' | 'pinch' */
+  let one = null, pinch = null, raf = 0, tween = 0, gs = 0;
+  const WAIT = 220;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* only boards that gain at least a quarter from zooming can zoom */
+  const zoomable = () => Z.max >= 1.25;
+  const top = () => (zoomable() ? Z.max : 1);
+  const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (o.fit) {
+    o.fit.innerHTML = ZOOM_ICON.out;
+    o.fit.addEventListener('click', () => reset(true));
+  }
+
+  function settle() {
+    const g = Z.g;
+    if (Z.z <= 1) { Z.x = 0; Z.y = 0; }
+    Z.x = clamp(Z.x, 0, Math.max(0, g.cw - g.vw));
+    Z.y = clamp(Z.y, 0, Math.max(0, g.ch - g.vh));
+    o.pan();
+    if (o.fit) o.fit.hidden = Z.z <= 1.01;
+  }
+  /* the board point under a screen point, as a fraction of the board's size */
+  function at(cx, cy) { const g = Z.g; return [(cx - g.left + Z.x) / g.cw, (cy - g.top + Z.y) / g.ch]; }
+  /* zoom to z with board point (u, v) under screen point (cx, cy) */
+  function place(z, cx, cy, u, v) {
+    z = clamp(z, 1, top());
+    if (z !== Z.z || !Z.g) { Z.z = z; Z.g = o.layout(); }
+    Z.x = u * Z.g.cw - (cx - Z.g.left);
+    Z.y = v * Z.g.ch - (cy - Z.g.top);
+    settle();
+  }
+  function zoomAt(z, cx, cy) {
+    cancelAnimationFrame(tween);
+    Z.g = o.layout();
+    if (cx == null) { cx = Z.g.left + Z.g.vw / 2; cy = Z.g.top + Z.g.vh / 2; }
+    const [u, v] = at(cx, cy);
+    place(z, cx, cy, u, v);
+  }
+  function panBy(dx, dy) { if (Z.z > 1) { Z.x += dx; Z.y += dy; settle(); } }
+  /* after a resize or a new board: lay out again at the current zoom */
+  function refresh() {
+    Z.g = o.layout();
+    if (Z.z > top()) { Z.z = top(); Z.g = o.layout(); }
+    settle();
+  }
+  /* back to the whole board, gliding there if asked */
+  function reset(glide) {
+    cancelAnimationFrame(tween);
+    if (!glide || Z.z <= 1.01 || calm()) { Z.z = 1; refresh(); return; }
+    Z.g = o.layout();
+    const cx = Z.g.left + Z.g.vw / 2, cy = Z.g.top + Z.g.vh / 2, [u, v] = at(cx, cy), z0 = Z.z, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 260);
+      place(z0 + (1 - z0) * (1 - Math.pow(1 - k, 3)), cx, cy, u, v);
+      if (k < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  /* slide the board so a box (in board pixels at the current zoom) is in view */
+  function show(x, y, w, h) {
+    if (Z.z <= 1 || !Z.g) return;
+    const g = Z.g, m = 10;
+    if (x - m < Z.x) Z.x = x - m; else if (x + w + m > Z.x + g.vw) Z.x = x + w + m - g.vw;
+    if (y - m < Z.y) Z.y = y - m; else if (y + h + m > Z.y + g.vh) Z.y = y + h + m - g.vh;
+    settle();
+  }
+  /* on a phone, mention pinching the first time a board is big enough to need it */
+  function tip() {
+    if (top() < 1.6 || save.zoomTip || !o.tip || !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+    setTimeout(() => {
+      if (save.zoomTip || modalOpen()) return;
+      save.zoomTip = true; persist();
+      toast(o.tip, 4200);
+    }, 900);
+  }
+
+  /* ---------- touches, mouse and pen ---------- */
+  function commit() {
+    if (mode !== 'wait') return;
+    clearTimeout(one.t);
+    mode = 'play';
+    o.down(one.e);
+  }
+  function startPinch(a, b) {
+    cancelAnimationFrame(tween);
+    const p = pts.get(a), q = pts.get(b);
+    pinch = { ids: [a, b], d: Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
+    mode = 'pinch'; one = null;
+    Z.g = o.layout();
+    for (const id of pinch.ids) { try { o.el.setPointerCapture(id); } catch (err) {} }
+  }
+  function pinchFrame() {
+    raf = 0;
+    if (mode !== 'pinch') return;
+    const p = pts.get(pinch.ids[0]), q = pts.get(pinch.ids[1]);
+    if (!p || !q) return;
+    const d = Math.max(1, Math.hypot(p.x - q.x, p.y - q.y)), mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    /* keep the point that was between the fingers between them, at the new spread */
+    const [u, v] = at(pinch.mx, pinch.my);
+    place(Z.z * d / pinch.d, mx, my, u, v);
+    pinch.d = d; pinch.mx = mx; pinch.my = my;
+  }
+  const startOne = (e) => ({ id: e.pointerId, e, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, pan: Z.z > 1.01 && (!o.canPan || !!o.canPan(e)) });
+  const quit = (id, x, y) => o.cancel({ pointerId: id, clientX: x, clientY: y, type: 'pointercancel' });
+
+  o.el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest('[data-zoom-skip]')) return;
+    cancelAnimationFrame(tween);
+    if (e.pointerType !== 'touch') {
+      if (mode) return;
+      if (e.button === 1) {
+        if (Z.z > 1) { e.preventDefault(); one = startOne(e); mode = 'pan'; }
+        return;
+      }
+      one = startOne(e); mode = 'play';
+      o.down(e);
+      return;
+    }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === 'pinch') return;
+    if (!mode) {
+      one = startOne(e);
+      if (zoomable()) { mode = 'wait'; one.t = setTimeout(commit, WAIT); }
+      else { mode = 'play'; o.down(e); }
+      return;
+    }
+    /* a second finger turns whatever the first was doing into a pinch (small boards don't zoom, so it's ignored there) */
+    if (!one || !pts.has(one.id) || (mode === 'play' && !zoomable())) return;
+    if (mode === 'wait') clearTimeout(one.t);
+    else if (mode === 'play') { const p = pts.get(one.id); quit(one.id, p.x, p.y); }
+    startPinch(one.id, e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+    if (mode === 'pinch') {
+      if (p && pinch.ids.includes(e.pointerId) && !raf) raf = requestAnimationFrame(pinchFrame);
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const far = Math.hypot(e.clientX - one.x, e.clientY - one.y) > (e.pointerType === 'touch' ? 10 : 5);
+    if (mode === 'wait' && far) {
+      if (one.pan) { clearTimeout(one.t); mode = 'pan'; } else commit();
+    } else if (mode === 'play' && far && one.pan) { quit(one.id, e.clientX, e.clientY); mode = 'pan'; }
+    if (mode === 'play') o.move(e);
+    else if (mode === 'pan') panBy(one.lx - e.clientX, one.ly - e.clientY);
+    one.lx = e.clientX; one.ly = e.clientY;
+  });
+  function end(e) {
+    pts.delete(e.pointerId);
+    if (mode === 'pinch') {
+      if (!pinch.ids.includes(e.pointerId)) return;
+      /* lift one finger and the other carries on sliding the board */
+      const rest = pinch.ids.find((id) => id !== e.pointerId && pts.has(id));
+      pinch = null; cancelAnimationFrame(raf); raf = 0;
+      if (rest !== undefined) { const q = pts.get(rest); one = { id: rest, x: q.x, y: q.y, lx: q.x, ly: q.y }; mode = 'pan'; }
+      else { mode = ''; one = null; }
+      return;
+    }
+    if (!one || e.pointerId !== one.id) return;
+    const up = e.type === 'pointerup';
+    if (mode === 'wait') { clearTimeout(one.t); if (up) { o.down(one.e); o.up(e); } }
+    else if (mode === 'play') { if (up) o.up(e); else o.cancel(e); }
+    mode = ''; one = null;
+  }
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+
+  /* mouse wheel, and trackpad pinches (which arrive as wheel events with ctrl held) */
+  o.el.addEventListener('wheel', (e) => {
+    if (!zoomable()) return;
+    e.preventDefault();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+    zoomAt(Z.z * Math.exp(-clamp(dy, -150, 150) * (e.ctrlKey ? 0.01 : 0.002)), e.clientX, e.clientY);
+  }, { passive: false });
+  /* Safari: trackpad pinches on a Mac, and stopping iPhones zooming the whole page */
+  o.el.addEventListener('gesturestart', (e) => { e.preventDefault(); gs = pts.size ? 0 : (e.scale || 1); });
+  o.el.addEventListener('gesturechange', (e) => {
+    e.preventDefault();
+    if (!gs || pts.size || !zoomable()) return;
+    zoomAt(Z.z * e.scale / gs, e.clientX, e.clientY);
+    gs = e.scale;
+  });
+  o.el.addEventListener('gestureend', (e) => { e.preventDefault(); gs = 0; });
+  /* keys: + and - zoom, 0 shows the whole board */
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || modalOpen() || !zoomable() || !Z.g) return;
+    const k = e.key;
+    if (k === '0') { e.preventDefault(); reset(true); return; }
+    const f = k === '+' || k === '=' ? 1.3 : k === '-' || k === '_' ? 1 / 1.3 : 0;
+    if (!f) return;
+    e.preventDefault();
+    const p = o.focus && o.focus();
+    zoomAt(Z.z * f, p ? p.x : null, p ? p.y : null);
+  });
+
+  return Object.assign(Z, { refresh, reset, zoomAt, panBy, show, tip });
+}
+
+/* ---------- colour picture logic: clues, a line solver, and a whole-grid logic solver ---------- */
+/* a cell is 0 (bare fabric) or a yarn 1..4. A line's clue is its runs of one yarn, in order:
+   [0,1,1,2,0,1] -> [{n:2,c:1},{n:1,c:2},{n:1,c:1}]; an empty line gives [] */
+function runsOf(line) {
+  const out = [];
+  let run = 0, col = 0;
+  for (let i = 0; i <= line.length; i++) {
+    const v = i < line.length ? line[i] : 0;
+    if (v && v === col) run++;
+    else { if (run) out.push({ n: run, c: col }); run = v ? 1 : 0; col = v; }
+  }
+  return out;
+}
+
+/* Given a line's clue and what's known so far (-1 unknown, 0 empty, 1..4 a yarn), work out every
+   cell that is forced across all valid placements. Runs of the same yarn need a gap between them;
+   runs of different yarns may touch. Returns a new array, or null if the line can't be satisfied. */
+function lineSolve(clue, known) {
+  const n = known.length, k = clue.length, W = k + 1;
+  /* bad[c][i]: cells before i that can't be yarn c, so "can run j sit on [a,b)" is O(1) */
+  const bad = [null, null, null, null, null];
+  for (const r of clue) {
+    if (bad[r.c]) continue;
+    const a = new Int32Array(n + 1);
+    for (let i = 0; i < n; i++) a[i + 1] = a[i] + (known[i] !== -1 && known[i] !== r.c ? 1 : 0);
+    bad[r.c] = a;
+  }
+  const fits = (a, j) => a + clue[j].n <= n && bad[clue[j].c][a + clue[j].n] === bad[clue[j].c][a];
+  /* where the line carries on after run j ends at e: straight on if the next run is another yarn,
+     past one empty square if it's the same yarn (-1 if that square can't be empty) */
+  const after = (j, e) => (j + 1 < k && clue[j + 1].c === clue[j].c) ? (e < n && known[e] <= 0 ? e + 1 : -1) : e;
+  /* fwd[i*W+j]: cells before i decided with j runs placed, and cell i is free to be empty or start run j */
+  const fwd = new Uint8Array((n + 1) * W), bwd = new Uint8Array((n + 1) * W);
+  fwd[0] = 1;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j <= k; j++) {
+      if (!fwd[i * W + j]) continue;
+      if (known[i] <= 0) fwd[(i + 1) * W + j] = 1;
+      if (j < k && fits(i, j)) { const nx = after(j, i + clue[j].n); if (nx >= 0) fwd[nx * W + j + 1] = 1; }
+    }
+  }
+  if (!fwd[n * W + k]) return null;
+  bwd[n * W + k] = 1;
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = k; j >= 0; j--) {
+      let ok = known[i] <= 0 && bwd[(i + 1) * W + j];
+      if (!ok && j < k && fits(i, j)) { const nx = after(j, i + clue[j].n); ok = nx >= 0 && bwd[nx * W + j + 1]; }
+      bwd[i * W + j] = ok ? 1 : 0;
+    }
+  }
+  /* what each cell can be: bit 0 empty, bit c yarn c (runs are painted with a difference array) */
+  const canEmpty = new Uint8Array(n), paint = [null, null, null, null, null];
+  for (const r of clue) if (!paint[r.c]) paint[r.c] = new Int32Array(n + 1);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j <= k; j++) {
+      if (!fwd[i * W + j]) continue;
+      if (known[i] <= 0 && bwd[(i + 1) * W + j]) canEmpty[i] = 1;
+      if (j < k && fits(i, j)) {
+        const e = i + clue[j].n, nx = after(j, e);
+        if (nx >= 0 && bwd[nx * W + j + 1]) {
+          paint[clue[j].c][i]++; paint[clue[j].c][e]--;
+          if (nx === e + 1) canEmpty[e] = 1;
+        }
+      }
+    }
+  }
+  const out = known.slice(), run = [0, 0, 0, 0, 0];
+  for (let i = 0; i < n; i++) {
+    let only = canEmpty[i] ? 0 : -1, count = canEmpty[i];
+    for (let c = 1; c <= 4; c++) {
+      if (!paint[c]) continue;
+      run[c] += paint[c][i];
+      if (run[c] > 0) { count++; only = c; }
+    }
+    if (!count) return null;
+    if (count === 1) out[i] = only;
+  }
+  return out;
+}
+
+/* Solve as far as line-by-line logic goes. grid: Int8Array w*h of -1/0/yarn (modified in place).
+   Returns 'solved', 'stuck' or 'bad'. */
+function logicSolve(w, h, rowClues, colClues, grid) {
+  const dirty = new Uint8Array(w + h).fill(1);
+  let changed = true, guard = 0;
+  while (changed && guard++ < 400) {
+    changed = false;
+    for (let L = 0; L < w + h; L++) {
+      if (!dirty[L]) continue;
+      dirty[L] = 0;
+      const isRow = L < h, idx = isRow ? L : L - h, len = isRow ? w : h;
+      const known = new Array(len);
+      for (let x = 0; x < len; x++) known[x] = grid[isRow ? idx * w + x : x * w + idx];
+      const res = lineSolve(isRow ? rowClues[idx] : colClues[idx], known);
+      if (!res) return 'bad';
+      for (let x = 0; x < len; x++) {
+        if (res[x] !== known[x]) {
+          grid[isRow ? idx * w + x : x * w + idx] = res[x];
+          dirty[isRow ? h + x : x] = 1;
+          changed = true;
+        }
+      }
+    }
+  }
+  for (let i = 0; i < w * h; i++) if (grid[i] < 0) return 'stuck';
+  return 'solved';
+}
+
+/* clues for a solution (array of 0/yarn, row-major) */
+function cluesFor(w, h, sol) {
+  const rows = [], cols = [];
+  for (let r = 0; r < h; r++) { const line = []; for (let c = 0; c < w; c++) line.push(sol[r * w + c]); rows.push(runsOf(line)); }
+  for (let c = 0; c < w; c++) { const line = []; for (let r = 0; r < h; r++) line.push(sol[r * w + c]); cols.push(runsOf(line)); }
+  return { rows, cols };
+}
+
+/* true if the picture has exactly one solution and logic alone reaches it */
+function isLogicSolvable(w, h, sol) {
+  const { rows, cols } = cluesFor(w, h, sol);
+  const grid = new Int8Array(w * h).fill(-1);
+  return logicSolve(w, h, rows, cols, grid) === 'solved';
+}
+
+if (typeof module !== 'undefined') module.exports = { runsOf, lineSolve, logicSolve, cluesFor, isLogicSolvable };
+
+/* ---------- the hand-knitted pictures ("." is bare fabric, letters are yarns; pal sets the yarn order) ---------- */
+const YARNS = {
+  r: ['Cranberry', '#c43a4b'], p: ['Rose', '#ee8ea4'], o: ['Pumpkin', '#e8802f'], u: ['Rust', '#a9462a'],
+  y: ['Mustard', '#e6b032'], w: ['Cream', '#f7efdc'], g: ['Moss', '#78a54b'], G: ['Forest', '#2f6d4c'],
+  b: ['Denim', '#4a80c2'], B: ['Navy', '#283c6e'], c: ['Sky', '#94d0ea'], n: ['Chestnut', '#8c5a3a'],
+  k: ['Charcoal', '#38343f'], h: ['Heather', '#9a78c0'], t: ['Teal', '#2e9089'], e: ['Oatmeal', '#d8c19a']
+};
+const PICTURES = [
+  { name: 'Heart', pal: 'rp', wear: 'mitten', art: `
+.r.r.
+rprrr
+rrrrr
+.rrr.
+..r..` },
+  { name: 'Star', pal: 'yo', wear: 'hat', art: `
+..y..
+..y..
+yyoyy
+.yyy.
+.y.y.` },
+  { name: 'Toadstool', pal: 'rw', wear: 'cushion', art: `
+.rrrr.
+rwrrwr
+rrrrrr
+..ww..
+..ww..
+.wwww.` },
+  { name: 'Fir tree', pal: 'Gn', wear: 'jumper', art: `
+...G...
+..GGG..
+.GGGGG.
+..GGG..
+.GGGGG.
+GGGGGGG
+...n...` },
+  { name: 'Snowflake', pal: 'bc', wear: 'mitten', art: `
+...b...
+.b.b.b.
+..bcb..
+bbcccbb
+..bcb..
+.b.b.b.
+...b...` },
+  { name: 'Mitten', pal: 'rw', wear: 'scarf', art: `
+...rrr.
+..rrrrr
+..rwrwr
+r.rrrrr
+rrrrwrr
+rrrrrrr
+.rrrrrr
+..rrrrr
+..wwwww
+..wwwww` },
+  { name: 'Bobble hat', pal: 'Bwr', wear: 'jumper', art: `
+...rr...
+..rrrr..
+...rr...
+..BBBB..
+.BBBBBB.
+BBwBBwBB
+BBBBBBBB
+wwwwwwww
+wwwwwwww` },
+  { name: 'Cup of tea', pal: 'bnw', wear: 'cushion', art: `
+.w..w....
+..w..w...
+.w..w....
+bbbbbbb..
+bnnnnnbbb
+bwwwwwb.b
+bbbbbbbbb
+.bbbbb...` },
+  { name: 'Flower', pal: 'pyg', wear: 'hat', art: `
+...ppp...
+..ppppp..
+.pppyppp.
+.ppyyypp.
+.pppyppp.
+..ppppp..
+....g....
+.gg.g.gg.
+..ggggg..` },
+  { name: 'Sheep', pal: 'wkg', wear: 'jumper', art: `
+..w.ww.w..
+.wwwwwwww.
+wwwwwwwkkk
+wwwwwwkkwk
+wwwwwwwkkk
+.wwwwwwww.
+..k.k.k.k.
+..k.k.k.k.
+gggggggggg` },
+  { name: 'Fox', pal: 'owk', wear: 'mitten', art: `
+o........o
+oo......oo
+owo....owo
+oooooooooo
+ookooookoo
+woooooooow
+wwwoooowww
+.wwwwwwww.
+..wwkkww..
+....ww....` },
+  { name: 'Owl', pal: 'nwyk', wear: 'cushion', art: `
+.n......n.
+.nn....nn.
+nnnnnnnnnn
+nwwwnnwwwn
+nwwknnkwwn
+nwwwyywwwn
+nnnnyynnnn
+nnwnnnnwnn
+.nnwnnwnn.
+..yy..yy..` },
+  { name: 'Cat', pal: 'kwy', wear: 'scarf', art: `
+.k....k...
+.kk..kk...
+.kkkkkk...
+.kykkyk...
+.kkkkkk...
+..kwwk....
+.kkwwkk...
+kkkwwkkk..
+kkkwwkkk.k
+kkkkkkkk.k
+.kkkkkkkkk` },
+  { name: 'Sailboat', pal: 'wrnb', wear: 'jumper', art: `
+....n.....
+...wnr....
+..wwnrr...
+.wwwnrrr..
+wwwwnrrrr.
+....n.....
+nnnnnnnnnn
+.nnnnnnnn.
+..nnnnnn..
+bb.bbb.bbb` },
+  { name: 'Whale', pal: 'Bcw', wear: 'hat', art: `
+.c.c.c......
+..c.c.......
+...c........
+..BBBBBB....
+.BBBBBBBB..B
+BBwBBBBBBBBB
+BBBBBBBBBBB.
+cccccBBBBB..
+.cccccBBB...` },
+  { name: 'Snowman', pal: 'wkor', wear: 'mitten', art: `
+...kkkkk...
+...kkkkk...
+.kkkkkkkkk.
+..wwwwwww..
+..wkwwwkw..
+..wwwoooo..
+...wwwww...
+..rrrrrrr..
+.wwwwwrrww.
+wwwwwkrrwww
+wwwwwwwwwww
+wwwwwkwwwww
+.wwwwwwwww.` },
+  { name: 'Acorn', pal: 'noyG', wear: 'cushion', art: `
+.....n..GG.
+.....n.GGGG
+...nnnnnGG.
+.nnnnnnnnn.
+nnnnnnnnnnn
+.ooooooooo.
+.oyooooooo.
+.oyooooooo.
+..ooooooo..
+...ooooo...
+....ooo....
+.....o.....` },
+  { name: 'Reindeer', pal: 'nekr', wear: 'jumper', art: `
+.e.e....e.e.
+.eee....eee.
+..ee....ee..
+...ennnne...
+.nnnnnnnnnn.
+...nnnnnn...
+...nknnkn...
+...nnnnnn...
+....nnnn....
+....nnnn....
+....nrrn....
+.....rr.....` },
+  { name: 'Cottage', pal: 'rwyG', wear: 'cushion', art: `
+........rr..
+.....r..rr..
+....rrr.rr..
+...rrrrrrr..
+..rrrrrrrrr.
+.rrrrrrrrrrr
+..wwwwwwwww.
+..wyywwwyyw.
+..wyywGwyyw.
+..wwwwGwwww.
+..wwwwGwwww.
+GGGGGGGGGGGG` },
+  { name: 'Gingerbread', pal: 'nwr', wear: 'scarf', art: `
+.....nnn.....
+....nnnnn....
+....nwnwn....
+....nnnnn....
+....nwwwn....
+.nnnnnnnnnnn.
+nwnnnnrnnnnwn
+nwnnnnnnnnnwn
+....nnrnn....
+....nnnnn....
+...nnn.nnn...
+..nwnn.nnwn..
+..nnn...nnn..` },
+  { name: 'Hedgehog', pal: 'nekr', wear: 'hat', art: `
+.....n.n.n.....
+...n.nnnnnn....
+..nnnnnrrnnn...
+.nnnnnnrrnnnn..
+nnnnnnnnnnnnee.
+nnnnnnnnnnneeke
+nnnnnnnnnneeeek
+.nnnnnnnnneeee.
+..nnnnnnnnee...
+...k..k..k..k..` },
+  { name: 'Robin', pal: 'noek', wear: 'mitten', art: `
+.....nnnn....
+....nnnnnn...
+...nnknnnnn..
+..kooonnnnnn.
+...oooonnnnnn
+..oooooonnnnn
+..ooooooennnn
+...ooooeennnn
+....eeeeennnn
+.....eeeen.nn
+......k.k....
+kkkkkkkkkkkkk` },
+  { name: 'Pudding', pal: 'nwGr', wear: 'jumper', art: `
+....GG.GG....
+...GGGrGGG...
+....GrrrG....
+...wwwwwww...
+.wwwwnwwwwww.
+wwnwwnnwwnwww
+wnnnwnnnwnnnw
+nnnnnnnnnnnnn
+nnnnnnnnnnnnn
+nnnnnnnnnnnnn
+.nnnnnnnnnnn.
+...nnnnnnn...` },
+  { name: 'Shetland star', pal: 'Brey', wear: 'jumper', art: `
+....eeeeeee....
+.B.eeerrreee.B.
+.BBeeerrreeeBB.
+.BBBeerrreeBBB.
+eeBBBerrreBBBee
+eeeBBBeyeBBBeee
+errrrreeerrrrre
+errrreyyyerrrre
+errrrreeerrrrre
+eeeBBBeyeBBBeee
+eeBBBerrreBBBee
+.BBBeerrreeBBB.
+.BBeeerrreeeBB.
+.B.eeerrreee.B.
+....eeeeeee....` }
+];
+if (typeof module !== 'undefined') module.exports = { YARNS, PICTURES };
+
+/* ---------- endless colourwork: Fair Isle stars and pattern bands, kept only if logic alone solves them ---------- */
+const COLOURWAYS = [
+  ['Lerwick', 'Brey'], ['Harbour', 'brBw'], ['Heather', 'hpGe'], ['Peat fire', 'noyk'], ['Moorland', 'Ggyn'],
+  ['Fjord', 'tcBw'], ['Bramble', 'rphk'], ['Autumn', 'uygn'], ['Snowfall', 'Bcwb'], ['Hearth', 'ryGw'],
+  ['Thistle', 'hGpw'], ['Seaglass', 'tgcB']
+];
+/* what level idx will be, decided up front so the picker can show its size without building it */
+function colourPlan(idx) {
+  const rnd = mulberry32(seedFor(idx, 7));
+  const K = idx < 40 ? (rnd() < 0.5 ? 2 : 3) : idx < 80 ? (rnd() < 0.5 ? 3 : 4) : (rnd() < 0.3 ? 3 : 4);
+  const cw = COLOURWAYS[Math.floor(rnd() * COLOURWAYS.length)];
+  const star = rnd() < 0.55;
+  let w, h;
+  if (star) w = h = (K === 4 ? [13, 15, 15] : [11, 13, 15])[Math.floor(rnd() * 3)];
+  else [w, h] = [[11, 11], [13, 13], [15, 11], [15, 13], [15, 15], [13, 15]][Math.floor(rnd() * 6)];
+  return { K, cw, star, w, h };
+}
+function colourwork(idx) {
+  const P = colourPlan(idx);
+  for (let salt = 0; salt < 1500; salt++) {
+    const rnd = mulberry32(seedFor(idx, 1000 + salt));
+    /* the planned kind first; if it won't come out, the other kind at the same size */
+    const star = salt < 1000 ? P.star : !P.star && P.w === P.h;
+    const L = star ? starMotif(rnd, P.w, P.K) : bandMotif(rnd, P.w, P.h, P.K);
+    if (!L) continue;
+    const used = new Set(L.sol); used.delete(0);
+    if (used.size !== P.K) continue;
+    if (tooBusy(L)) continue;
+    if (!isLogicSolvable(L.w, L.h, L.sol)) continue;
+    L.pal = P.cw[1].slice(0, P.K);
+    L.name = P.cw[0] + ' ' + (L.star || L.band);
+    L.salt = salt;
+    return L;
+  }
+  return null;
+}
+
+/* not too many numbers in a clue, so the clue bands stay readable (columns have more room than rows) */
+function tooBusy(L) {
+  const { rows, cols } = cluesFor(L.w, L.h, L.sol);
+  return rows.some((c) => c.length > (L.w <= 11 ? 6 : 7)) || cols.some((c) => c.length > (L.h <= 11 ? 7 : 8));
+}
+/* an 8-way symmetric star on a knitted medallion, built from arms, diagonals, rings and petals */
+const STAR_PARTS = ['axis', 'diag', 'diag', 'ring', 'diamond', 'petal', 'petal', 'dots'];
+function starMotif(rnd, n, K) {
+  const c = (n - 1) / 2, C = c + 1, sol = new Int8Array(n * n);
+  /* the octant 0 <= a <= b <= c (distances from the middle) decides everything */
+  const oct = new Int8Array(C * C);
+  const parts = 3 + Math.floor(rnd() * 3);
+  for (let p = 0; p < parts; p++) {
+    const col = 2 + (p % (K - 1)), type = STAR_PARTS[Math.floor(rnd() * STAR_PARTS.length)];
+    const b0 = Math.floor(rnd() * (c - 1)), b1 = Math.min(c, b0 + 2 + Math.floor(rnd() * (c - b0))), t = rnd() < 0.55 ? 0 : 1;
+    const R = 2 + Math.floor(rnd() * (c - 1)), s = 1 + Math.floor(rnd() * 2), A = Math.floor(rnd() * c), B = A + Math.floor(rnd() * (C - A));
+    for (let b = 0; b <= c; b++) for (let a = 0; a <= b; a++) {
+      let on = false;
+      if (type === 'axis') on = a <= t && b >= b0 && b <= b1;
+      else if (type === 'diag') on = b - a <= t && b >= b0 && b <= b1;
+      else if (type === 'ring') on = b === R && a <= R - s;
+      else if (type === 'diamond') on = a + b === R || (t && a + b === R + 1);
+      else if (type === 'petal') on = b - a >= s && b - a <= s + 1 + t && a + b >= b0 && a + b <= b1 + 2;
+      else on = (a === A && b === B) || (a === Math.max(0, A - 1) && b === B);
+      if (on) oct[a * C + b] = col;
+    }
+  }
+  /* the medallion of background yarn behind it */
+  const shape = Math.floor(rnd() * 3), R = c + 1 + Math.floor(rnd() * c);
+  const inside = (dx, dy) => shape === 0 ? dx + dy <= R : shape === 1 ? dx * dx + dy * dy <= (c + 0.5) * (c + 0.5) : Math.max(dx, dy) <= c - 1 && dx + dy <= R;
+  for (let r = 0; r < n; r++) for (let q = 0; q < n; q++) {
+    const dy = Math.abs(r - c), dx = Math.abs(q - c), i = r * n + q;
+    const v = oct[Math.min(dx, dy) * C + Math.max(dx, dy)];
+    sol[i] = v || (inside(dx, dy) ? 1 : 0);
+  }
+  let filled = 0; for (let i = 0; i < n * n; i++) if (sol[i]) filled++;
+  if (filled < n * n * 0.4 || filled > n * n * 0.88) return null;
+  return { w: n, h: n, sol, star: ['star', 'snowflake', 'rose', 'medallion'][Math.floor(rnd() * 4)] };
+}
+
+/* rows of little repeating patterns ("peeries"), mirrored top to bottom like a yoke */
+const BAND_TILES = [
+  /* each: rows of a pattern centred on column 0, given for offsets 0..p/2 (mirrored for the rest) */
+  { p: 4, rows: ['x..'] },                       /* lice */
+  { p: 4, rows: ['.x.', 'xxx', '.x.'] },         /* little crosses */
+  { p: 4, rows: ['x..', '.x.', '..x'] },         /* zigzag */
+  { p: 6, rows: ['x...', 'xx..', 'xxx.', 'xx..', 'x...'] },   /* diamonds */
+  { p: 6, rows: ['..x.', '.x.x', 'x...', '.x.x', '..x.'] },   /* open diamonds */
+  { p: 4, rows: ['xx.', 'x.x', 'xx.'] },
+  { p: 6, rows: ['x..x', '.xx.', '.xx.', 'x..x'] },
+  { p: 8, rows: ['x....', 'xx...', 'x.x..', 'x..x.', 'x.x..', 'xx...', 'x....'] }
+];
+function bandMotif(rnd, w, h, K) {
+  const sol = new Int8Array(w * h), cx = (w - 1) / 2, half = Math.ceil(h / 2);
+  const rowsTop = [];
+  /* fill the top half with bands, separated by plain rows; the middle band is the widest */
+  let budget = half;
+  const plan = [];
+  while (budget > 0) {
+    const fits = BAND_TILES.filter((t) => t.rows.length <= budget);
+    if (!fits.length) break;
+    const t = fits[Math.floor(rnd() * fits.length)];
+    plan.push(t); budget -= t.rows.length;
+    if (budget > 0) { plan.push(null); budget--; }
+  }
+  /* a background yarn behind some bands; the pattern yarns take turns so every one is used */
+  const bands = plan.filter((t) => t).length;
+  let bi = 0, bgUsed = false;
+  const first = Math.floor(rnd() * (K - 1));
+  for (const t of plan) {
+    if (!t) { const f = rnd() < 0.35; bgUsed = bgUsed || f; rowsTop.push(Array(w).fill(f ? 1 : 0)); continue; }
+    const fg = 2 + ((first + bi) % (K - 1));
+    const bg = rnd() < 0.45 || (!bgUsed && bi === bands - 1) ? 1 : 0;
+    bgUsed = bgUsed || !!bg;
+    /* one yarn, a different yarn on the middle row, or shaded row by row from the middle out */
+    const shade = K > 2 ? Math.floor(rnd() * 3) : 0;
+    const mid = (t.rows.length - 1) / 2;
+    const yarnFor = (k) => shade === 0 ? fg : shade === 1 ? (Math.abs(k - mid) < 0.6 ? 2 + ((fg - 1) % (K - 1)) : fg)
+      : 2 + ((fg - 2 + Math.round(Math.abs(k - mid))) % (K - 1));
+    t.rows.forEach((pat, k) => {
+      const row = [];
+      for (let x = 0; x < w; x++) {
+        let j = ((Math.round(x - cx) % t.p) + t.p) % t.p;
+        if (j > t.p / 2) j = t.p - j;
+        const on = pat[j] === 'x';
+        row.push(on ? yarnFor(k) : bg);
+      }
+      rowsTop.push(row);
+    });
+    bi++;
+  }
+  while (rowsTop.length < half) rowsTop.push(Array(w).fill(0));
+  for (let r = 0; r < h; r++) {
+    const src = rowsTop[r < half ? r : h - 1 - r];
+    for (let x = 0; x < w; x++) sol[r * w + x] = src[x];
+  }
+  let filled = 0; for (let i = 0; i < w * h; i++) if (sol[i]) filled++;
+  if (filled < w * h * 0.35 || filled > w * h * 0.85) return null;
+  return { w, h, sol, band: ['band', 'yoke', 'peerie', 'border'][Math.floor(rnd() * 4)] };
+}
+if (typeof module !== 'undefined') module.exports = { COLOURWAYS, colourwork, starMotif, bandMotif };
+
+/* ---------- colours: shades of each yarn for the stitches, ink for the clue chips, garments that suit ---------- */
+function hexRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function rgbHex(c) { return '#' + c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
+function mix(h, to, k) { const a = hexRgb(h), b = hexRgb(to); return rgbHex(a.map((v, i) => v + (b[i] - v) * k)); }
+function luma(h) {
+  const [r, g, b] = hexRgb(h).map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+/* dark or white numbers, whichever reads better on the chip */
+const inkOn = (h) => (luma(h) > 0.22 ? '#2b2230' : '#ffffff');
+function yarnDist(a, b) {
+  const p = hexRgb(a), q = hexRgb(b), rm = (p[0] + q[0]) / 2, dr = p[0] - q[0], dg = p[1] - q[1], db = p[2] - q[2];
+  return Math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db);
+}
+const SHADES = (hex) => ({ hex, lite: mix(hex, '#ffffff', 0.38), dark: mix(hex, '#000000', 0.3), ink: inkOn(hex) });
+
+/* ---------- garments: each finished piece is knitted into one ---------- */
+const BASES = ['#e9dcc3', '#3c3743', '#2a3a62', '#a7a0a9', '#2e5c47', '#8c2d4b', '#d4a13a', '#f6eedc', '#6b4a3a'];
+function baseFor(hexes, rnd) {
+  const score = BASES.map((b) => Math.min(...hexes.map((h) => yarnDist(b, h))));
+  const best = Math.max(...score), good = BASES.filter((b, k) => score[k] >= best * 0.8);
+  return good[Math.floor(rnd() * good.length)];
+}
+const WEAR = {
+  jumper: {
+    into: 'a cosy jumper', box: [31, 27, 38, 50],
+    body: 'M37 12Q50 23 63 12L80 17L96 58L84 64L74 41V84H26V41L16 64L4 58L20 17Z',
+    over: (d) => '<path d="M26 83H74V91H26Z M4 58L16 64L13.6 69.4L1.6 63.4Z M96 58L84 64L86.4 69.4L98.4 63.4Z" fill="' + d.dark + '"/>' +
+      '<path d="M36 12Q50 25 64 12" fill="none" stroke="' + d.dark + '" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M30 84v6M34 84v6M38 84v6M42 84v6M46 84v6M50 84v6M54 84v6M58 84v6M62 84v6M66 84v6M70 84v6" stroke="rgba(0,0,0,.16)" stroke-width=".8"/>'
+  },
+  mitten: {
+    into: 'a warm mitten', box: [37, 27, 27, 42],
+    body: 'M34 73V40C34 15 67 15 67 40V73Z M35 67C23 67 15 59 16 50C17 43 24 41 27.5 46.5L35 57Z',
+    over: (d) => '<rect x="31" y="71" width="39" height="23" rx="4" fill="' + d.dark + '"/>' +
+      '<path d="M35 73v19M39 73v19M43 73v19M47 73v19M51 73v19M55 73v19M59 73v19M63 73v19M67 73v19" stroke="rgba(0,0,0,.16)" stroke-width=".8"/>'
+  },
+  hat: {
+    into: 'a bobble hat', box: [21, 36, 58, 31],
+    body: 'M15 72C15 41 30 25 50 25C70 25 85 41 85 72Z',
+    over: (d) => '<rect x="11" y="68" width="78" height="23" rx="6" fill="' + d.dark + '"/>' +
+      '<path d="M17 70v19M23 70v19M29 70v19M35 70v19M41 70v19M47 70v19M53 70v19M59 70v19M65 70v19M71 70v19M77 70v19M83 70v19" stroke="rgba(0,0,0,.16)" stroke-width=".8"/>' +
+      '<circle cx="50" cy="17" r="11" fill="' + d.main + '"/><circle cx="50" cy="17" r="11" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1" stroke-dasharray="1.6 1.4"/>'
+  },
+  scarf: {
+    into: 'a long scarf', box: [33, 20, 34, 52],
+    body: 'M30 7Q50 3 70 7V84H30Z',
+    over: (d) => '<path d="M30 10.5Q50 7 70 10.5V14.5Q50 11 30 14.5Z M30 75H70V79H30Z" fill="' + d.main + '"/>' +
+      '<path d="M32 85v10M36 85v9M40 85v10M44 85v9M48 85v10M52 85v9M56 85v10M60 85v9M64 85v10M68 85v9" stroke="' + d.dark + '" stroke-width="2.2" stroke-linecap="round"/>'
+  },
+  cushion: {
+    into: 'a squashy cushion', box: [22, 22, 56, 56],
+    body: 'M14 14Q50 8 86 14Q92 50 86 86Q50 92 14 86Q8 50 14 14Z',
+    over: (d) => '<path d="M14 14Q50 8 86 14Q92 50 86 86Q50 92 14 86Q8 50 14 14Z" fill="none" stroke="' + d.dark + '" stroke-width="2.6"/>' +
+      '<g fill="' + d.main + '"><circle cx="13" cy="13" r="3.4"/><circle cx="87" cy="13" r="3.4"/><circle cx="13" cy="87" r="3.4"/><circle cx="87" cy="87" r="3.4"/></g>'
+  }
+};
+let svgUid = 0;
+const f2 = (v) => +v.toFixed(2);
+/* the finished piece on its garment; big adds the knitted texture at the motif's own gauge */
+function garmentSVG(L, big) {
+  const id = 'fi' + (++svgUid), W = WEAR[L.wear], [bx, by, bw, bh] = W.box;
+  const s = Math.min(bw / L.w, bh / L.h), ox = bx + (bw - L.w * s) / 2, oy = by + (bh - L.h * s) / 2;
+  const counts = L.yarns.map(() => 0), paths = L.yarns.map(() => '');
+  for (let i = 0; i < L.w * L.h; i++) {
+    const v = L.sol[i];
+    if (!v) continue;
+    counts[v - 1]++;
+    paths[v - 1] += 'M' + f2(ox + (i % L.w) * s) + ' ' + f2(oy + Math.floor(i / L.w) * s) + 'h' + f2(s * 1.03) + 'v' + f2(s * 1.03) + 'h' + f2(-s * 1.03) + 'z';
+  }
+  const main = L.yarns[counts.indexOf(Math.max(...counts))].hex;
+  const d = { dark: mix(L.base, '#000000', 0.18), main };
+  let h = '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="' + id + 'c"><path d="' + W.body + '"/></clipPath>';
+  if (big) {
+    h += '<pattern id="' + id + 'k" patternUnits="userSpaceOnUse" x="' + f2(ox) + '" y="' + f2(oy) + '" width="' + f2(s) + '" height="' + f2(s) + '">' +
+      '<path d="M' + f2(s * 0.12) + ' ' + f2(s * 0.08) + 'L' + f2(s * 0.5) + ' ' + f2(s * 0.92) + 'L' + f2(s * 0.88) + ' ' + f2(s * 0.08) + '" fill="none" stroke="rgba(0,0,0,.17)" stroke-width="' + f2(s * 0.13) + '" stroke-linecap="round" stroke-linejoin="round"/></pattern>';
+  }
+  h += '</defs><path d="' + W.body + '" fill="' + L.base + '"/><g clip-path="url(#' + id + 'c)">';
+  paths.forEach((p, k) => { if (p) h += '<path d="' + p + '" fill="' + L.yarns[k].hex + '"/>'; });
+  if (big) h += '<rect width="100" height="100" fill="url(#' + id + 'k)"/>';
+  h += '</g>' + W.over(d) + '<path d="' + W.body + '" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="1"/></svg>';
+  return h;
+}
+
+/* ---------- levels: the hand-knitted pictures first, then endless colourwork ---------- */
+const MAX_LIVES = 3;
+const levelCache = {};
+function levelSize(idx) {
+  if (idx < PICTURES.length) { const rows = PICTURES[idx].art.trim().split('\n'); return [rows[0].length, rows.length]; }
+  const P = colourPlan(idx); return [P.w, P.h];
+}
+function fromPicture(idx) {
+  const p = PICTURES[idx], rows = p.art.trim().split('\n'), h = rows.length, w = rows[0].length;
+  const sol = new Int8Array(w * h);
+  rows.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== '.') sol[r * w + c] = p.pal.indexOf(ch) + 1; }));
+  return dress({ w, h, sol, pal: p.pal, name: p.name, kind: 'picture', wear: p.wear }, idx);
+}
+/* yarn names and colours, the garment it goes on and that garment's colour */
+function dress(L, idx) {
+  const rnd = mulberry32(seedFor(idx, 11));
+  L.yarns = [...L.pal].map((ch) => Object.assign({ name: YARNS[ch][0] }, SHADES(YARNS[ch][1])));
+  if (!L.wear) {
+    const pool = L.w > L.h ? ['jumper', 'cushion', 'hat'] : L.h > L.w ? ['scarf', 'jumper', 'mitten'] : ['jumper', 'mitten', 'hat', 'scarf', 'cushion'];
+    L.wear = pool[Math.floor(rnd() * pool.length)];
+  }
+  L.base = baseFor(L.yarns.map((y) => y.hex), rnd);
+  return L;
+}
+function getLevel(idx) {
+  if (!levelCache[idx]) {
+    let L = idx < PICTURES.length ? null : colourwork(idx);
+    if (L) { L.kind = 'colourwork'; L = dress(L, idx); }
+    levelCache[idx] = L || fromPicture(idx % PICTURES.length);
+  }
+  return levelCache[idx];
+}
+
+GAME.total = Infinity;
+GAME.levelLabel = (i) => { const s = levelSize(i); return s[0] + '×' + s[1]; };
+GAME.levelTile = (i, done) => done
+  ? '<span class="thumb">' + garmentSVG(getLevel(i)) + '</span><small>' + (i + 1) + '</small>'
+  : '<b>' + (i + 1) + '</b><small>' + GAME.levelLabel(i) + '</small>';
+GAME.levelBadge = (lives) => heartsHTML(lives, MAX_LIVES);
+
+/* ---------- small icons for this game ---------- */
+const FI_ICON = {
+  stitch: '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="8.7" cy="11.6" rx="3.7" ry="8.4" transform="rotate(-24 8.7 11.6)" fill="currentColor"/><ellipse cx="15.3" cy="11.6" rx="3.7" ry="8.4" transform="rotate(24 15.3 11.6)" fill="currentColor" opacity=".75"/></svg>',
+  dot: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/></svg>',
+  logo: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9.5 41L33 6.5M38.5 41L15 6.5" stroke="#c9a77c" stroke-width="3.4" stroke-linecap="round"/><circle cx="33.6" cy="5.8" r="2.8" fill="#7a4c9f"/><circle cx="14.4" cy="5.8" r="2.8" fill="#7a4c9f"/>' +
+    '<circle cx="24" cy="29" r="13.5" fill="#c43a4b"/><path d="M12 25.5c6.5 2.6 15.5 2.6 23.5-1.2M11.4 31.6c7.5 3 17 3 24.4-1.6M17.5 18.2c5 5.2 6 13.6 3.6 23.4M28.4 16.4c-4.4 6.4-4.6 15.8-.4 25" fill="none" stroke="#8e2433" stroke-width="1.7" stroke-linecap="round"/><path d="M33 39c3 2.5 6 3 9 2" fill="none" stroke="#c43a4b" stroke-width="2" stroke-linecap="round"/></svg>'
+};
+/* a ball of yarn, coloured from the level's yarn k (CSS variables, so it follows the level) */
+const ballSVG = (k) => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12.4" r="8.6" style="fill:var(--y' + k + ');stroke:var(--y' + k + 'd)" stroke-width="1.1"/>' +
+  '<path d="M4.6 9.6c4.5 1.6 10 1.6 14.6-.6M3.9 13.6c5 2 11 2 16.2-.8M8 4.9c3.2 3.4 4 9 2.3 15.2M14.8 4.4c-2.8 4.2-3 10.4-.2 16.2" fill="none" style="stroke:var(--y' + k + 'd)" stroke-width="1.15" stroke-linecap="round"/>' +
+  '<path d="M18.6 18.6c1.6 1.2 2.6 2.4 2.8 3.6" fill="none" style="stroke:var(--y' + k + ')" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
+/* ---------- game state ---------- */
+/* cell states: 0 bare fabric, 1-4 knitted in that yarn, 5 marked empty, 6 wrong stitch (red, counts as empty), 7 ghost */
+const MARK = 5, WRONG = 6, GHOST = 7;
+let G = null;
+let tool = 1;                   /* 1-4: knit with that yarn, 0: mark empty */
+let drag = null;
+let cursor = { r: 0, c: 0, show: false };
+let winTimer = 0, hintTimer = 0, saveTimer = 0, lastSound = 0;
+const grid = $('#grid'), board = $('#board'), cclues = $('#cclues'), rclues = $('#rclues'), preview = $('#preview'), gclip = $('#gclip');
+const yarnBar = $('#yarns'), app = $('.app');
+
+function loadLevel(idx) {
+  idx = Math.max(0, idx | 0);
+  startLevel(idx, getLevel(idx));
+  const nxt = idx + 1;
+  setTimeout(() => getLevel(nxt), 400);
+}
+
+function startLevel(idx, L) {
+  clearTimeout(winTimer); clearTimeout(hintTimer);
+  if (G && G.slips) for (const k in G.slips) clearTimeout(G.slips[k]);
+  if (disarmRestart) disarmRestart();
+  setRestart('Restart', ICON.restart);
+  const { rows, cols } = cluesFor(L.w, L.h, L.sol);
+  let total = 0; for (let i = 0; i < L.sol.length; i++) if (L.sol[i]) total++;
+  const sameLevel = G && G.idx === idx;
+  G = { idx, L, w: L.w, h: L.h, sol: L.sol, rows, cols, total, cells: new Uint8Array(L.w * L.h), lives: MAX_LIVES,
+        knitted: 0, over: false, won: false, rowDone: new Uint8Array(L.h), colDone: new Uint8Array(L.w), slips: {} };
+  /* pick up where you left off on this level */
+  if (save.cur && save.cur.i === idx && typeof save.cur.c === 'string' && save.cur.c.length === L.w * L.h) {
+    for (let i = 0; i < L.w * L.h; i++) {
+      let v = +save.cur.c[i] || 0;
+      if (v >= 1 && v <= 4 && v !== L.sol[i]) v = 0;
+      if (v === WRONG && L.sol[i]) v = 0;
+      if (v > WRONG) v = 0;
+      G.cells[i] = v;
+      if (v >= 1 && v <= 4) G.knitted++;
+    }
+    G.lives = Math.max(1, Math.min(MAX_LIVES, save.cur.l | 0));
+  }
+  save.level = idx; persist();
+  cursor = { r: 0, c: 0, show: false };
+  if (!sameLevel || tool > L.yarns.length) tool = 1;
+  $('#lvTitle').textContent = 'Level ' + (idx + 1);
+  $('#lvSub').textContent = L.w + ' × ' + L.h + ' · ' + L.yarns.length + ' yarns';
+  board.classList.remove('solved');
+  setYarnColours();
+  buildYarnBar();
+  buildBoard();
+  for (let r = 0; r < G.h; r++) checkLine(true, r, true);
+  for (let c = 0; c < G.w; c++) checkLine(false, c, true);
+  renderLives(); renderCount(); drawPreview();
+  closeModal();
+  if (G.knitted === G.total) win();
+}
+function setRestart(label, icon) { $('#restartLabel').textContent = label; $('#restartIcon').innerHTML = icon; }
+
+/* the level's yarns as CSS variables: the stitches, the clue chips and the yarn balls all read them */
+function setYarnColours() {
+  const st = app.style;
+  G.L.yarns.forEach((y, k) => {
+    st.setProperty('--y' + (k + 1), y.hex); st.setProperty('--y' + (k + 1) + 'l', y.lite);
+    st.setProperty('--y' + (k + 1) + 'd', y.dark); st.setProperty('--y' + (k + 1) + 't', y.ink);
+  });
+  st.setProperty('--bc', G.L.base); st.setProperty('--bcl', mix(G.L.base, '#ffffff', 0.32)); st.setProperty('--bcd', mix(G.L.base, '#000000', 0.26));
+}
+function buildYarnBar() {
+  let h = '';
+  G.L.yarns.forEach((y, k) => {
+    h += '<button class="tool" data-tool="' + (k + 1) + '" aria-pressed="false" aria-label="Knit with ' + y.name + ' (key ' + (k + 1) + ')" title="' + y.name + ' (' + (k + 1) + ')">' +
+      ballSVG(k + 1) + '<span class="key" aria-hidden="true">' + (k + 1) + '</span></button>';
+  });
+  h += '<button class="tool mark" data-tool="0" aria-pressed="false" aria-label="Mark squares you know are empty (key X)" title="Mark empty (X)">' + FI_ICON.dot + '</button>';
+  yarnBar.innerHTML = h;
+  $('#foot').classList.toggle('crowd', G.L.yarns.length >= 3);
+  setTool(tool);
+}
+function setTool(t) {
+  tool = t;
+  for (const b of yarnBar.children) b.setAttribute('aria-pressed', String(+b.dataset.tool === t));
+}
+
+/* ---------- layout: size the squares so clues + grid fit the screen, then zoom in from there ---------- */
+function clueUnits() {
+  /* rough widths in "square units", only a first guess: layout() measures the real thing */
+  let rw = 0, ch = 0;
+  for (const cl of G.rows) { let u = 0.6; for (const r of cl) u += r.n >= 10 ? 0.95 : 0.75; rw = Math.max(rw, u); }
+  for (const cl of G.cols) ch = Math.max(ch, cl.length * 0.66 + 0.5);
+  return { rw, ch };
+}
+const clueFont = (cs) => Math.max(9, Math.min(18, Math.round(cs * 0.46)));
+let cellPx = 20, fitBox = null;
+function layout() {
+  const wrap = $('#boardWrap');
+  const maxW = wrap.clientWidth - 22;
+  const top = wrap.getBoundingClientRect().top + window.scrollY;
+  const maxH = Math.max(260, window.innerHeight - top - $('#foot').offsetHeight - 46);
+  board.style.setProperty('--w', G.w);
+  board.style.setProperty('--h', G.h);
+  const bands = (cs) => {
+    board.style.setProperty('--cs', cs + 'px');
+    board.style.setProperty('--fs', clueFont(cs) + 'px');
+    return [rclues.offsetWidth, cclues.offsetHeight];
+  };
+  /* the whole piece at full view: guess a square size, then shrink it until the clues and grid fit */
+  if (!fitBox || fitBox.G !== G || fitBox.maxW !== maxW || fitBox.maxH !== maxH) {
+    const u = clueUnits();
+    let cs0 = Math.max(10, Math.min(54, Math.floor(Math.min(maxW / (G.w + u.rw), maxH / (G.h + u.ch))) + 3));
+    let b = bands(cs0);
+    while (cs0 > 10 && (b[0] + G.w * cs0 + 4 > maxW || b[1] + G.h * cs0 + 4 > maxH)) b = bands(--cs0);
+    fitBox = { G, maxW, maxH, cs0, bw: b[0], bh: b[1], w: b[0] + G.w * cs0 + 4, h: b[1] + G.h * cs0 + 4 };
+  }
+  const cs0 = fitBox.cs0;
+  /* zoom in until the squares are a comfortable fingertip wide */
+  zoom.max = Math.max(1, Math.min(4, 60 / cs0));
+  const cs = cs0 * zoom.z, m = bands(cs);
+  /* the clue bands never get smaller than at full view, so the corner preview keeps its room */
+  const bw = Math.max(fitBox.bw, m[0]), bh = Math.max(fitBox.bh, m[1]);
+  const cw = G.w * cs + 4, ch = G.h * cs + 4;
+  /* zoomed in, the piece can grow to fill the space down to the footer (gap, page padding and its own frame) */
+  const roomH = window.innerHeight - top - $('#foot').offsetHeight - 12 - (parseFloat(getComputedStyle(app).paddingBottom) || 20) - 22;
+  const vw = Math.min(cw, Math.max(maxW, fitBox.w) - bw), vh = Math.min(ch, Math.max(roomH, fitBox.h) - bh);
+  board.style.setProperty('--rw', bw + 'px');
+  board.style.setProperty('--ch', bh + 'px');
+  board.style.setProperty('--vw', vw + 'px');
+  board.style.setProperty('--vh', vh + 'px');
+  cellPx = cs;
+  /* the corner preview fills the space above the row clues */
+  const scale = Math.max(1, Math.floor(Math.min(Math.max(24, bw - 10) / G.w, Math.max(24, bh - 10) / G.h)));
+  if (preview.width !== G.w || preview.height !== G.h) { preview.width = G.w; preview.height = G.h; drawPreview(); }
+  preview.style.width = G.w * scale + 'px'; preview.style.height = G.h * scale + 'px';
+  const r = gclip.getBoundingClientRect();
+  return { cw, ch, vw, vh, left: r.left, top: r.top };
+}
+function panBoard() {
+  const x = -zoom.x, y = -zoom.y;
+  grid.style.transform = x || y ? 'translate(' + x + 'px,' + y + 'px)' : '';
+  cclues.style.transform = x ? 'translateX(' + x + 'px)' : '';
+  rclues.style.transform = y ? 'translateY(' + y + 'px)' : '';
+}
+/* when zoomed in, slide a square into view (the keyboard cursor, or a hint) */
+function showCell(r, c) { zoom.show(2 + c * cellPx, 2 + r * cellPx, cellPx, cellPx); }
+window.addEventListener('resize', () => { if (G) zoom.refresh(); });
+
+function buildBoard() {
+  const { w, h } = G;
+  board.style.setProperty('--w', w); board.style.setProperty('--h', h);
+  const chip = (r) => '<span class="chip y' + r.c + '">' + r.n + '</span>';
+  const zero = '<span class="zero">0</span>';
+  cclues.innerHTML = G.cols.map((cl, c) => '<div class="cclue" data-c="' + c + '">' + (cl.length ? cl.map(chip).join('') : zero) + '</div>').join('');
+  rclues.innerHTML = G.rows.map((cl, r) => '<div class="rclue" data-r="' + r + '">' + (cl.length ? cl.map(chip).join('') : zero) + '</div>').join('');
+  grid.classList.remove('bloom');
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < w * h; i++) {
+    const r = Math.floor(i / w), c = i % w, d = document.createElement('div');
+    let cls = 'cell';
+    if (c === w - 1) cls += ' cl'; else if (c % 5 === 4) cls += ' c5';
+    if (r === h - 1) cls += ' rl'; else if (r % 5 === 4) cls += ' r5';
+    d.className = cls;
+    d.dataset.cls = cls;
+    frag.appendChild(d);
+  }
+  grid.innerHTML = '';
+  grid.appendChild(frag);
+  for (let i = 0; i < w * h; i++) renderCell(i);
+  zoom.reset();
+  zoom.tip();
+}
+
+function renderCell(i, pop) {
+  const el = grid.children[i], s = G.cells[i];
+  let cls = el.dataset.cls;
+  if (G.slips[i]) cls += ' x';
+  else if (s >= 1 && s <= 4) cls += ' k y' + s + (pop ? ' pop' : '');
+  else if (s === MARK) cls += ' m';
+  else if (s === WRONG) cls += ' x';
+  else if (s === GHOST) cls += ' k g y' + G.sol[i];
+  else if (G.won) cls += ' k kb';
+  if (cursor.show && i === cursor.r * G.w + cursor.c) cls += ' cur';
+  el.className = cls;
+}
+function renderLives(justLost) {
+  const el = $('#lives');
+  el.innerHTML = heartsHTML(G.lives, MAX_LIVES, justLost ? 'pop' : '');
+  el.setAttribute('aria-label', G.lives + ' lives left');
+}
+function renderCount() {
+  $('#count').innerHTML = '<small>Stitches</small>' + G.knitted + ' / ' + G.total;
+}
+let previewQueued = false;
+function drawPreview() {
+  if (previewQueued || !G) return;
+  previewQueued = true;
+  requestAnimationFrame(() => {
+    previewQueued = false;
+    const ctx = preview.getContext('2d');
+    ctx.clearRect(0, 0, G.w, G.h);
+    for (let i = 0; i < G.w * G.h; i++) {
+      const s = G.cells[i];
+      let col = null;
+      if (s >= 1 && s <= 4) col = G.L.yarns[s - 1].hex;
+      else if (G.won) col = G.L.base;
+      else if (G.over && G.sol[i]) { ctx.globalAlpha = 0.35; col = G.L.yarns[G.sol[i] - 1].hex; }
+      if (!col) continue;
+      ctx.fillStyle = col;
+      ctx.fillRect(i % G.w, Math.floor(i / G.w), 1, 1);
+      ctx.globalAlpha = 1;
+    }
+  });
+}
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!G || G.won || G.over) { if (save.cur) { delete save.cur; persist(); } return; }
+    save.cur = { i: G.idx, c: Array.from(G.cells, (v) => (v === GHOST ? 0 : v)).join(''), l: G.lives };
+    persist();
+  }, 300);
+}
+
+/* ---------- finished rows and columns grey out, and their leftover squares get dots ---------- */
+function checkLine(isRow, k, quiet) {
+  const n = isRow ? G.w : G.h, done = isRow ? G.rowDone : G.colDone;
+  if (done[k]) return false;
+  for (let x = 0; x < n; x++) {
+    const i = isRow ? k * G.w + x : x * G.w + k;
+    if (G.sol[i] && G.cells[i] !== G.sol[i]) return false;
+  }
+  done[k] = 1;
+  for (let x = 0; x < n; x++) {
+    const i = isRow ? k * G.w + x : x * G.w + k;
+    if (G.cells[i] === 0) { G.cells[i] = MARK; renderCell(i); }
+  }
+  const el = (isRow ? rclues : cclues).children[k];
+  if (el) el.classList.add('done');
+  return !quiet;
+}
+
+/* ---------- input: tap or drag along a row/column ---------- */
+function cellFromPoint(x, y, clamp) {
+  /* only squares in the visible window count; a drag past its edge stops at the edge */
+  const win = gclip.getBoundingClientRect();
+  if (!clamp && (x < win.left || x >= win.right || y < win.top || y >= win.bottom)) return null;
+  x = Math.max(win.left, Math.min(win.right - 1, x));
+  y = Math.max(win.top, Math.min(win.bottom - 1, y));
+  const rect = grid.getBoundingClientRect();
+  const cs = (rect.width - 4) / G.w;
+  let c = Math.floor((x - rect.left - 2) / cs), r = Math.floor((y - rect.top - 2) / ((rect.height - 4) / G.h));
+  if (clamp) { c = Math.max(0, Math.min(G.w - 1, c)); r = Math.max(0, Math.min(G.h - 1, r)); }
+  else if (c < 0 || r < 0 || c >= G.w || r >= G.h) return null;
+  return { r, c };
+}
+function setHighlight(r, c) {
+  for (const el of rclues.children) el.classList.toggle('hl', +el.dataset.r === r);
+  for (const el of cclues.children) el.classList.toggle('hl', +el.dataset.c === c);
+}
+function clearHint() {
+  clearTimeout(hintTimer);
+  for (const el of grid.querySelectorAll('.hint')) el.classList.remove('hint');
+  for (const el of board.querySelectorAll('.cclue.hint,.rclue.hint')) el.classList.remove('hint');
+  for (const el of yarnBar.querySelectorAll('.hint')) el.classList.remove('hint');
+}
+/* a stitch just went in: chime for finished lines, count it, and maybe finish the piece */
+function knitted(r, c) {
+  const a = checkLine(true, r), b = checkLine(false, c);
+  if (a || b) { G.lines = (G.lines || 0) + 1; sfx('line', G.lines % 8); }
+  renderCount(); drawPreview();
+}
+
+/* apply the current stroke's action to one square; returns false to stop the stroke */
+function applyAt(r, c) {
+  const i = r * G.w + c, s = G.cells[i];
+  if (drag.act === 'knit') {
+    if (s !== 0) return true;
+    const want = G.sol[i];
+    if (want === drag.yarn) {
+      G.cells[i] = want; G.knitted++; drag.count++;
+      renderCell(i, true);
+      const now = performance.now();
+      if (now - lastSound > 45) { sfx('knit', drag.count); lastSound = now; }
+      knitted(r, c);
+      if (G.knitted === G.total) { win(); return false; }
+      return true;
+    }
+    /* a slip: the wrong square, or the wrong yarn (then the right yarn is knitted in for you) */
+    G.lives--;
+    if (!want) { G.cells[i] = WRONG; renderCell(i); }
+    else {
+      const g = G;
+      G.cells[i] = want; G.knitted++;
+      G.slips[i] = setTimeout(() => { if (G !== g) return; delete G.slips[i]; renderCell(i, true); }, 750);
+      renderCell(i);
+      knitted(r, c);
+      if (!save.slipTip && G.lives > 0) { save.slipTip = true; persist(); setTimeout(() => toast('Wrong yarn! The right one has been knitted in for you.', 3000), 250); }
+    }
+    renderLives(true);
+    haptic(70); sfx('warn');
+    if (G.lives <= 0) lose();
+    else if (G.knitted === G.total) win();
+    return false;
+  }
+  if (drag.act === 'mark' && s === 0) { G.cells[i] = MARK; renderCell(i); drag.count++; if (drag.count === 1) sfx('mark'); }
+  else if (drag.act === 'unmark' && s === MARK) { G.cells[i] = 0; renderCell(i); drag.count++; if (drag.count === 1) sfx('mark'); }
+  return true;
+}
+
+function playDown(e) {
+  if (!G || G.over || G.won || drag) return;
+  if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 2) return;
+  const p = cellFromPoint(e.clientX, e.clientY);
+  if (!p) return;
+  e.preventDefault();
+  clearHint();
+  try { grid.setPointerCapture(e.pointerId); } catch (err) {}
+  const marking = e.button === 2 || tool === 0;
+  const s = G.cells[p.r * G.w + p.c];
+  drag = { id: e.pointerId, act: !marking ? 'knit' : s === MARK ? 'unmark' : 'mark', yarn: tool, r0: p.r, c0: p.c, r: p.r, c: p.c, axis: null, count: 0, live: true };
+  if (cursor.show) { cursor.show = false; renderCell(cursor.r * G.w + cursor.c); }
+  setHighlight(p.r, p.c);
+  drag.live = applyAt(p.r, p.c);
+  queueSave();
+}
+function playMove(e) {
+  if (!drag || e.pointerId !== drag.id || !drag.live) return;
+  const p = cellFromPoint(e.clientX, e.clientY, true);
+  if (!drag.axis) {
+    if (p.r === drag.r0 && p.c === drag.c0) return;
+    drag.axis = Math.abs(p.c - drag.c0) >= Math.abs(p.r - drag.r0) ? 'row' : 'col';
+  }
+  const tr = drag.axis === 'row' ? drag.r0 : p.r, tc = drag.axis === 'row' ? p.c : drag.c0;
+  while (drag.live && (drag.r !== tr || drag.c !== tc)) {
+    if (drag.axis === 'row') drag.c += Math.sign(tc - drag.c); else drag.r += Math.sign(tr - drag.r);
+    setHighlight(drag.r, drag.c);
+    drag.live = applyAt(drag.r, drag.c);
+  }
+  queueSave();
+}
+function endDrag(e) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  drag = null;
+  if (G && !G.won && !G.over) setHighlight(-1, -1);
+  queueSave();
+}
+grid.addEventListener('contextmenu', (e) => e.preventDefault());
+
+const zoom = makeZoom({
+  el: $('#boardWrap'),
+  fit: $('#zoomFit'),
+  layout, pan: panBoard,
+  down: playDown, move: playMove, up: endDrag, cancel: endDrag,
+  /* zoomed in, a one-finger drag on the clues or around the piece slides the board */
+  canPan: (e) => !cellFromPoint(e.clientX, e.clientY),
+  focus: () => {
+    if (!cursor.show) return null;
+    const r = grid.getBoundingClientRect();
+    return { x: r.left + 2 + (cursor.c + 0.5) * cellPx, y: r.top + 2 + (cursor.r + 0.5) * cellPx };
+  },
+  tip: 'Tip: pinch the knitting to zoom in. Drag with two fingers, or along the clues, to look around.'
+});
+
+/* keyboard: arrows move a cursor, Enter/Space knits with the chosen yarn, X / . / M marks */
+grid.addEventListener('keydown', (e) => {
+  if (!G || G.over || G.won) return;
+  const k = e.key;
+  const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+  const old = cursor.r * G.w + cursor.c;
+  if (moves[k]) {
+    e.preventDefault();
+    cursor.r = Math.max(0, Math.min(G.h - 1, cursor.r + moves[k][0]));
+    cursor.c = Math.max(0, Math.min(G.w - 1, cursor.c + moves[k][1]));
+    cursor.show = true;
+    renderCell(old); renderCell(cursor.r * G.w + cursor.c);
+    setHighlight(cursor.r, cursor.c);
+    showCell(cursor.r, cursor.c);
+    return;
+  }
+  const markAct = G.cells[old] === MARK ? 'unmark' : 'mark';
+  let act = null;
+  if (k === 'Enter' || k === ' ') act = tool === 0 ? markAct : 'knit';
+  else if (k === 'x' || k === 'X' || k === '.' || k === 'm' || k === 'M') act = markAct;
+  if (!act) return;
+  e.preventDefault();
+  cursor.show = true;
+  clearHint();
+  drag = { act, yarn: tool, count: 0 };
+  applyAt(cursor.r, cursor.c);
+  drag = null;
+  if (G && !G.won && !G.over) renderCell(cursor.r * G.w + cursor.c);
+  queueSave();
+});
+grid.addEventListener('blur', () => { if (cursor.show && G) { cursor.show = false; renderCell(cursor.r * G.w + cursor.c); setHighlight(-1, -1); } });
+/* number keys pick a yarn from anywhere on the page */
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || modalOpen() || !G) return;
+  const n = '1234'.indexOf(e.key) + 1;
+  if (n && n <= G.L.yarns.length) { e.preventDefault(); setTool(n); sfx('pick', n); }
+});
+yarnBar.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tool]');
+  if (!b || !G) return;
+  setTool(+b.dataset.tool);
+  sfx('pick', +b.dataset.tool);
+});
+
+/* ---------- hint: find a square that one row or column already pins down ---------- */
+function findHint() {
+  const { w, h, sol } = G;
+  const known = new Int8Array(w * h).fill(-1);
+  for (let i = 0; i < w * h; i++) {
+    const s = G.cells[i];
+    if (s >= 1 && s <= 4) known[i] = s;
+    else if (s === WRONG || (s === MARK && !sol[i])) known[i] = 0;
+  }
+  const lines = shuffleArr([...Array(w + h).keys()], Math.random);
+  let fallback = null;
+  for (const L of lines) {
+    const isRow = L < h, k = isRow ? L : L - h, n = isRow ? w : h;
+    const line = [];
+    for (let x = 0; x < n; x++) line.push(known[isRow ? k * w + x : x * w + k]);
+    const res = lineSolve(isRow ? G.rows[k] : G.cols[k], line);
+    if (!res) continue;
+    for (let x = 0; x < n; x++) {
+      if (line[x] !== -1 || res[x] === -1) continue;
+      const i = isRow ? k * w + x : x * w + k;
+      if (res[x] > 0 && !(G.cells[i] >= 1 && G.cells[i] <= 4)) return { i, yarn: res[x], isRow, k };
+      if (res[x] === 0 && G.cells[i] === 0 && !fallback) fallback = { i, yarn: 0, isRow, k };
+    }
+  }
+  return fallback;
+}
+$('#btnHint').addEventListener('click', () => {
+  if (!G || G.over || G.won) return;
+  clearHint();
+  const hnt = findHint();
+  if (!hnt) { toast('Every square left is already worked out — keep knitting!'); return; }
+  grid.children[hnt.i].classList.add('hint');
+  showCell(Math.floor(hnt.i / G.w), hnt.i % G.w);
+  (hnt.isRow ? rclues : cclues).children[hnt.k].classList.add('hint');
+  const line = 'This ' + (hnt.isRow ? 'row' : 'column');
+  if (hnt.yarn) {
+    /* pick up the yarn it needs, ready to knit */
+    setTool(hnt.yarn);
+    yarnBar.children[hnt.yarn - 1].classList.add('hint');
+    toast(line + ' says the glowing square is ' + G.L.yarns[hnt.yarn - 1].name + (G.cells[hnt.i] === MARK ? ' (clear its dot first).' : '.'), 3000);
+  } else toast(line + ' says the glowing square stays empty.', 2800);
+  hintTimer = setTimeout(clearHint, 3200);
+  sfx('hint');
+});
+
+/* ---------- win and lose ---------- */
+const WIN_TITLES = ['Purl-fect!', 'Cast off!', 'Woolly wonderful!', 'Snug as a bug!', 'Toasty!'];
+function win() {
+  if (G.won) return;
+  G.won = true;
+  clearHint(); setHighlight(-1, -1);
+  setRestart('Next', ICON.chevR);
+  const best = save.done[G.idx] || 0;
+  save.done[G.idx] = Math.max(best, G.lives);
+  delete save.cur;
+  persist();
+  for (const k in G.slips) clearTimeout(G.slips[k]);
+  G.slips = {};
+  /* the background is knitted in, row by row from the bottom like a real piece, and the stitches settle */
+  for (let i = 0; i < G.w * G.h; i++) {
+    const r = Math.floor(i / G.w), c = i % G.w;
+    if (G.cells[i] === MARK || G.cells[i] === WRONG) G.cells[i] = 0;
+    grid.children[i].style.setProperty('--d', ((G.h - 1 - r) / Math.max(1, G.h - 1) * 0.9 + c / G.w * 0.12).toFixed(2) + 's');
+  }
+  board.classList.add('solved');
+  zoom.reset(true);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    grid.classList.add('bloom');
+    for (let i = 0; i < G.w * G.h; i++) renderCell(i);
+  }));
+  drawPreview();
+  sfx('settle');
+  winTimer = setTimeout(showWin, 1700);
+}
+function lose() {
+  G.over = true;
+  clearHint(); setHighlight(-1, -1);
+  setRestart('Retry', ICON.restart);
+  delete save.cur; persist();
+  for (const k in G.slips) clearTimeout(G.slips[k]);
+  G.slips = {};
+  for (let i = 0; i < G.w * G.h; i++) {
+    if (G.sol[i] && G.cells[i] !== G.sol[i]) G.cells[i] = GHOST;
+    renderCell(i);
+  }
+  zoom.reset(true);
+  drawPreview();
+  sfx('fail');
+  winTimer = setTimeout(showLose, 900);
+}
+function showWin() {
+  const L = G.L;
+  const what = L.kind === 'colourwork' ? 'a <b>' + L.name + '</b> pattern'
+    : (/^[aeiou]/i.test(L.name) ? 'an' : 'a') + ' <b>' + L.name.toLowerCase() + '</b>';
+  openModal(
+    '<div class="garment">' + garmentSVG(L, true) + '</div>' +
+    '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
+    '<p>You knitted ' + what + ' into ' + WEAR[L.wear].into + '.</p>' +
+    '<div class="badge-row">' + heartsHTML(G.lives, MAX_LIVES) + '</div>' +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="next">Next level</button>' +
+    '<button class="btn" data-act="levels">Your wardrobe</button>' +
+    '<button class="btn" data-act="close">Admire it</button>' +
+    '</div>'
+  );
+}
+function showLose() {
+  openModal(
+    '<h2>Out of yarn</h2>' +
+    '<p>The rest of the pattern is shown faintly on the fabric. Have another go?</p>' +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="retry">Try again</button>' +
+    '<button class="btn" data-act="close">View the pattern</button>' +
+    '<button class="btn" data-act="levels">Choose level</button>' +
+    '</div>'
+  );
+}
+
+GAME.showHelp = () => {
+  const chipTxt = (x, t, fill, ink) => '<rect x="' + x + '" y="6" width="9" height="12" rx="3" fill="' + fill + '"/><text x="' + (x + 4.5) + '" y="15.7" text-anchor="middle" font-size="10" font-weight="700" fill="' + ink + '" font-family="Fredoka,system-ui">' + t + '</text>';
+  openModal(
+    '<div class="logo">' + FI_ICON.logo + '<h2>Fair Isle</h2></div>' +
+    '<p>Knit the hidden picture using the coloured number clues.</p>' +
+    '<ul class="rules">' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24">' + chipTxt(1.5, '3', '#c43a4b', '#fff') + '<circle cx="12" cy="18" r="1.1" fill="currentColor"/>' + chipTxt(13.5, '1', '#283c6e', '#fff') + '</svg></span><span>Each number is a run of stitches in that row or column, in order, in its yarn’s colour.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="8" height="5" rx="1.5" fill="#c43a4b"/><rect x="14" y="5" width="8" height="5" rx="1.5" fill="#c43a4b"/><rect x="2" y="14" width="10" height="5" rx="1.5" fill="#c43a4b"/><rect x="12" y="14" width="10" height="5" rx="1.5" fill="#283c6e"/></svg></span><span>Runs of the same yarn have a gap between them. Different yarns can touch.</span></li>' +
+    '<li><span class="mini" style="color:#c43a4b">' + FI_ICON.stitch + '</span><span>Pick a yarn from the basket, then tap or drag to knit. A wrong stitch costs one of your 3 hearts.</span></li>' +
+    '<li><span class="mini">' + FI_ICON.dot + '</span><span>Pick the <b>dot</b> to mark squares you know are empty. Number keys pick yarns too.</span></li>' +
+    '<li><span class="mini">' + ICON.hint + '</span><span>Stuck? The bulb points at a square you can work out.</span></li>' +
+    '<li><span class="mini">' + ZOOM_ICON.in + '</span><span>Big piece? Pinch to zoom in, and drag with two fingers to look around.</span></li>' +
+    '</ul>' +
+    '<p style="font-size:15px;margin-top:-4px">Every puzzle has one answer, reachable by logic alone. Finished pieces are knitted into something cosy for your wardrobe.</p>' +
+    '<div class="stack"><button class="btn primary" data-act="close">Start knitting</button></div>'
+  );
+};
+
+/* ---------- music: a slow fireside air, with the fire crackling along ---------- */
+const CHORD = {
+  D: 'D3:.5 A3:.5 D4:.5 F#4:.5 A4:.5 F#4:.5', G: 'G2:.5 D3:.5 G3:.5 B3:.5 D4:.5 B3:.5', A: 'A2:.5 E3:.5 A3:.5 C#4:.5 E4:.5 C#4:.5',
+  Bm: 'B2:.5 F#3:.5 B3:.5 D4:.5 F#4:.5 D4:.5', Em: 'E3:.5 B3:.5 E4:.5 G4:.5 B4:.5 G4:.5'
+};
+const ROOT = { D: 'D3', G: 'G2', A: 'A2', Bm: 'B2', Em: 'E3' };
+const BARS = 'D D G D D D Bm A D D Em D G D A D'.split(' ');
+GAME.music = {
+  tempo: 96,
+  tracks: [
+    { inst: INST.flute, vol: 0.09, seq: track('A4 D5:1.5 E5:.5 F#5 E5 D5 B4:1.5 A4:.5 B4 A4:3 A4 D5:1.5 E5:.5 F#5 A5 G5 F#5:1.5 E5:.5 D5 E5:3 ' +
+      'F#5 A5:1.5 B5:.5 A5 F#5 D5 G5:1.5 F#5:.5 E5 F#5:3 B4 D5:1.5 E5:.5 F#5 E5 D5 E5:1.5 D5:.5 B4 D5:3') },
+    { inst: INST.harp, vol: 0.05, seq: track(BARS.map((b) => CHORD[b]).join(' ')) },
+    { inst: INST.bass, vol: 0.08, seq: track(BARS.map((b) => ROOT[b] + ':3').join(' ')) }
+  ],
+  ambient() {
+    /* a fire in the grate: a low rumble, and little pops and crackles now and then */
+    if (!noiseBuf) noise(actx.currentTime, { vol: 0.0001 });
+    const src = actx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+    const f = actx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 300;
+    const g = actx.createGain(); g.gain.value = 0.022;
+    src.connect(f); f.connect(g); g.connect(musicBus); src.start();
+    const pops = setInterval(() => {
+      if (Math.random() < 0.6) return;
+      const t = actx.currentTime + Math.random() * 0.1;
+      noise(t, { f: 1800 + Math.random() * 3600, q: 0.8, dur: 0.006 + Math.random() * 0.02, vol: 0.01 + Math.random() * 0.028, ftype: 'highpass', bus: musicBus });
+      if (Math.random() < 0.3) noise(t + 0.03 + Math.random() * 0.05, { f: 2600, q: 0.8, dur: 0.006, vol: 0.012, ftype: 'highpass', bus: musicBus });
+    }, 110);
+    return () => { clearInterval(pops); try { src.stop(); } catch (e) {} };
+  }
+};
+GAME.sfx = {
+  /* two needle tips clicking together */
+  knit(t, k) {
+    const f = 2300 + ((k || 0) % 5) * 110;
+    noise(t, { f, q: 7, dur: 0.012, vol: 0.07 });
+    tone(t, f * 0.6, { type: 'sine', a: 0.001, dur: 0.03, vol: 0.028 });
+    noise(t + 0.055, { f: f * 1.15, q: 7, dur: 0.01, vol: 0.05 });
+  },
+  mark(t) { tone(t, 520, { type: 'sine', to: 470, a: 0.002, dur: 0.05, vol: 0.05 }); },
+  pick(t, k) {
+    if (!k) { tone(t, 600, { type: 'sine', to: 520, a: 0.002, dur: 0.06, vol: 0.05 }); return; }
+    tone(t, noteFreq(['D5', 'F#5', 'A5', 'D6'][k - 1]), { type: 'triangle', a: 0.004, dur: 0.14, vol: 0.07 });
+  },
+  line(t, k) { SFX.chime(t, 3 + (k || 0)); },
+  hint(t) { tone(t, 1175, { type: 'sine', a: 0.004, dur: 0.25, vol: 0.06 }); tone(t + 0.09, 1568, { type: 'sine', a: 0.004, dur: 0.3, vol: 0.05 }); },
+  /* a warm flourish: a harp run up the scale, then a soft full chord */
+  settle(t) {
+    ['D4', 'F#4', 'A4', 'D5', 'F#5', 'A5', 'D6'].forEach((n, k) => tone(t + k * 0.075, noteFreq(n), { type: 'triangle', a: 0.005, dur: 0.7, vol: 0.09, lp: 2600 }));
+    const c = t + 0.6;
+    ['D4', 'A4', 'D5', 'F#5'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.06, dur: 1.2, vol: 0.045, lp: 1300 }));
+    tone(c, noteFreq('A6'), { type: 'sine', to: noteFreq('D7'), glide: 0.5, a: 0.05, dur: 0.6, vol: 0.035 });
+  }
+};
+
+/* ---------- boot ---------- */
+$('#btnHint').innerHTML = ICON.hint;
+const disarmRestart = armConfirm($('#btnRestart'), $('#restartLabel'), 'Restart',
+  () => G && !G.won && !G.over && (G.lives < MAX_LIVES || G.cells.some((v) => v >= 1 && v <= MARK)),
+  () => {
+    if (G.won) { loadLevel(G.idx + 1); return; }
+    delete save.cur; persist(); startLevel(G.idx, G.L);
+  });
+shellBoot();
+loadLevel(save.level || 0);
+if (!save.seenHelp) { GAME.showHelp(); save.seenHelp = true; persist(); }
+</script>
+</body>
+</html>
