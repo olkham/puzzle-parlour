@@ -23,7 +23,7 @@
   --card:#fffaf3;
   --card-edge:#e8d6c2;
   --ink:#3a2a2c;
-  --muted:#86706a;
+  --muted:#7c665f;
   --accent:#b8452f;
   --accent-ink:#ffffff;
   --heart:#e5484d;
@@ -46,10 +46,11 @@
   --label-edge:#6b5348;
   --label-ink:#3a2a2c;
   --pinhead:#d9473a;
-  --good:#1d8a6a;
-  --bad:#d1453a;
+  --good:#18785c;
+  --bad:#bf3a2f;
   --cursor:#b8452f;
   --hint:#ffd166;
+  --badge-ink:#ffffff;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -85,6 +86,7 @@
     --bad:#ff7a6b;
     --cursor:#f08d6e;
     --hint:#ffd166;
+    --badge-ink:#10241d;
   }
 }
 :root[data-theme="dark"]{
@@ -94,7 +96,7 @@
   --scrim:rgba(8,5,4,.7);--mat:#1f4d44;--mat-line:rgba(255,255,255,.06);--mat-line2:rgba(255,255,255,.13);
   --mat-edge:#163a33;--calico:#3b342e;--chalk:rgba(255,236,215,.2);--muslin:#5a5049;--muslin-line:rgba(255,255,255,.07);
   --tack:#ff8a7a;--seam:rgba(0,0,0,.45);--label:#fff8ee;--label-edge:#2a1f1b;--label-ink:#3a2a2c;--pinhead:#ff7a6b;
-  --good:#5fd3a8;--bad:#ff7a6b;--cursor:#f08d6e;--hint:#ffd166;
+  --good:#5fd3a8;--bad:#ff7a6b;--cursor:#f08d6e;--hint:#ffd166;--badge-ink:#10241d;
 }
 
 *{box-sizing:border-box}
@@ -253,8 +255,6 @@ svg{display:block}
 
 /* ---------- Patchwork ---------- */
 /* ---------- the cutting mat and the quilt on it ---------- */
-.patches{display:flex;align-items:center;gap:8px;min-width:0}
-.patches .lives svg{width:26px;height:26px}
 .cap{display:flex;gap:3px;align-items:center}
 .cap svg{width:26px;height:26px;transition:transform .25s}
 .cap .star.off path{fill:none}
@@ -314,18 +314,20 @@ svg{display:block}
 .cut{fill:var(--good);fill-opacity:.16;stroke:var(--good);stroke-width:.09;stroke-linejoin:round}
 .cut.bad{fill:var(--bad);fill-opacity:.1;stroke:var(--bad);stroke-dasharray:.22 .14}
 .badge rect{fill:var(--good)}
-.badge text{font-family:'Fredoka',ui-rounded,system-ui,sans-serif;font-weight:600;fill:#fff;text-anchor:middle;dominant-baseline:central}
+.badge text{font-family:'Fredoka',ui-rounded,system-ui,sans-serif;font-weight:600;fill:var(--badge-ink);text-anchor:middle;dominant-baseline:central}
 .badge.bad rect{fill:var(--bad)}
 .kcur{fill:none;stroke:var(--cursor);stroke-width:.09;stroke-dasharray:.16 .1}
 
 /* finished: pins out, running-stitch seams, the quilt puffs up and gets its binding */
 .seam{fill:none;stroke-linecap:round;stroke-dasharray:.13 .11}
-.seam.under{stroke:rgba(40,22,14,.45);stroke-width:.075}
-.seam.over{stroke:#fffaf0;stroke-width:.05}
+.seam.under{stroke:rgba(40,22,14,.4);stroke-width:.065}
+.seam.over{stroke:#fffaf0;stroke-width:.042}
 #quilt.won .chalk,#quilt.won .edge{opacity:0}
 #quilt.won .pin-in{opacity:0;transform:translateY(-35%) scale(.5)}
 #quilt.puffed .patch .puff{opacity:1}
 .binding{fill:none;stroke-width:.2;stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
+.binding-sh{fill:none;stroke:rgba(10,20,15,.35);stroke-width:.28;opacity:0;transition:opacity .4s ease .5s}
+#quilt.bound .binding-sh{opacity:1}
 .binding-st{fill:none;stroke:#fffaf0;stroke-width:.035;stroke-dasharray:.12 .1;opacity:0;transition:opacity .4s ease .7s}
 #quilt.bound .binding{opacity:1;stroke-dashoffset:0;transition:stroke-dashoffset .8s ease}
 #quilt.bound .binding-st{opacity:.9}
@@ -389,6 +391,7 @@ svg{display:block}
         <rect class="edge" id="edge"/>
         <g id="patchG"></g>
         <g id="seamG"></g>
+        <rect class="binding-sh" id="bindingSh"/>
         <rect class="binding" id="binding" pathLength="1"/>
         <rect class="binding-st" id="bindingSt"/>
         <g id="pinG"></g>
@@ -1219,7 +1222,7 @@ function partition(W, H, rnd, spec) {
         if (asp > 5) continue;
         /* bell-ish weight around the target size, gentle on long thin strips, shy of 1x1s */
         let wt = Math.exp(-Math.pow(Math.log(a / spec.mean), 2) * 1.6);
-        if (a === 1) wt *= spec.ones;
+        if (a === 1) wt = 0.12 * spec.ones;
         if (asp >= 4) wt *= 0.35; else if (asp >= 3) wt *= 0.7;
         if (wt <= 0) continue;
         opts.push([w, h, wt]); tot += wt;
@@ -1236,7 +1239,7 @@ function partition(W, H, rnd, spec) {
   for (let pass = 0; pass < 2; pass++) {
     for (let n = 0; n < rects.length; n++) {
       const k = rects[n];
-      if (k < 0 || rH(k) * rW(k) !== 1) continue;
+      if (k < 0 || rH(k) * rW(k) !== 1 || rnd() < spec.ones) continue;
       const r = rR(k), c = rC(k);
       const nbs = shuffleArr([[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]], rnd);
       for (const [rr, cc] of nbs) {
@@ -1323,7 +1326,7 @@ const BANDS = [
 function specFor(idx) {
   const b = BANDS.find((x) => idx < x.to);
   const [w, h] = pickOne(b.sizes, mulberry32(seedFor(idx, 2)));
-  return { w, h, mean: b.mean, max: b.max, ones: 0.06, maxOnes: Math.max(1, Math.round(w * h / 45)), minDeep: b.deep[0], maxDeep: b.deep[1] };
+  return { w, h, mean: b.mean, max: b.max, ones: 0.35, maxOnes: Math.max(1, Math.round(w * h / 45)), minDeep: b.deep[0], maxDeep: b.deep[1] };
 }
 function levelSize(idx) {
   if (idx < HAND.length) return [HAND[idx][0].length, HAND[idx].length];
@@ -1334,11 +1337,11 @@ function levelSize(idx) {
 const PALETTES = [
   ['Strawberry', '#8e2b43', ['#d94f5c', '#f4a3b4', '#74ad62', '#f3bd5c', '#9c3049']],
   ['Seaside', '#234b82', ['#2d5d9f', '#4fb3c9', '#f2cc6a', '#ec8a63', '#9bd5d1']],
-  ['Meadow', '#3e6e2f', ['#5c9a46', '#b5d465', '#f2c14e', '#7096d8', '#e98aa3']],
+  ['Meadow', '#c98a2b', ['#5c9a46', '#b5d465', '#f2c14e', '#7096d8', '#e98aa3']],
   ['Lavender', '#56397f', ['#7957ae', '#b59ae0', '#86b892', '#f0b8cc', '#e9c46a']],
   ['Harvest', '#6e4026', ['#c0582f', '#e3a33c', '#82913f', '#8a5a3b', '#d9b98c']],
   ['Blueberry', '#2a3f80', ['#3a56a8', '#7f9be3', '#f3d64e', '#41a395', '#e57a6e']],
-  ['Peach', '#2f7464', ['#f29a76', '#e2665a', '#88cfb1', '#3e8f7d', '#f7d27a']],
+  ['Peach', '#d65a49', ['#f29a76', '#e2665a', '#88cfb1', '#3e8f7d', '#f7d27a']],
   ['Plum', '#5e2245', ['#83325f', '#cc6b8e', '#e6b04d', '#5f8a5d', '#d58a5e']],
   ['Cornflower', '#3f5fae', ['#5b7fd1', '#e889a0', '#f6d28b', '#6fb7a8', '#c25b7a']],
   ['Sunflower', '#4b3a22', ['#e8a823', '#5a7d3a', '#c9532f', '#f3d77a', '#6f4e37']]
@@ -1529,6 +1532,7 @@ function buildBoard() {
   const bind = PALETTES[L.pal][1];
   set($('#binding'), { x: -0.1, y: -0.1, width: w + 0.2, height: h + 0.2, rx: 0.12, stroke: bind });
   set($('#bindingSt'), { x: -0.1, y: -0.1, width: w + 0.2, height: h + 0.2, rx: 0.12 });
+  set($('#bindingSh'), { x: -0.1, y: -0.1, width: w + 0.2, height: h + 0.2, rx: 0.12 });
   patchG.innerHTML = ''; seamG.innerHTML = ''; cutG.innerHTML = '';
   pinG.innerHTML = L.P.clues.map((cl, n) => pinMarkup(cl, n)).join('');
   svg.classList.remove('won', 'puffed', 'bound');
@@ -1603,9 +1607,10 @@ function layout() {
   const availW = Math.min(wrap.clientWidth, 460) - pad;
   const top = wrap.getBoundingClientRect().top + window.scrollY;
   const availH = Math.max(180, window.innerHeight - top - $('#foot').offsetHeight - 34 - pad);
-  const fit = Math.min(availW / VB.w, availH / VB.h);
+  /* small quilts stop growing at a cosy size */
+  const fit = Math.min(availW / VB.w, availH / VB.h, 84);
   /* zoom in until a square is a comfortable fingertip wide */
-  zoom.max = Math.max(1, Math.min(4, 50 / fit));
+  zoom.max = Math.max(1, Math.min(4, 56 / fit));
   const s = fit * zoom.z, cw = VB.w * s, ch = VB.h * s;
   const vw = Math.min(cw, Math.max(availW, VB.w * fit)), vh = Math.min(ch, Math.max(availH, VB.h * fit));
   svg.style.width = vw + 'px';
