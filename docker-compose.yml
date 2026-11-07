@@ -18,4 +18,9 @@ services:
       - ./log-jam:/usr/share/nginx/html/log-jam:ro
       - ./layer-cake:/usr/share/nginx/html/layer-cake:ro
       - ./green-thumb:/usr/share/nginx/html/green-thumb:ro
+      - ./fair-isle:/usr/share/nginx/html/fair-isle:ro
+      - ./sun-catcher:/usr/share/nginx/html/sun-catcher:ro
+      - ./patchwork:/usr/share/nginx/html/patchwork:ro
+      - ./truffle-hunt:/usr/share/nginx/html/truffle-hunt:ro
+      - ./fence-line:/usr/share/nginx/html/fence-line:ro
     restart: unless-stopped
