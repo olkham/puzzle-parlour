@@ -1411,7 +1411,7 @@ nnnnnnnnnnnnn
 nnnnnnnnnnnnn
 .nnnnnnnnnnn.
 ...nnnnnnn...` },
-  { name: 'Shetland star', pal: 'Brey', wear: 'jumper', art: `
+  { name: 'Shetland star', say: 'Shetland star', pal: 'Brey', wear: 'jumper', art: `
 ....eeeeeee....
 .B.eeerrreee.B.
 .BBeeerrreeeBB.
@@ -1664,7 +1664,7 @@ function fromPicture(idx) {
   const p = PICTURES[idx], rows = p.art.trim().split('\n'), h = rows.length, w = rows[0].length;
   const sol = new Int8Array(w * h);
   rows.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== '.') sol[r * w + c] = p.pal.indexOf(ch) + 1; }));
-  return dress({ w, h, sol, pal: p.pal, name: p.name, kind: 'picture', wear: p.wear }, idx);
+  return dress({ w, h, sol, pal: p.pal, name: p.name, say: p.say || p.name.toLowerCase(), kind: 'picture', wear: p.wear }, idx);
 }
 /* yarn names and colours, the garment it goes on and that garment's colour */
 function dress(L, idx) {
@@ -2205,7 +2205,7 @@ function lose() {
 function showWin() {
   const L = G.L;
   const what = L.kind === 'colourwork' ? 'a <b>' + L.name + '</b> pattern'
-    : (/^[aeiou]/i.test(L.name) ? 'an' : 'a') + ' <b>' + L.name.toLowerCase() + '</b>';
+    : (/^[aeiou]/i.test(L.name) ? 'an' : 'a') + ' <b>' + L.say + '</b>';
   openModal(
     '<div class="garment">' + garmentSVG(L, true) + '</div>' +
     '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
