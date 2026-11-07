@@ -1804,9 +1804,10 @@ function layout() {
   const maxH = Math.max(260, window.innerHeight - top - $('#foot').offsetHeight - 46);
   board.style.setProperty('--w', G.w);
   board.style.setProperty('--h', G.h);
-  const bands = (cs) => {
+  /* zoomed in, the clue numbers grow more gently than the squares, so more of the grid stays in view */
+  const bands = (cs, cap) => {
     board.style.setProperty('--cs', cs + 'px');
-    board.style.setProperty('--fs', clueFont(cs) + 'px');
+    board.style.setProperty('--fs', Math.min(clueFont(cs), cap || 99) + 'px');
     return [rclues.offsetWidth, cclues.offsetHeight];
   };
   /* the whole piece at full view: guess a square size, then shrink it until the clues and grid fit */
@@ -1819,8 +1820,8 @@ function layout() {
   }
   const cs0 = fitBox.cs0;
   /* zoom in until the squares are a comfortable fingertip wide */
-  zoom.max = Math.max(1, Math.min(4, 60 / cs0));
-  const cs = cs0 * zoom.z, m = bands(cs);
+  zoom.max = Math.max(1, Math.min(4, 48 / cs0));
+  const cs = cs0 * zoom.z, m = bands(cs, Math.max(12, Math.round(clueFont(cs0) * 1.25)));
   /* the clue bands never get smaller than at full view, so the corner preview keeps its room */
   const bw = Math.max(fitBox.bw, m[0]), bh = Math.max(fitBox.bh, m[1]);
   const cw = G.w * cs + 4, ch = G.h * cs + 4;
