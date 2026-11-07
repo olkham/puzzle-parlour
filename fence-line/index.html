@@ -1446,10 +1446,10 @@ const SHEEP = '<path d="M-.17 -.13v.13M-.06 -.13v.12M.08 -.13v.12M.18 -.13v.13" 
   '<circle cx=".08" cy="-.31" r=".12"/><circle cx="-.13" cy="-.17" r=".11"/><circle cx=".04" cy="-.18" r=".12"/><circle cx=".16" cy="-.22" r=".1"/></g>' +
   '<g class="head"><ellipse cx=".27" cy="-.29" rx=".1" ry=".075" fill="var(--face)"/><ellipse cx=".2" cy="-.35" rx=".055" ry=".026" fill="var(--face)" transform="rotate(-28 .2 -.35)"/>' +
   '<circle cx=".29" cy="-.31" r=".017" fill="#fff"/><circle cx=".2" cy="-.36" r=".05" fill="var(--wool)" stroke="var(--wool-edge)" stroke-width=".02"/></g>';
-const SHEEP_FACE = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="#fffdf6" stroke="#cfc6b2" stroke-width="1.4"><circle cx="13" cy="22" r="8"/><circle cx="19" cy="13" r="8"/>' +
+const SHEEP_FACE = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="#fffdf6" stroke="#b9ae96" stroke-width="1.4"><circle cx="13" cy="22" r="8"/><circle cx="19" cy="13" r="8"/>' +
   '<circle cx="29" cy="13" r="8"/><circle cx="35" cy="22" r="8"/><circle cx="34" cy="32" r="8"/><circle cx="24" cy="37" r="8"/><circle cx="14" cy="32" r="8"/><circle cx="24" cy="24" r="11"/></g>' +
   '<ellipse cx="13.5" cy="25" rx="5.4" ry="2.6" fill="#3d3434" transform="rotate(-24 13.5 25)"/><ellipse cx="34.5" cy="25" rx="5.4" ry="2.6" fill="#3d3434" transform="rotate(24 34.5 25)"/>' +
-  '<ellipse cx="24" cy="29" rx="7.2" ry="8.6" fill="#3d3434"/><g fill="#fffdf6" stroke="#cfc6b2" stroke-width="1.2"><circle cx="20.5" cy="20.5" r="3.6"/><circle cx="24" cy="19" r="4"/><circle cx="27.5" cy="20.5" r="3.6"/></g>' +
+  '<ellipse cx="24" cy="29" rx="7.2" ry="8.6" fill="#3d3434"/><g fill="#fffdf6" stroke="#b9ae96" stroke-width="1.2"><circle cx="20.5" cy="20.5" r="3.6"/><circle cx="24" cy="19" r="4"/><circle cx="27.5" cy="20.5" r="3.6"/></g>' +
   '<circle cx="21.2" cy="27.5" r="1.6" fill="#fff"/><circle cx="26.8" cy="27.5" r="1.6" fill="#fff"/><path d="M22.3 33.2q1.7 1.3 3.4 0" stroke="#bfb5a6" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>';
 const PETALS = ['#ffffff', '#ffd3e2', '#fff1a6', '#e6d8ff', '#ffe0c2'];
 function flowerMarkup(color, s) {
@@ -2109,9 +2109,9 @@ function celebrate() {
     if (!gate.isConnected) return;
     if (!t0) t0 = now;
     const t = now - t0;
-    /* swing open, wait for the last sheep, swing shut */
+    /* swing open into the paddock, wait for the last sheep, swing shut */
     const open = Math.min(1, Math.max(0, (t - 150) / 320)) * (1 - Math.min(1, Math.max(0, (t - shutAt) / 320)));
-    leaf.setAttribute('transform', 'rotate(' + f2(100 * (1 - Math.pow(1 - open, 2))) + ')');
+    leaf.setAttribute('transform', 'rotate(' + f2(-96 * (1 - Math.pow(1 - open, 2))) + ')');
     let busy = t < shutAt + 340;
     for (const s of flock) {
       if (s.done) continue;
@@ -2155,15 +2155,14 @@ function showWin(stars, spots) {
 }
 
 /* ---------- how to play ---------- */
-const POSTDOT = (x, y) => '<circle cx="' + x + '" cy="' + y + '" r="2" fill="var(--post)"/>';
 GAME.showHelp = () => {
   const wood = (d) => '<path class="wood-d" d="' + d + '"/><path class="wood" d="' + d + '"/>';
   openModal(
     '<div class="logo">' + SHEEP_FACE + '<h2>Fence Line</h2></div>' +
     '<p>Build one fence around the field for the flock.</p>' +
     '<ul class="rules">' +
-    '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M5 19V5h14') + POSTDOT(5, 5) + POSTDOT(19, 5) + POSTDOT(5, 19) + POSTDOT(19, 19) +
-      '<text x="13" y="16.4" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="Fredoka,system-ui">2</text></svg></span><span>Each number says how many of its square\'s four sides are fenced.</span></li>' +
+    '<li><span class="mini"><svg viewBox="0 0 24 24"><path d="M19 5v14H5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 2" opacity=".35"/>' + wood('M5 19V5h14') +
+      '<text x="12.6" y="16" text-anchor="middle" font-size="9.5" font-weight="700" fill="currentColor" font-family="Fredoka,system-ui">2</text></svg></span><span>Each number says how many of its square\'s four sides are fenced.</span></li>' +
     '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M4 5h10v6h6v8H4z') + '</svg></span><span>Make one closed loop: no branches, no crossings, no loose ends.</span></li>' +
     '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M4 7h16') + '<path d="M9.5 13.5l5 5M14.5 13.5l-5 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".7"/></svg></span><span>Tap a side for a rail, again for an x (no fence), again to clear.</span></li>' +
     '<li><span class="mini"><svg viewBox="0 0 24 24">' + wood('M4 20v-8h8V4h7') + '<circle cx="19" cy="4" r="3" fill="var(--accent)"/></svg></span><span>Drag along the lines to lay fence; drag back to take it up.</span></li>' +
