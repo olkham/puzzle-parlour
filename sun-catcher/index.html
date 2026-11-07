@@ -55,6 +55,7 @@
   --hl:rgba(106,70,196,.14);
   --sunglow:rgba(255,190,80,.5);
   --glow:.08;
+  --shine:rgba(255,255,255,.65);
   --crack:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23d3182f' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 10L8 7.5 8.6 5.6 6.4 3.4M10 10l3-1.4 1.6.6 2.8-2.6M10 10l.6 3.2-1.4 1.6.4 3.2M10 10L7.2 11.4 5.4 10.8 2.4 12.6' stroke-width='1.7'/%3E%3Cpath d='M8.6 5.6l1.6-2M13 8.6l.8 2.4M9.2 14.8L7 15.6M5.4 10.8L4.6 8.6' stroke-width='1.1'/%3E%3C/svg%3E");
 }
 @media (prefers-color-scheme: dark){
@@ -96,6 +97,7 @@
     --hl:rgba(179,155,255,.16);
     --sunglow:rgba(255,186,80,.38);
     --glow:.4;
+    --shine:rgba(255,255,255,.1);
     --crack:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ff5c6c' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 10L8 7.5 8.6 5.6 6.4 3.4M10 10l3-1.4 1.6.6 2.8-2.6M10 10l.6 3.2-1.4 1.6.4 3.2M10 10L7.2 11.4 5.4 10.8 2.4 12.6' stroke-width='1.7'/%3E%3Cpath d='M8.6 5.6l1.6-2M13 8.6l.8 2.4M9.2 14.8L7 15.6M5.4 10.8L4.6 8.6' stroke-width='1.1'/%3E%3C/svg%3E");
   }
 }
@@ -105,7 +107,7 @@
   --heart:#ff6b86;--star:#f6c35b;--gridink:#0d0b13;--mini:#3d3170;--shadow:0 10px 28px rgba(0,0,0,.45);--scrim:rgba(6,4,14,.7);
   --lead:#0e0c13;--lead-dark:#050408;--frame:#6f5238;--frame-hi:#8a6646;--frost:#3b4152;--frost-hi:#4d5469;--frost-lo:#2e3342;
   --glass:#e9a43c;--glass-hi:#ffd27a;--glass-lo:#c98020;--num:#eef0fa;--num-glass:#2a1806;--clearm:#262a36;--clearm-lo:#20232d;
-  --clear:#2f3547;--clear-hi:#475069;--clear-lo:#252a39;--dot:#b7b2c9;--wrong:#ff5c6c;--wrongbg:#4a2230;--hl:rgba(179,155,255,.16);--sunglow:rgba(255,186,80,.38);--glow:.4;
+  --clear:#2f3547;--clear-hi:#475069;--clear-lo:#252a39;--dot:#b7b2c9;--wrong:#ff5c6c;--wrongbg:#4a2230;--hl:rgba(179,155,255,.16);--sunglow:rgba(255,186,80,.38);--glow:.4;--shine:rgba(255,255,255,.1);
   --crack:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ff5c6c' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 10L8 7.5 8.6 5.6 6.4 3.4M10 10l3-1.4 1.6.6 2.8-2.6M10 10l.6 3.2-1.4 1.6.4 3.2M10 10L7.2 11.4 5.4 10.8 2.4 12.6' stroke-width='1.7'/%3E%3Cpath d='M8.6 5.6l1.6-2M13 8.6l.8 2.4M9.2 14.8L7 15.6M5.4 10.8L4.6 8.6' stroke-width='1.1'/%3E%3C/svg%3E");
 }
 
@@ -296,7 +298,7 @@ svg{display:block}
 /* the glass piece sits inside its share of the lead came */
 .cell::before,.cell > i{content:"";position:absolute;inset:var(--lw);border-radius:calc(var(--cs) * .1)}
 .cell::before{
-  background:radial-gradient(110% 80% at 22% 12%,rgba(255,255,255,.65),rgba(255,255,255,0) 58%),linear-gradient(160deg,var(--frost) 0%,var(--frost-lo) 100%);
+  background:radial-gradient(110% 80% at 22% 12%,var(--shine),rgba(255,255,255,0) 58%),linear-gradient(160deg,var(--frost) 0%,var(--frost-lo) 100%);
 }
 .cell.s::before{
   background:radial-gradient(90% 70% at 24% 14%,rgba(255,255,255,.6),rgba(255,255,255,0) 55%),linear-gradient(150deg,var(--glass-hi),var(--glass) 52%,var(--glass-lo));
