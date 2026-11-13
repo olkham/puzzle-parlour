@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Potion Shelf</title>
+<meta name="description" content="A cosy colour-sorting puzzle: pour the herbalist's potions between bottles until each bottle holds just one.">
+<meta name="theme-color" content="#f3ece6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16121d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Potion Shelf">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3ece6;
+  --card:#fffaf5;
+  --card-edge:#e6d8cc;
+  --ink:#2b2236;
+  --muted:#776c84;
+  --accent:#1c8a81;
+  --accent-ink:#ffffff;
+  --heart:#e5484d;
+  --star:#f2b84b;
+  --gridink:#2b2236;
+  --mini:#d5efeb;
+  --shadow:0 10px 28px rgba(60,40,30,.14);
+  --scrim:rgba(30,22,40,.55);
+  --wall:#efe2d3;
+  --wall-dot:rgba(150,105,65,.12);
+  --plank:#b98352;
+  --plank-hi:#d6a271;
+  --plank-edge:#7f5332;
+  --glass:rgba(255,255,255,.34);
+  --glass-edge:rgba(72,58,92,.5);
+  --glass-hi:rgba(255,255,255,.8);
+  --cloud:#cbc1d6;
+  --cloud-ink:rgba(70,55,95,.55);
+  --label:#f8eed6;
+  --label-edge:#c6ad80;
+  --cork:#bd8a55;
+  --cork-dark:#8d5f35;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#16121d;
+    --card:#221c2c;
+    --card-edge:#3a3048;
+    --ink:#f3eefb;
+    --muted:#aca2c1;
+    --accent:#4fd1c5;
+    --accent-ink:#0f2e2b;
+    --heart:#ff6b86;
+    --star:#f6c35b;
+    --gridink:#0c0a12;
+    --mini:#244a47;
+    --shadow:0 10px 28px rgba(0,0,0,.45);
+    --scrim:rgba(6,4,14,.7);
+    --wall:#2a2235;
+    --wall-dot:rgba(255,255,255,.045);
+    --plank:#80573a;
+    --plank-hi:#9c6d48;
+    --plank-edge:#4f331f;
+    --glass:rgba(255,255,255,.08);
+    --glass-edge:rgba(225,214,245,.5);
+    --glass-hi:rgba(255,255,255,.42);
+    --cloud:#6f6683;
+    --cloud-ink:rgba(235,228,250,.6);
+    --label:#efe2c4;
+    --label-edge:#a88f62;
+    --cork:#a87444;
+    --cork-dark:#744a28;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#16121d;--card:#221c2c;--card-edge:#3a3048;--ink:#f3eefb;--muted:#aca2c1;--accent:#4fd1c5;--accent-ink:#0f2e2b;
+  --heart:#ff6b86;--star:#f6c35b;--gridink:#0c0a12;--mini:#244a47;--shadow:0 10px 28px rgba(0,0,0,.45);--scrim:rgba(6,4,14,.7);
+  --wall:#2a2235;--wall-dot:rgba(255,255,255,.045);--plank:#80573a;--plank-hi:#9c6d48;--plank-edge:#4f331f;
+  --glass:rgba(255,255,255,.08);--glass-edge:rgba(225,214,245,.5);--glass-hi:rgba(255,255,255,.42);--cloud:#6f6683;--cloud-ink:rgba(235,228,250,.6);
+  --label:#efe2c4;--label-edge:#a88f62;--cork:#a87444;--cork-dark:#744a28;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Fredoka',ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+a.btn{text-decoration:none;color:inherit}
+svg{display:block}
+
+.app{
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* header */
+.top{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:8px}
+.top-left{display:flex;gap:6px}
+.top-left .icon-btn{width:44px;height:44px;border-radius:14px}
+.top-left .icon-btn svg{width:21px;height:21px}
+.icon-btn{
+  width:48px;height:48px;border-radius:16px;flex:none;
+  background:var(--card);border:2px solid var(--card-edge);
+  display:grid;place-items:center;padding:0;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.title{text-align:center;line-height:1.05;min-width:0}
+.title h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.title p{margin:3px 0 0;font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* status row */
+.status{display:flex;align-items:center;justify-content:space-between;padding:0 4px;min-height:34px;gap:10px}
+.lives{display:flex;gap:6px}
+.lives svg{width:30px;height:30px;overflow:visible}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:1.6;stroke-linejoin:round;transition:fill .2s}
+.heart.lost path{fill:none;stroke:var(--muted);opacity:.55}
+.lives .heart.pop{animation:heartpop .5s ease}
+@keyframes heartpop{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+.count{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.count small{font-size:14px;color:var(--muted);font-weight:500;margin-right:6px}
+.star path{fill:var(--star);stroke:var(--star);stroke-width:1.4;stroke-linejoin:round}
+.star.off path{fill:none;stroke:var(--muted);opacity:.5}
+
+/* control hints */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how > div{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:16px;
+  padding:8px 10px;font-size:14px;font-weight:500;line-height:1.15;color:var(--muted);
+}
+.how b{color:var(--ink);font-weight:600;display:block}
+.how .mini{flex:none;width:34px;height:34px;border-radius:10px;background:var(--mini);display:grid;place-items:center;border:2px solid var(--gridink)}
+.how .mini svg{width:70%;height:70%}
+
+/* footer */
+.foot{display:flex;gap:10px;margin-top:auto}
+.btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 14px;border-radius:16px;
+  background:var(--card);border:2px solid var(--card-edge);
+  font-size:16px;font-weight:600;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn[hidden]{display:none}
+.foot .btn{font-size:15px;gap:6px;padding:0 10px}
+.foot .btn svg{width:18px;height:18px}
+.btn .tag{font-size:12px;font-weight:600;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.switch{width:38px;height:22px;border-radius:99px;background:var(--card-edge);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s,background .2s}
+.btn[aria-pressed="true"] .switch{background:var(--accent)}
+.btn[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-ink)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;place-items:center;padding:16px;z-index:10}
+.scrim.open{display:grid}
+.sheet{
+  width:100%;max-width:380px;max-height:86dvh;overflow:auto;
+  background:var(--card);border:2px solid var(--card-edge);border-radius:26px;
+  padding:22px 20px 20px;box-shadow:var(--shadow);text-align:center;
+  animation:sheetin .28s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes sheetin{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:32px;font-weight:700;line-height:1.05}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:17px;line-height:1.3}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.sheet .art{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center}
+.sheet .art svg{width:100%;height:100%;overflow:visible}
+.sheet .badge-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.sheet .badge-row svg{width:30px;height:30px}
+.sheet .logo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 4px}
+.sheet .logo svg{width:44px;height:44px}
+.rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:flex;flex-direction:column;gap:12px}
+.rules li{display:flex;gap:12px;align-items:center;font-size:17px;line-height:1.25}
+.rules .mini{flex:none;width:40px;height:40px;border-radius:12px;background:var(--mini);border:2.5px solid var(--gridink);display:grid;place-items:center}
+.rules .mini svg{width:74%;height:74%}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lv{
+  position:relative;padding:8px 0 7px;border-radius:14px;background:var(--bg);
+  border:2px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;min-height:66px;
+}
+.lv b{font-size:22px;font-weight:600}
+.lv small{font-size:12px;color:var(--muted);font-weight:500}
+.lv.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.lv.done{background:var(--card)}
+.lv .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;border:2px solid var(--card)}
+.lv .ok svg{width:11px;height:11px}
+.lv .mh{display:flex;gap:2px;margin-top:3px;height:10px}
+.lv .mh svg{width:10px;height:10px}
+.lv .mh .heart path,.lv .mh .star path{stroke:none}
+.lv .mh .lost path,.lv .mh .off path{fill:var(--card-edge);opacity:1}
+.pager{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+.pager span{font-size:19px;font-weight:600}
+.pager .icon-btn{width:44px;height:44px;border-radius:14px}
+.spin{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--card-edge);border-top-color:var(--accent);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 74px);
+  transform:translate(-50%,16px);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:15px;font-weight:500;line-height:1.25;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;
+  width:max-content;max-width:min(88vw,420px);text-align:center;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:370px){
+  .top{gap:6px;grid-template-columns:auto 1fr 42px}
+  .top-left{gap:4px}
+  .top-left .icon-btn{width:40px;height:40px;border-radius:13px}
+  .top > .icon-btn{width:42px;height:42px;border-radius:14px}
+  .title h1{font-size:23px}
+  .foot{gap:8px}
+}
+@media (max-width:340px){
+  .title h1{font-size:19px}
+  .title p{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+
+/* ---------- status ---------- */
+.status .stars-now{display:flex;gap:4px}
+.status .stars-now svg{width:28px;height:28px}
+.count{text-align:right;line-height:1.05}
+.count .sub{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
+
+/* ---------- the shelf: a papered wall with wooden planks, bottles standing on them ---------- */
+.shelf-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%}
+.shelf{
+  position:relative;border-radius:24px;background-color:var(--wall);
+  background-image:radial-gradient(circle at 25% 30%,var(--wall-dot) 0 2px,transparent 2.6px),radial-gradient(circle at 75% 72%,var(--wall-dot) 0 1.5px,transparent 2.1px);
+  background-size:26px 26px,18px 18px;
+  box-shadow:0 0 0 2px var(--card-edge),var(--shadow);touch-action:manipulation;
+}
+.plank{position:absolute;left:10px;right:10px;height:12px;border-radius:5px;background:linear-gradient(var(--plank-hi),var(--plank) 45%,var(--plank-edge));box-shadow:0 5px 8px rgba(60,30,10,.22);pointer-events:none}
+.plank::before,.plank::after{content:"";position:absolute;top:100%;width:9px;height:12px;background:var(--plank-edge);border-radius:0 0 4px 4px}
+.plank::before{left:12%}
+.plank::after{right:12%}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+.streams{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:6}
+
+.bottle{position:absolute;cursor:pointer;outline:none;transition:transform .17s cubic-bezier(.3,1.4,.5,1);-webkit-tap-highlight-color:transparent}
+.bottle.busy{transition:none;z-index:5}
+.bottle .wob{width:100%;height:100%}
+.bottle svg{display:block;width:100%;height:100%;overflow:visible}
+.bottle.nope .wob{animation:nope .35s ease}
+@keyframes nope{25%{transform:translateX(-6px) rotate(-3deg)}50%{transform:translateX(5px) rotate(2deg)}75%{transform:translateX(-3px)}}
+.bottle:focus-visible .wob{outline:3px solid var(--accent);outline-offset:5px;border-radius:14px}
+.bottle.done{cursor:default}
+.bottle.hint .wob{animation:hintp 1s ease-in-out 3}
+@keyframes hintp{50%{filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 0 2px var(--accent))}}
+.bottle .back{fill:var(--glass)}
+.bottle .front{fill:none;stroke:var(--glass-edge)}
+.bottle .lip{fill:var(--glass);stroke:var(--glass-edge)}
+.bottle .shine{fill:var(--glass-hi)}
+.bottle .shadow{fill:rgba(40,20,10,.16)}
+.bottle .q{font-family:'Fredoka',ui-rounded,system-ui,sans-serif;font-weight:700;fill:var(--cloud-ink);text-anchor:middle;dominant-baseline:central}
+.bottle .flash{fill:#fff;animation:flash .6s ease-out forwards;pointer-events:none}
+@keyframes flash{from{opacity:.85}to{opacity:0}}
+.cork{transform-box:fill-box;transform-origin:50% 100%;animation:cork .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes cork{from{transform:translateY(-70%) scale(1.15);opacity:0}to{transform:none;opacity:1}}
+.tag-label{transform-box:fill-box;transform-origin:50% 0;animation:label .45s ease .18s both}
+@keyframes label{from{transform:scaleY(0);opacity:0}to{transform:none;opacity:1}}
+.calm .cork,.calm .tag-label{animation:none}
+
+/* little celebrations */
+.bubble{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,.85);background:rgba(255,255,255,.18);pointer-events:none;z-index:7;animation:rise var(--d,1.3s) ease-out forwards}
+@keyframes rise{from{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:1}to{transform:translate(var(--dx,0),var(--dy,-90px)) scale(1);opacity:0}}
+.sparkle{position:absolute;width:14px;height:14px;pointer-events:none;z-index:7;animation:twinkle .7s ease-out forwards}
+.sparkle svg{width:100%;height:100%;overflow:visible}
+@keyframes twinkle{from{transform:translate(0,0) scale(.2) rotate(0);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(1) rotate(90deg);opacity:0}}
+
+/* footer: four buttons share a phone's width */
+.btn.sq{flex:0 0 52px;padding:0}
+@media (max-width:400px){
+  #restartIcon{display:none}
+  .foot{gap:8px}
+  .foot .btn{padding:0 8px}
+}
+
+/* level picker: finished levels show their bottles */
+.lv .thumb{width:44px;height:30px;display:grid;place-items:center;margin-bottom:2px}
+.lv .thumb svg{max-width:100%;max-height:100%}
+.lv.done small{font-weight:600;color:var(--ink)}
+.sheet .art svg{overflow:visible}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-left">
+      <button class="icon-btn" id="btnLevels" aria-label="Choose level">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMusic" aria-label="Turn music on" aria-pressed="false"><span id="musicIcon"></span></button>
+      <button class="icon-btn" id="btnSfx" aria-label="Turn sound effects on" aria-pressed="false"><span id="sfxIcon"></span></button>
+    </div>
+    <div class="title"><h1 id="lvTitle">Level 1</h1><p id="lvSub">&nbsp;</p></div>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 16.9v.1"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-label="Rating and pours">
+    <div class="stars-now" id="starsNow" aria-live="polite"></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <div class="shelf-wrap" id="shelfWrap">
+    <div class="shelf" id="shelf" role="application" aria-label="Potion bottles. Tap a bottle to pick it up, then tap another bottle to pour into it. Arrow keys move between bottles, Enter picks up and pours."></div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <button class="btn" id="btnRestart"><span id="restartIcon"></span><span id="restartLabel">Restart</span></button>
+    <button class="btn" id="btnUndo"><span id="undoIcon"></span><span>Undo</span></button>
+    <button class="btn sq" id="btnHint" aria-label="Show a good pour"></button>
+    <button class="btn" id="btnExtra" aria-label="Add a spare flask (once per level)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h5M10 3v6.2L5.6 17.4A2.4 2.4 0 0 0 7.7 21H13"/><path d="M13 3v6.2l2 3.6"/><path d="M18 14v6M15 17h6"/></svg><span>Flask</span></button>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+const GAME = { id: 'potion-shelf', seed: 10391 };
+/* =====================================================================
+   Shared shell: saves, seeded randomness, icons, live-synthesised audio,
+   modals, toasts and the level picker. The game code below plugs into it
+   through the GAME object and a loadLevel(idx) function.
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const scrim = $('#scrim');
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/* ---------- saved progress (private to this browser) ---------- */
+const STORE_KEY = GAME.id + '-v1';
+let save = Object.assign({ done: {}, seenHelp: false, level: 0 }, GAME.saveDefaults || {});
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
+} catch (e) {}
+if (!save.done || typeof save.done !== 'object') save.done = {};
+function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- seeded randomness, so level N is the same puzzle on every device ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleArr(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function seedFor(idx, salt) {
+  let h = (0x9e3779b9 ^ (GAME.seed || 0)) >>> 0;
+  h = Math.imul(h ^ (idx + 1), 0x85ebca6b); h ^= h >>> 13;
+  h = Math.imul(h ^ ((salt || 0) + 0x27d4eb2f), 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+}
+const pickOne = (arr, rnd) => arr[Math.floor(rnd() * arr.length)];
+
+/* ---------- icons ---------- */
+const ICON = {
+  tick: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.4 2.4 4.6-5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C12 20.6 3.2 15.4 3.2 9.2C3.2 6.4 5.3 4.4 7.9 4.4C9.7 4.4 11.2 5.4 12 6.8C12.8 5.4 14.3 4.4 16.1 4.4C18.7 4.4 20.8 6.4 20.8 9.2C20.8 15.4 12 20.6 12 20.6Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  hint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21.2h4"/><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.6.5.9 1.2.9 2V16.6h6v-.3c0-.8.3-1.5.9-2A6.4 6.4 0 0 0 12 2.8z"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  musicOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>',
+  musicOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3.2L12 17.5v-11L7.2 10H4z" fill="currentColor" stroke="none"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke-width="2.4"/></svg>',
+  sfxOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0"/></svg>',
+  sfxOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2c-.9 0-1.6.7-1.7 1.6-2.9.9-5 3.6-5 6.8v3l-1.6 2.1c-.3.4 0 1 .5 1h15.6c.5 0 .8-.6.5-1L18.7 15.6v-3c0-3.2-2.1-5.9-5-6.8-.1-.9-.8-1.6-1.7-1.6z" fill="currentColor" stroke="none" opacity=".45"/><path d="M9.8 19.5a2.3 2.3 0 0 0 4.4 0" opacity=".45"/><path d="M5.5 5.5l13 13" stroke-width="2.6"/></svg>'
+};
+function heartsHTML(left, max, cls) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<span class="heart' + (k >= left ? ' lost' : '') + (cls && k === left ? ' ' + cls : '') + '">' + ICON.heart + '</span>';
+  return h;
+}
+function starsHTML(n, max) {
+  let h = '';
+  for (let k = 0; k < (max || 3); k++) h += '<span class="star' + (k >= n ? ' off' : '') + '">' + ICON.star + '</span>';
+  return h;
+}
+
+/* =====================================================================
+   Audio. There are no sound files: every note is built from oscillators,
+   filters and envelopes. Music and sound effects are separate toggles,
+   both off by default and remembered between visits.
+   ===================================================================== */
+const MUSIC_KEY = GAME.id + '-music-v1', SFX_KEY = GAME.id + '-sfx-v1';
+let musicOn = false, sfxOn = false;
+try { musicOn = localStorage.getItem(MUSIC_KEY) === '1'; sfxOn = localStorage.getItem(SFX_KEY) === '1'; } catch (e) {}
+let actx = null, master = null, musicBus = null, sfxBus = null, noiseBuf = null;
+let schedTimer = null, ambientStop = null;
+
+function ensureAudio() {
+  if (actx) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  try { actx = new AC(); } catch (e) { return false; }
+  master = actx.createGain(); master.gain.value = 0.42; master.connect(actx.destination);
+  musicBus = actx.createGain(); musicBus.gain.value = 0.85; musicBus.connect(master);
+  sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+  return true;
+}
+const NOTE_FREQ = {};
+function noteFreq(note) {
+  if (!note) return 0;
+  if (typeof note === 'number') return note;
+  if (NOTE_FREQ[note]) return NOTE_FREQ[note];
+  const m = /^([A-G])(#|b)?(\d)$/.exec(note);
+  if (!m) return 0;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (NOTE_FREQ[note] = 440 * Math.pow(2, (base + (parseInt(m[3], 10) - 4) * 12 - 9) / 12));
+}
+/* one synth voice: oscillator -> (optional lowpass) -> envelope -> bus */
+function tone(t, f, o) {
+  o = o || {};
+  if (!f) return;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  const a = o.a || 0.006, hold = o.hold || 0, dur = o.dur || 0.25, vol = o.vol == null ? 0.15 : o.vol;
+  const end = t + a + hold + dur;
+  osc.type = o.type || 'triangle';
+  osc.frequency.setValueAtTime(f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + (o.glide || a + hold + dur));
+  if (o.vib) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.vibRate || 5.5; lg.gain.value = f * o.vib;
+    l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end + 0.05);
+  }
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  if (hold) g.gain.setValueAtTime(vol, t + a + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  let node = osc;
+  if (o.lp) {
+    const fl = actx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp;
+    if (o.q) fl.Q.value = o.q;
+    osc.connect(fl); node = fl;
+  }
+  node.connect(g); g.connect(o.bus || sfxBus);
+  osc.start(t); osc.stop(end + 0.05);
+}
+/* a burst of filtered noise: shakers, splashes, rustles */
+function noise(t, o) {
+  o = o || {};
+  if (!noiseBuf) {
+    const len = actx.sampleRate;
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = actx.createBufferSource(); src.buffer = noiseBuf;
+  const fl = actx.createBiquadFilter(); fl.type = o.ftype || 'bandpass';
+  const dur = o.dur || 0.08, vol = o.vol || 0.1, a = o.a || 0.003;
+  fl.frequency.setValueAtTime(o.f || 2000, t);
+  if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + a + dur);
+  fl.Q.value = o.q || 1;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dur);
+  src.connect(fl); fl.connect(g); g.connect(o.bus || sfxBus);
+  src.start(t, Math.random() * 0.5); src.stop(t + a + dur + 0.05);
+}
+
+/* instruments for the background music */
+const INST = {
+  pluck: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.008, dur: Math.min(d * 0.9, 0.35), vol: v || 0.16, bus: musicBus }),
+  bell: (t, f, d, v) => {
+    v = v || 0.11;
+    tone(t, f, { type: 'sine', a: 0.004, dur: Math.min(d * 1.8, 1.2), vol: v, bus: musicBus });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: Math.min(d, 0.45), vol: v * 0.32, bus: musicBus });
+    tone(t, f * 3.01, { type: 'sine', a: 0.002, dur: 0.12, vol: v * 0.12, bus: musicBus });
+  },
+  marimba: (t, f, d, v) => {
+    v = v || 0.17;
+    tone(t, f, { type: 'sine', a: 0.003, dur: Math.min(d * 0.85, 0.5), vol: v, bus: musicBus });
+    tone(t, f * 3.98, { type: 'sine', a: 0.002, dur: 0.07, vol: v * 0.22, bus: musicBus });
+  },
+  flute: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.06, hold: d * 0.45, dur: d * 0.55 + 0.08, vol: v || 0.1, vib: 0.006, vibRate: 5, bus: musicBus }),
+  reed: (t, f, d, v) => tone(t, f, { type: 'square', a: 0.02, hold: d * 0.35, dur: d * 0.5, vol: v || 0.045, lp: 1500, bus: musicBus }),
+  harp: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.004, dur: Math.min(d * 2.5, 1.3), vol: v || 0.08, lp: 2400, bus: musicBus }),
+  bass: (t, f, d, v) => tone(t, f, { type: 'sine', a: 0.02, dur: d, vol: v || 0.13, bus: musicBus }),
+  wbass: (t, f, d, v) => tone(t, f, { type: 'triangle', a: 0.01, dur: Math.min(d * 0.9, 0.55), vol: v || 0.15, lp: 650, bus: musicBus }),
+  hat: (t, v) => noise(t, { f: 8000, q: 0.7, dur: 0.03, vol: v || 0.025, ftype: 'highpass', bus: musicBus }),
+  shaker: (t, v) => noise(t, { f: 5500, q: 1.2, dur: 0.06, vol: v || 0.03, bus: musicBus }),
+  knock: (t, v) => tone(t, 190, { type: 'sine', to: 120, a: 0.002, dur: 0.08, vol: v || 0.08, bus: musicBus })
+};
+/* "E5:.5 - G5:1" -> [{n:'E5', d:.5}, {n:null, d:1}, ...] ("-" or "r" is a rest, default length 1 beat) */
+function track(str) {
+  return str.trim().split(/\s+/).map((tok) => {
+    const p = tok.split(':');
+    return { n: p[0] === '-' || p[0] === 'r' ? null : p[0], d: p[1] ? parseFloat(p[1]) : 1 };
+  });
+}
+function scheduler() {
+  const M = GAME.music, beat = 60 / M.tempo, until = actx.currentTime + 0.2;
+  for (const tr of M.tracks) {
+    let guard = 0;
+    while (tr.next < until && guard++ < 64) {
+      const s = tr.seq[tr.i];
+      const dur = s.d * beat;
+      if (s.n) {
+        if (tr.perc) tr.inst(tr.next, tr.vol, s.n);
+        else tr.inst(tr.next, noteFreq(s.n), dur * (tr.len || 1), tr.vol);
+      }
+      tr.next += dur;
+      tr.i = (tr.i + 1) % tr.seq.length;
+    }
+  }
+}
+function setMusic(on, fromUser) {
+  musicOn = on;
+  try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnMusic');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  $('#musicIcon').innerHTML = on ? ICON.musicOn : ICON.musicOff;
+  if (on && fromUser && ensureAudio() && actx.state === 'suspended') actx.resume();
+  clearInterval(schedTimer); schedTimer = null;
+  if (ambientStop) { try { ambientStop(); } catch (e) {} ambientStop = null; }
+  if (on && actx) {
+    const t0 = actx.currentTime + 0.06;
+    for (const tr of GAME.music.tracks) { tr.next = t0; tr.i = 0; }
+    if (GAME.music.ambient) ambientStop = GAME.music.ambient();
+    schedTimer = setInterval(scheduler, 25);
+  }
+}
+function setSfx(on) {
+  sfxOn = on;
+  try { localStorage.setItem(SFX_KEY, on ? '1' : '0'); } catch (e) {}
+  const btn = $('#btnSfx');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.setAttribute('aria-label', on ? 'Turn sound effects off' : 'Turn sound effects on');
+  $('#sfxIcon').innerHTML = on ? ICON.sfxOn : ICON.sfxOff;
+  if (on && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+/* play a named sound effect from GAME.sfx (or the shared ones below) if effects are on */
+function sfx(name, a, b) {
+  if (!sfxOn || !ensureAudio()) return;
+  if (actx.state === 'suspended') actx.resume();
+  const fn = (GAME.sfx && GAME.sfx[name]) || SFX[name];
+  if (fn) fn(actx.currentTime + 0.012, a, b);
+}
+/* sound effects every game can use */
+const SFX = {
+  warn(t) {
+    tone(t, 330, { type: 'square', a: 0.004, dur: 0.07, vol: 0.06, lp: 1800 });
+    tone(t + 0.09, 247, { type: 'square', a: 0.004, dur: 0.12, vol: 0.06, lp: 1500 });
+  },
+  fail(t) {
+    [['G4', 0.22], ['F#4', 0.22], ['F4', 0.22], ['E4', 0.6]].forEach(([n, d], i) => {
+      const f = noteFreq(n);
+      tone(t, f * 1.03, { type: 'sawtooth', to: f * 0.97, a: 0.02, dur: d, vol: i === 3 ? 0.17 : 0.14, lp: 1100 });
+      t += d;
+    });
+  },
+  win(t) {
+    let x = t;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => { tone(x, noteFreq(n), { type: 'triangle', a: 0.01, dur: 0.16, vol: 0.22 }); x += 0.085; });
+    const c = x + 0.02;
+    ['C5', 'E5', 'G5', 'C6'].forEach((n) => tone(c, noteFreq(n), { type: 'sawtooth', a: 0.03, dur: 0.7, vol: 0.1, lp: 3000 }));
+    tone(c, noteFreq('C7'), { type: 'sine', to: noteFreq('E7'), glide: 0.5, a: 0.05, dur: 0.55, vol: 0.07 });
+  },
+  tap(t) { tone(t, 880, { type: 'sine', to: 660, a: 0.002, dur: 0.05, vol: 0.06 }); },
+  bonk(t) { tone(t, 180, { type: 'triangle', to: 110, a: 0.003, dur: 0.14, vol: 0.14 }); },
+  chime(t, step) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const f = noteFreq('C5') * Math.pow(2, scale[Math.min(scale.length - 1, Math.max(0, step || 0))] / 12);
+    tone(t, f, { type: 'sine', a: 0.004, dur: 0.5, vol: 0.13 });
+    tone(t, f * 2.005, { type: 'sine', a: 0.003, dur: 0.2, vol: 0.04 });
+  }
+};
+/* browsers only allow audio after a tap, so the first tap resumes music left on last visit */
+function primeAudioOnce() {
+  document.removeEventListener('pointerdown', primeAudioOnce, true);
+  if (musicOn) setMusic(true, true);
+  else if (sfxOn && ensureAudio() && actx.state === 'suspended') actx.resume();
+}
+document.addEventListener('pointerdown', primeAudioOnce, true);
+document.addEventListener('visibilitychange', () => {
+  if (!actx) return;
+  if (document.hidden) actx.suspend();
+  else if (musicOn || sfxOn) actx.resume();
+});
+
+/* ---------- little helpers ---------- */
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+let toastTimer = 0, toastEl = null;
+function toast(msg, ms) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2200);
+}
+/* a button that asks "Confirm?" before throwing away progress */
+function armConfirm(btn, labelEl, label, isBusy, go) {
+  let armed = 0;
+  btn.addEventListener('click', () => {
+    if (isBusy() && !armed) {
+      labelEl.textContent = 'Confirm?';
+      armed = setTimeout(() => { labelEl.textContent = label; armed = 0; }, 2200);
+      return;
+    }
+    clearTimeout(armed); armed = 0; labelEl.textContent = label;
+    go();
+  });
+  return () => { clearTimeout(armed); armed = 0; labelEl.textContent = label; };
+}
+
+/* ---------- modal plumbing ---------- */
+let modalLocked = false;
+function openModal(html, locked) {
+  modalLocked = !!locked;
+  scrim.innerHTML = '<div class="sheet" role="dialog" aria-modal="true">' + html + '</div>';
+  scrim.classList.add('open');
+}
+function closeModal() { modalLocked = false; scrim.classList.remove('open'); scrim.innerHTML = ''; }
+function modalOpen() { return scrim.classList.contains('open'); }
+scrim.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (!a) { if (e.target === scrim && !modalLocked) closeModal(); return; }
+  const act = a.dataset.act;
+  if (act === 'close') closeModal();
+  else if (act === 'levels') showLevels();
+  else if (act === 'page') showLevels(+a.dataset.page);
+  else if (act === 'pick') loadLevel(+a.dataset.level);
+  else if (act === 'next') loadLevel(curLevel() + 1);
+  else if (act === 'retry') loadLevel(curLevel());
+  else if (GAME.actions && GAME.actions[act]) GAME.actions[act](a);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOpen() && !modalLocked) closeModal(); });
+
+/* opened from the Puzzle Parlour launcher? then offer a way back to it */
+let FROM_PARLOUR = false;
+try {
+  if (location.hash === '#parlour') sessionStorage.setItem('parlour', '1');
+  FROM_PARLOUR = location.hash === '#parlour' || sessionStorage.getItem('parlour') === '1';
+} catch (e) { FROM_PARLOUR = location.hash === '#parlour'; }
+
+/* ---------- level picker: pages of 20, with each finished level's best result ---------- */
+const PAGE = 20;
+function curLevel() { return (typeof G !== 'undefined' && G) ? G.idx : (save.level || 0); }
+function showLevels(page) {
+  const cur = curLevel();
+  const total = GAME.total || Infinity;
+  if (typeof page !== 'number') page = Math.floor(cur / PAGE);
+  const first = page * PAGE, last = Math.min(first + PAGE, total);
+  let h = '<h2>Levels</h2><div class="pager">' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Earlier levels">' + ICON.chevL + '</button>' +
+    '<span>' + (first + 1) + '–' + last + '</span>' +
+    '<button class="icon-btn" data-act="page" data-page="' + (page + 1) + '"' + (last >= total ? ' disabled' : '') + ' aria-label="Later levels">' + ICON.chevR + '</button>' +
+    '</div><div class="levels">';
+  for (let i = first; i < last; i++) {
+    const done = hasOwn(save.done, i);
+    const label = GAME.levelLabel(i);
+    h += '<button class="lv' + (done ? ' done' : '') + (i === cur ? ' cur' : '') + '" data-act="pick" data-level="' + i +
+      '" aria-label="Level ' + (i + 1) + ', ' + label + (done ? ', completed' : '') + '">' +
+      (done ? '<span class="ok">' + ICON.tick + '</span>' : '') +
+      (GAME.levelTile ? GAME.levelTile(i, done) : '<b>' + (i + 1) + '</b><small>' + label + '</small>') +
+      '<span class="mh">' + (done ? GAME.levelBadge(save.done[i], i) : '') + '</span>' +
+      '</button>';
+  }
+  h += '</div><div class="stack"><button class="btn" data-act="close">Close</button>' +
+    (FROM_PARLOUR ? '<a class="btn" href="../index.html#parlour">All Puzzle Parlour games</a>' : '') + '</div>';
+  openModal(h);
+}
+
+/* installed on a home screen, keep working offline (only on a real web host, never inside a frame) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.self === window.top) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- header buttons ---------- */
+function shellBoot() {
+  $('#btnLevels').addEventListener('click', () => showLevels());
+  $('#btnMusic').addEventListener('click', () => setMusic(!musicOn, true));
+  $('#btnSfx').addEventListener('click', () => setSfx(!sfxOn));
+  $('#btnHelp').addEventListener('click', () => { GAME.showHelp(); save.seenHelp = true; persist(); });
+  setMusic(musicOn, false);
+  setSfx(sfxOn);
+}
+
+/* =====================================================================
+   Potion Shelf. Pour the potions between bottles until each bottle
+   holds just one. A bottle holds four measures; you can pour onto the
+   same colour or into an empty bottle, and the whole matching top pours
+   at once, as much as fits.
+   ===================================================================== */
+const CAP = 4;
+
+function topRun(s) {
+  if (!s.length) return 0;
+  const f = s[s.length - 1];
+  let n = 1;
+  while (n < s.length && s[s.length - 1 - n] === f) n++;
+  return n;
+}
+function isDone(s) { return s.length === CAP && topRun(s) === CAP; }
+function canPour(st, i, j) {
+  if (i === j) return false;
+  const a = st[i], b = st[j];
+  if (!a.length || b.length >= CAP || isDone(a)) return false;
+  if (b.length && b[b.length - 1] !== a[a.length - 1]) return false;
+  return true;
+}
+function pourCount(st, i, j) { return Math.min(topRun(st[i]), CAP - st[j].length); }
+function applyPour(st, i, j) {
+  const n = pourCount(st, i, j);
+  for (let k = 0; k < n; k++) st[j].push(st[i].pop());
+  return n;
+}
+function allSorted(st) { return st.every((s) => !s.length || isDone(s)); }
+/* a pour that can't help: tipping a bottle that's all one colour into an empty one */
+function pointless(st, i, j) { return !st[j].length && topRun(st[i]) === st[i].length; }
+/* each pour joins at most two runs, so (runs - colours) never overestimates the pours left */
+function runs(st) {
+  let r = 0;
+  for (const s of st) for (let k = 0; k < s.length; k++) if (k === 0 || s[k] !== s[k - 1]) r++;
+  return r;
+}
+/* a bottle as one number (base 13), a shelf as its sorted bottle codes: bottles are interchangeable */
+const codeOf = (s) => { let c = 0; for (let k = 0; k < s.length; k++) c = c * 13 + s[k] + 1; return c; };
+const keyOf = (st) => st.map(codeOf).sort((a, b) => a - b).join(',');
+
+/* can this shelf be finished at all? depth-first search with memory */
+function solveDFS(stands, budget) {
+  const st = stands.map((s) => s.slice());
+  const seen = new Set(), path = [];
+  let nodes = 0;
+  function dfs() {
+    if (allSorted(st)) return true;
+    const k = keyOf(st);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    if (++nodes > budget) throw 0;
+    const moves = [];
+    for (let i = 0; i < st.length; i++) for (let j = 0; j < st.length; j++) {
+      if (!canPour(st, i, j) || pointless(st, i, j)) continue;
+      const n = pourCount(st, i, j);
+      const score = (st[j].length + n === CAP && (!st[j].length || st[j][0] === st[i][st[i].length - 1]) ? 0 : 1) + (st[j].length ? 0 : 2) + (n < topRun(st[i]) ? 1 : 0);
+      moves.push([score, i, j]);
+    }
+    moves.sort((a, b) => a[0] - b[0]);
+    for (const [, i, j] of moves) {
+      const n = applyPour(st, i, j);
+      path.push([i, j]);
+      if (dfs()) return true;
+      path.pop();
+      for (let x = 0; x < n; x++) st[i].push(st[j].pop());
+    }
+    return false;
+  }
+  try { return dfs() ? path.slice() : null; } catch (e) { return null; }
+}
+
+/* a short way to finish: beam search on pours so far + runs left (gives par, and powers the hint) */
+function solveShort(stands, width, maxDepth) {
+  const colours = new Set(stands.flat()).size;
+  let beam = [{ st: stands.map((s) => s.slice()), path: [] }];
+  if (allSorted(beam[0].st)) return [];
+  const seen = new Map([[keyOf(beam[0].st), 0]]);
+  for (let depth = 1; depth <= maxDepth && beam.length; depth++) {
+    const next = [];
+    for (const node of beam) {
+      const st = node.st;
+      for (let i = 0; i < st.length; i++) for (let j = 0; j < st.length; j++) {
+        if (!canPour(st, i, j) || pointless(st, i, j)) continue;
+        const c = st.map((s) => s.slice());
+        applyPour(c, i, j);
+        const path = node.path.concat([[i, j]]);
+        if (allSorted(c)) return path;
+        const k = keyOf(c);
+        if (seen.has(k) && seen.get(k) <= depth) continue;
+        seen.set(k, depth);
+        let done = 0, empty = 0;
+        for (const s of c) { if (isDone(s)) done++; else if (!s.length) empty++; }
+        next.push({ st: c, path, h: runs(c) - colours, tie: -done * 2 - empty });
+      }
+    }
+    next.sort((a, b) => a.h - b.h || a.tie - b.tie);
+    beam = next.slice(0, width);
+  }
+  return null;
+}
+
+/* deal n potions into n bottles plus `empty` empty ones; never starts with a nearly finished bottle */
+function dealShelf(n, empty, rnd) {
+  for (let tries = 0; tries < 200; tries++) {
+    const pool = [];
+    for (let f = 0; f < n; f++) for (let k = 0; k < CAP; k++) pool.push(f);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    const st = [];
+    for (let s = 0; s < n; s++) st.push(pool.slice(s * CAP, s * CAP + CAP));
+    for (let e = 0; e < empty; e++) st.push([]);
+    if (st.some((s) => s.length === CAP && topRun(s) >= 3)) continue;
+    let pairs = 0;
+    for (const s of st) for (let k = 1; k < s.length; k++) if (s[k] === s[k - 1]) pairs++;
+    if (pairs > Math.ceil(n * 0.6)) continue;
+    const sol = solveDFS(st, 60000);
+    if (!sol) continue;
+    const short = solveShort(st, n >= 10 ? 150 : n >= 7 ? 190 : 240, sol.length);
+    return { st, sol: short && short.length < sol.length ? short : sol };
+  }
+  return null;
+}
+
+if (typeof module !== 'undefined') module.exports = { CAP, topRun, isDone, canPour, pourCount, applyPour, allSorted, runs, solveDFS, solveShort, dealShelf };
+
+/* ---------- the twelve potions, each with its own sparkles so they differ by more than colour ---------- */
+const SYM = {
+  heart: { d: 'M5 8.7C5 8.7 1.2 6.3 1.2 3.8 1.2 2.4 2.3 1.4 3.5 1.4 4.2 1.4 4.7 1.8 5 2.5 5.3 1.8 5.8 1.4 6.5 1.4 7.7 1.4 8.8 2.4 8.8 3.8 8.8 6.3 5 8.7 5 8.7Z' },
+  flame: { d: 'M5 9.3C3 9.3 1.7 7.9 1.7 6.1 1.7 4 3.4 3.3 3.6 1.1 4.6 2 5 2.9 5 3.7 5.6 3.2 5.9 2.4 5.9 1.7 7.4 2.8 8.3 4.3 8.3 6 8.3 7.9 7 9.3 5 9.3Z' },
+  star: { d: 'M5 .8L6.2 3.5 9.1 3.8 6.9 5.7 7.6 8.6 5 7.1 2.4 8.6 3.1 5.7.9 3.8 3.8 3.5Z' },
+  bubbles: { d: 'M3.6 6.4a2.3 2.3 0 1 0 .01 0M7.3 2.4a1.5 1.5 0 1 0 .01 0M7.6 7.1a1 1 0 1 0 .01 0', stroke: true },
+  leaf: { d: 'M8.8 1.2C4 1.2 1.2 4 1.2 8.8 6 8.8 8.8 6 8.8 1.2ZM1.6 8.4L6.2 3.8', stroke: true },
+  wave: { d: 'M.6 3.6c1.4-1.6 2.8-1.6 4.2 0s2.8 1.6 4.2 0M.6 7c1.4-1.6 2.8-1.6 4.2 0s2.8 1.6 4.2 0', stroke: true },
+  cloud: { d: 'M3 8.1h4.7A2 2 0 0 0 7.9 4.1 2.7 2.7 0 0 0 2.8 3.6 2.3 2.3 0 0 0 3 8.1Z' },
+  moon: { d: 'M6.6 1A4.2 4.2 0 1 0 9.2 7.5 3.4 3.4 0 0 1 6.6 1Z' },
+  sparkle: { d: 'M5 .4L6.1 3.9 9.6 5 6.1 6.1 5 9.6 3.9 6.1.4 5 3.9 3.9Z' },
+  flower: { d: 'M5 3.4a1.6 1.6 0 1 1 1.5-2.1A1.6 1.6 0 1 1 7.9 4a1.6 1.6 0 1 1-.6 2.8 1.6 1.6 0 1 1-2.3 1.7 1.6 1.6 0 1 1-2.3-1.7A1.6 1.6 0 1 1 2.1 4 1.6 1.6 0 1 1 3.5 1.3 1.6 1.6 0 0 1 5 3.4Z' },
+  diamond: { d: 'M5 .9L9.1 5 5 9.1.9 5Z' },
+  snow: { d: 'M5 .8v8.4M1.4 2.9l7.2 4.2M8.6 2.9L1.4 7.1', stroke: true }
+};
+const POTIONS = [
+  { name: 'Rosehip Tonic', col: '#e5484d', sym: 'heart' },
+  { name: 'Ember Draught', col: '#f28a26', sym: 'flame' },
+  { name: 'Sunshine Syrup', col: '#f4cd34', sym: 'star', dark: true },
+  { name: 'Meadow Fizz', col: '#9fd243', sym: 'bubbles', dark: true },
+  { name: 'Moss Elixir', col: '#2e9a57', sym: 'leaf' },
+  { name: 'Mermaid Brew', col: '#1db3a6', sym: 'wave' },
+  { name: 'Skylark Cordial', col: '#5cc3f1', sym: 'cloud', dark: true },
+  { name: 'Moonwater', col: '#3c5fd8', sym: 'moon' },
+  { name: 'Lavender Dream', col: '#8b53d8', sym: 'sparkle' },
+  { name: 'Rose Petal Punch', col: '#f07aaf', sym: 'flower' },
+  { name: 'Toffee Tincture', col: '#99592f', sym: 'diamond' },
+  { name: 'Snowdrop Milk', col: '#efe9dc', sym: 'snow', dark: true }
+];
+const symInk = (c) => (POTIONS[c].dark ? 'rgba(40,30,50,.34)' : 'rgba(255,255,255,.55)');
+function symPath(name, ink, w) {
+  const s = SYM[name];
+  return s.stroke ? '<path d="' + s.d + '" fill="none" stroke="' + ink + '" stroke-width="' + (w || 1.3) + '" stroke-linecap="round" stroke-linejoin="round"/>'
+                  : '<path d="' + s.d + '" fill="' + ink + '"/>';
+}
+
+/* ---------- levels: more potions as you go; every so often a cloudy brew hides the lower measures ---------- */
+function plan(idx) {
+  const steps = [[1, 2, 1], [2, 3, 2], [5, 4, 2], [10, 5, 2], [20, 6, 2], [35, 7, 2], [55, 8, 2], [80, 9, 2], [110, 10, 2], [150, 11, 2]];
+  let n = 12, e = 2;
+  for (const [upto, nn, ee] of steps) if (idx < upto) { n = nn; e = ee; break; }
+  return { n, e, cloudy: idx >= 14 && idx % 6 === 3 };
+}
+const levelCache = {};
+function getLevel(idx) {
+  if (levelCache[idx]) return levelCache[idx];
+  const P = plan(idx);
+  let d = null;
+  for (let salt = 0; !d && salt < 20; salt++) d = dealShelf(P.n, P.e, mulberry32(seedFor(idx, 1 + salt * 7)));
+  for (let salt = 0; !d; salt++) d = dealShelf(P.n, P.e + 1, mulberry32(seedFor(idx, 300 + salt)));
+  /* which potions appear changes from level to level */
+  const order = shuffleArr([...Array(12).keys()], mulberry32(seedFor(idx, 2)));
+  const st = d.st.map((s) => s.map((f) => order[f]));
+  /* in a cloudy brew you can't see the whole recipe, so par allows a few extra pours */
+  const L = { n: P.n, cloudy: P.cloudy, st, sol: d.sol, par: d.sol.length + (P.cloudy ? Math.ceil(P.n / 4) : 0), cols: order.slice(0, P.n) };
+  return (levelCache[idx] = L);
+}
+GAME.total = Infinity;
+GAME.levelLabel = (i) => plan(i).n + ' potions' + (plan(i).cloudy ? ' ?' : '');
+GAME.levelBadge = (stars) => starsHTML(stars);
+GAME.levelTile = (i, done) => (done && save.cols && typeof save.cols[i] === 'string'
+  ? '<span class="thumb">' + shelfThumb(save.cols[i]) + '</span><small>' + (i + 1) + '</small>'
+  : '<b>' + (i + 1) + '</b><small>' + GAME.levelLabel(i) + '</small>');
+/* a finished level's potions as a little row of corked bottles */
+function shelfThumb(cols) {
+  const cs = [...cols].map((ch) => parseInt(ch, 36)).filter((c) => c >= 0 && c < 12).slice(0, 6);
+  const w = cs.length * 7 + 1;
+  let g = '';
+  cs.forEach((c, k) => {
+    const x = 1 + k * 7;
+    g += '<rect x="' + x + '" y="4" width="5.2" height="11" rx="2.4" fill="' + POTIONS[c].col + '" stroke="rgba(40,30,50,.35)" stroke-width=".5"/>' +
+      '<rect x="' + (x + 1.2) + '" y="2" width="2.8" height="2.6" rx=".6" fill="#b8834f"/>';
+  });
+  return '<svg viewBox="0 0 ' + w + ' 16" aria-hidden="true">' + g + '</svg>';
+}
+
+/* ---------- geometry: a convex glass, and liquid that stays level however the bottle tilts ---------- */
+function polyArea(p) {
+  let a = 0;
+  for (let i = 0, j = p.length - 1; i < p.length; j = i++) a += (p[j][0] + p[i][0]) * (p[j][1] - p[i][1]);
+  return Math.abs(a) / 2;
+}
+/* the part of a convex polygon deeper than t along the down direction (gx, gy) */
+function clipDeeper(p, gx, gy, t) {
+  const out = [];
+  for (let i = 0; i < p.length; i++) {
+    const a = p[i], b = p[(i + 1) % p.length];
+    const da = a[0] * gx + a[1] * gy - t, db = b[0] * gx + b[1] * gy - t;
+    if (da >= 0) out.push(a);
+    if ((da >= 0) !== (db >= 0)) { const k = da / (da - db); out.push([a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k]); }
+  }
+  return out;
+}
+/* the depth below which the glass holds `area` */
+function levelFor(P, gx, gy, area) {
+  let lo = Infinity, hi = -Infinity;
+  for (const p of P) { const d = p[0] * gx + p[1] * gy; if (d < lo) lo = d; if (d > hi) hi = d; }
+  for (let it = 0; it < 26; it++) {
+    const m = (lo + hi) / 2;
+    if (polyArea(clipDeeper(P, gx, gy, m)) > area) lo = m; else hi = m;
+  }
+  return (lo + hi) / 2;
+}
+function makeShape(sw) {
+  const gt = Math.max(2, sw * 0.07);
+  const lipH = sw * 0.15;
+  const u = sw * 0.6;
+  const head = u * 0.55;
+  const x0 = sw * 0.09 + gt, x1 = sw * 0.91 - gt;
+  const top = lipH, H = top + head + CAP * u + gt, bottom = H - gt;
+  const r = (x1 - x0) / 2, cy = bottom - r;
+  const P = [[x0, top], [x0, cy]];
+  for (let k = 1; k < 12; k++) { const a = Math.PI - Math.PI * k / 12; P.push([sw / 2 + r * Math.cos(a), cy + r * Math.sin(a)]); }
+  P.push([x1, cy], [x1, top]);
+  const vol = (units) => (units <= 0 ? 0 : polyArea(clipDeeper(P, 0, 1, bottom - units * u)));
+  /* the glass outline */
+  const ox0 = sw * 0.09, ox1 = sw * 0.91, R = (ox1 - ox0) / 2, ocy = H - R;
+  const body = 'M' + ox0 + ' ' + (lipH * 0.6) + 'V' + ocy + 'A' + R + ' ' + R + ' 0 0 0 ' + ox1 + ' ' + ocy + 'V' + (lipH * 0.6);
+  return { sw, gt, lipH, u, head, x0, x1, top, H, bottom, r, cy, P, vol, body, R, ox0, ox1, ocy };
+}
+/* the tilt at which a bottle holding `area` brims at its lip; side +1 pours to the right */
+function brimAngle(S, area, side) {
+  const cx = side > 0 ? S.x1 : S.x0, cyy = S.top;
+  let lo = 0, hi = Math.PI * 0.64;
+  for (let it = 0; it < 24; it++) {
+    const m = (lo + hi) / 2, gx = side * Math.sin(m), gy = Math.cos(m);
+    if (polyArea(clipDeeper(S.P, gx, gy, cx * gx + cyy * gy)) > area) lo = m; else hi = m;
+  }
+  return (lo + hi) / 2;
+}
+const fmt = (p) => p.map((q) => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(' ');
+/* liquid bands (bottom first: {c, units, hidden}) drawn for a bottle tilted by phi */
+function liquidSVG(S, bands, phi, side) {
+  const gx = (side || 1) * Math.sin(phi), gy = Math.cos(phi), upright = Math.abs(phi) < 1e-4;
+  let out = '', cum = 0, prevT = null;
+  for (const b of bands) {
+    if (b.units <= 0.002) continue;
+    cum += b.units;
+    const t = upright ? S.bottom - cum * S.u : levelFor(S.P, gx, gy, S.vol(cum));
+    let poly = clipDeeper(S.P, gx, gy, t);
+    if (prevT !== null) poly = clipDeeper(poly, -gx, -gy, -prevT);
+    prevT = t;
+    if (poly.length < 3) continue;
+    const pts = fmt(poly);
+    out += '<polygon points="' + pts + '" fill="' + (b.hidden ? 'var(--cloud)' : POTIONS[b.c].col) + '"/>' +
+      '<polygon points="' + pts + '" fill="url(#pat' + (b.hidden ? 'X' : b.c) + ')"/>';
+    if (b.hidden && upright) out += '<text class="q" x="' + (S.sw / 2) + '" y="' + (t + S.u * 0.52).toFixed(2) + '" font-size="' + (S.u * 0.62).toFixed(1) + '">?</text>';
+  }
+  if (prevT !== null) {
+    const all = clipDeeper(S.P, gx, gy, prevT);
+    out += '<polygon points="' + fmt(all) + '" fill="url(#shade)"/>';
+    /* a bright line where the liquid meets the air */
+    const on = all.filter((p) => Math.abs(p[0] * gx + p[1] * gy - prevT) < 0.05);
+    if (on.length >= 2) out += '<line x1="' + on[0][0].toFixed(2) + '" y1="' + on[0][1].toFixed(2) + '" x2="' + on[on.length - 1][0].toFixed(2) + '" y2="' + on[on.length - 1][1].toFixed(2) + '" stroke="rgba(255,255,255,.6)" stroke-width="' + (S.sw * 0.035).toFixed(2) + '" stroke-linecap="round"/>';
+  }
+  return out;
+}
+/* sparkle patterns (one per potion, plus the cloud's swirls) and the glass shading, shared by every bottle */
+function defsSVG(S) {
+  const T = S.u * 0.95, sz = T * 0.42;
+  let p = '';
+  POTIONS.forEach((pt, c) => {
+    const ink = symInk(c), sc = sz / 10, sc2 = sc * 0.62;
+    p += '<pattern id="pat' + c + '" width="' + T.toFixed(2) + '" height="' + (T * 1.1).toFixed(2) + '" patternUnits="userSpaceOnUse">' +
+      '<g transform="translate(' + (T * 0.12).toFixed(2) + ' ' + (T * 0.14).toFixed(2) + ') scale(' + sc.toFixed(3) + ')">' + symPath(pt.sym, ink) + '</g>' +
+      '<g transform="translate(' + (T * 0.62).toFixed(2) + ' ' + (T * 0.66).toFixed(2) + ') scale(' + sc2.toFixed(3) + ')">' + symPath(pt.sym, ink) + '</g>' +
+      '<circle cx="' + (T * 0.78).toFixed(2) + '" cy="' + (T * 0.22).toFixed(2) + '" r="' + (T * 0.035).toFixed(2) + '" fill="' + ink + '"/></pattern>';
+  });
+  p += '<pattern id="patX" width="' + T.toFixed(2) + '" height="' + T.toFixed(2) + '" patternUnits="userSpaceOnUse"><path d="M' + (T * 0.1) + ' ' + (T * 0.5) + 'q' + (T * 0.2) + ' ' + (-T * 0.25) + ' ' + (T * 0.4) + ' 0t' + (T * 0.4) + ' 0" fill="none" stroke="var(--cloud-ink)" stroke-opacity=".45" stroke-width="' + (T * 0.05) + '" stroke-linecap="round"/></pattern>';
+  p += '<linearGradient id="shade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></linearGradient>';
+  return '<svg class="defs" aria-hidden="true" focusable="false"><defs>' + p + '</defs></svg>';
+}
+function bottleSVG(S) {
+  const gw = (S.gt * 0.85).toFixed(2);
+  return '<svg viewBox="0 0 ' + S.sw.toFixed(2) + ' ' + S.H.toFixed(2) + '" aria-hidden="true">' +
+    '<ellipse class="shadow" cx="' + (S.sw / 2) + '" cy="' + (S.H - 1) + '" rx="' + (S.sw * 0.42) + '" ry="' + (S.sw * 0.07) + '"/>' +
+    '<path class="back" d="' + S.body + 'Z"/>' +
+    '<g class="liq"></g>' +
+    '<path class="front" d="' + S.body + '" stroke-width="' + gw + '"/>' +
+    '<rect class="shine" x="' + (S.x0 + S.gt * 0.5).toFixed(2) + '" y="' + (S.top + S.head * 0.7).toFixed(2) + '" width="' + (S.sw * 0.07).toFixed(2) + '" height="' + (CAP * S.u * 0.72).toFixed(2) + '" rx="' + (S.sw * 0.035).toFixed(2) + '" opacity=".55"/>' +
+    '<rect class="lip" x="' + (S.sw * 0.03).toFixed(2) + '" y="0" width="' + (S.sw * 0.94).toFixed(2) + '" height="' + S.lipH.toFixed(2) + '" rx="' + (S.lipH / 2).toFixed(2) + '" stroke-width="' + gw + '"/>' +
+    '<g class="deco"></g></svg>';
+}
+/* a cork and a label for a finished potion */
+function decoSVG(S, c) {
+  const cw = S.x1 - S.x0 + S.gt * 0.6, cx = S.x0 - S.gt * 0.3, ch = S.lipH + S.sw * 0.3;
+  const ly = S.top + S.head + S.u * 1.05, lh = S.u * 0.95, lw = S.sw * 0.66, lx = (S.sw - lw) / 2;
+  const s = lh * 0.62 / 10;
+  return '<g class="cork"><rect x="' + cx.toFixed(2) + '" y="' + (-S.sw * 0.26).toFixed(2) + '" width="' + cw.toFixed(2) + '" height="' + ch.toFixed(2) + '" rx="' + (S.sw * 0.09).toFixed(2) + '" fill="var(--cork)" stroke="var(--cork-dark)" stroke-width="' + (S.gt * 0.5).toFixed(2) + '"/>' +
+    '<path d="M' + (cx + cw * 0.25).toFixed(2) + ' ' + (-S.sw * 0.16).toFixed(2) + 'v' + (ch * 0.5).toFixed(2) + 'M' + (cx + cw * 0.6).toFixed(2) + ' ' + (-S.sw * 0.19).toFixed(2) + 'v' + (ch * 0.42).toFixed(2) + '" stroke="var(--cork-dark)" stroke-opacity=".5" stroke-width="' + (S.gt * 0.45).toFixed(2) + '" stroke-linecap="round"/></g>' +
+    '<g class="tag-label"><rect x="' + lx.toFixed(2) + '" y="' + ly.toFixed(2) + '" width="' + lw.toFixed(2) + '" height="' + lh.toFixed(2) + '" rx="' + (S.sw * 0.06).toFixed(2) + '" fill="var(--label)" stroke="var(--label-edge)" stroke-width="' + (S.gt * 0.45).toFixed(2) + '"/>' +
+    '<g transform="translate(' + (S.sw / 2 - 5 * s).toFixed(2) + ' ' + (ly + lh / 2 - 5 * s).toFixed(2) + ') scale(' + s.toFixed(3) + ')">' + symPath(POTIONS[c].sym, POTIONS[c].dark ? '#7a6a3a' : POTIONS[c].col, 1.6) + '</g></g>';
+}
+
+/* ---------- state ---------- */
+let G = null, S = null, geo = null;
+let winTimer = 0, saveTimer = 0, hintTimer = 0;
+const shelf = $('#shelf');
+const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+function loadLevel(idx) {
+  idx = Math.max(0, idx | 0);
+  startLevel(idx, getLevel(idx));
+  setTimeout(() => getLevel(idx + 1), 400);
+}
+function startLevel(idx, L) {
+  clearTimeout(winTimer); clearTimeout(hintTimer);
+  finishAll();
+  if (disarmRestart) disarmRestart();
+  $('#restartIcon').innerHTML = ICON.restart;
+  $('#restartLabel').textContent = 'Restart';
+  G = { idx, L, st: L.st.map((s) => s.slice()), hid: L.st.map((s) => s.map((_, k) => L.cloudy && k < s.length - 1)),
+        sel: -1, moves: 0, history: [], extra: false, hints: 0, won: false, par: L.par, corked: new Set() };
+  /* pick up where you left off */
+  if (save.cur && save.cur.i === idx && Array.isArray(save.cur.s) && Array.isArray(save.cur.h)) {
+    const s = save.cur.s, sameMix = s.flat().slice().sort().join() === L.st.flat().slice().sort().join();
+    if (sameMix && s.length >= L.st.length && s.every((b) => Array.isArray(b) && b.length <= CAP)) {
+      G.st = s.map((b) => b.slice());
+      const h = save.cur.h;
+      G.hid = G.st.map((b, i) => (Array.isArray(h[i]) && h[i].length === b.length ? h[i].map((x) => !!x) : b.map(() => false)));
+      G.moves = save.cur.m | 0; G.extra = !!save.cur.e; G.hints = save.cur.n | 0;
+      G.history = Array.isArray(save.cur.hist) ? save.cur.hist : [];
+    }
+  }
+  for (let b = 0; b < G.st.length; b++) if (isDone(G.st[b])) G.corked.add(b);
+  save.level = idx; persist();
+  $('#lvTitle').textContent = 'Level ' + (idx + 1);
+  $('#lvSub').textContent = L.n + ' potions' + (L.cloudy ? ' · cloudy brew' : '');
+  build();
+  closeModal();
+}
+
+/* ---------- layout: bottles in one or two rows on wooden shelves ---------- */
+function computeGeo() {
+  const B = G.st.length;
+  const rows = B <= 6 ? 1 : 2, per = Math.ceil(B / rows);
+  const W = Math.min($('#shelfWrap').clientWidth, 452);
+  const pad = 16, gap = per >= 7 ? 9 : per >= 5 ? 13 : 20;
+  const top = $('#shelfWrap').getBoundingClientRect().top + window.scrollY;
+  const availH = Math.max(280, window.innerHeight - top - $('#foot').offsetHeight - 40);
+  let sw = Math.min(60, (W - pad * 2 - gap * (per - 1)) / per);
+  const rowH = (w) => makeShape(w).H + w * 0.6 * 0.6 + 34;
+  while (rows * rowH(sw) + pad * 2 > availH && sw > 30) sw -= 1;
+  S = makeShape(sw);
+  const lift = S.u * 0.6, rh = lift + S.H + 34;
+  return { B, rows, per, W, pad, gap, lift, rh, Hc: rows * rh + pad * 2 - 16 };
+}
+function homeXY(b) {
+  const r = Math.floor(b / geo.per), inRow = r === geo.rows - 1 ? geo.B - geo.per * r : geo.per;
+  const c = b - r * geo.per, rowW = inRow * S.sw + (inRow - 1) * geo.gap;
+  return { x: (geo.W - rowW) / 2 + c * (S.sw + geo.gap), y: geo.pad + r * geo.rh + geo.lift };
+}
+function build() {
+  finishAll();
+  geo = computeGeo();
+  shelf.style.width = geo.W + 'px';
+  shelf.style.height = geo.Hc + 'px';
+  let planks = '';
+  for (let r = 0; r < geo.rows; r++) planks += '<div class="plank" style="top:' + (geo.pad + r * geo.rh + geo.lift + S.H - 3).toFixed(1) + 'px"></div>';
+  shelf.innerHTML = defsSVG(S) + planks + '<svg class="streams" aria-hidden="true"></svg>';
+  shelf.classList.toggle('calm', calm());
+  G.els = G.st.map((_, b) => {
+    const d = document.createElement('div');
+    d.className = 'bottle';
+    const p = homeXY(b);
+    d.style.left = p.x.toFixed(1) + 'px'; d.style.top = p.y.toFixed(1) + 'px';
+    d.style.width = S.sw.toFixed(1) + 'px'; d.style.height = S.H.toFixed(1) + 'px';
+    d.innerHTML = '<div class="wob">' + bottleSVG(S) + '</div>';
+    d.dataset.b = b;
+    d.setAttribute('role', 'button');
+    d.tabIndex = b === 0 ? 0 : -1;
+    shelf.appendChild(d);
+    d.liq = d.querySelector('.liq'); d.deco = d.querySelector('.deco');
+    return d;
+  });
+  G.decoDrawn = new Set();
+  render(true);
+}
+window.addEventListener('resize', () => { if (G) build(); });
+
+/* runs of the same colour pour together and look like one liquid; cloudy measures stay apart */
+function bandsOf(b) {
+  const out = [], s = G.st[b], h = G.hid[b];
+  for (let k = 0; k < s.length; k++) {
+    const last = out[out.length - 1];
+    if (!h[k] && last && !last.hidden && last.c === s[k]) last.units++;
+    else out.push({ c: s[k], units: 1, hidden: h[k] });
+  }
+  return out;
+}
+const busy = new Set();
+function drawBottle(b, quiet) {
+  const el = G.els[b];
+  if (!busy.has(b)) el.liq.innerHTML = liquidSVG(S, bandsOf(b), 0, 1);
+  const done = isDone(G.st[b]);
+  if (busy.has(b)) { /* still pouring: the cork goes on when it lands */ }
+  else if (done && !G.decoDrawn.has(b)) { el.deco.innerHTML = decoSVG(S, G.st[b][0]); G.decoDrawn.add(b); if (quiet) for (const g of el.deco.children) g.style.animation = 'none'; }
+  else if (!done && G.decoDrawn.has(b)) { el.deco.innerHTML = ''; G.decoDrawn.delete(b); }
+  el.classList.toggle('done', done);
+  if (!busy.has(b)) el.style.transform = b === G.sel ? 'translateY(' + (-geo.lift).toFixed(1) + 'px)' : '';
+  const names = G.st[b].map((c, k) => (G.hid[b][k] ? 'cloudy' : POTIONS[c].name.split(' ')[0]));
+  el.setAttribute('aria-label', 'Bottle ' + (b + 1) + ': ' + (names.length ? names.join(', ') + ' (top)' : 'empty') + (done ? ', finished ' + POTIONS[G.st[b][0]].name : '') + (b === G.sel ? ', picked up' : ''));
+}
+function render(quiet) {
+  for (let b = 0; b < G.st.length; b++) drawBottle(b, quiet);
+  const stars = starsNow();
+  $('#starsNow').innerHTML = starsHTML(stars);
+  $('#starsNow').setAttribute('aria-label', stars + ' stars so far');
+  $('#count').innerHTML = '<small>Pours</small>' + G.moves + '<span class="sub">par ' + G.par + '</span>';
+  $('#btnUndo').disabled = !G.history.length || G.won;
+  $('#btnExtra').disabled = G.extra || G.won;
+  $('#btnHint').disabled = G.won;
+}
+function starsNow() {
+  let s = G.moves <= G.par ? 3 : G.moves <= Math.ceil(G.par * 1.35) ? 2 : 1;
+  if (G.extra || G.hints) s = Math.min(s, 2);
+  return s;
+}
+
+/* ---------- pouring: the bottle flies over, tips until the liquid brims at its lip, and pours ---------- */
+const anims = [];
+let rafId = 0;
+const ease = (k) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+function startPour(from, to, n, c, bandsFrom, bandsTo, lifted) {
+  const a0 = homeXY(from), b0 = homeXY(to);
+  const side = b0.x >= a0.x ? 1 : -1;
+  const unitsFrom = bandsFrom.reduce((x, b) => x + b.units, 0), unitsTo = bandsTo.reduce((x, b) => x + b.units, 0);
+  const pivot = side > 0 ? [S.x1, S.top] : [S.x0, S.top];
+  const a = {
+    from, to, n, c, side, bandsFrom, bandsTo, unitsFrom, unitsTo, pivot, t0: performance.now(),
+    T: 300 + 360 + 120 * (n - 1) + 260,
+    start: { x: a0.x + pivot[0], y: a0.y + pivot[1] - (lifted ? geo.lift : 0) },
+    home: { x: a0.x + pivot[0], y: a0.y + pivot[1] },
+    over: { x: b0.x + S.sw / 2, y: b0.y - S.sw * 0.42 },
+    phiA: brimAngle(S, S.vol(unitsFrom), side), phiB: Math.min(brimAngle(S, S.vol(unitsFrom - n), side), 1.92),
+    stream: null, sound: false
+  };
+  const el = G.els[from];
+  el.classList.add('busy');
+  el.style.transformOrigin = pivot[0].toFixed(2) + 'px ' + pivot[1].toFixed(2) + 'px';
+  busy.add(from); busy.add(to);
+  anims.push(a);
+  if (!rafId) rafId = requestAnimationFrame(tick);
+}
+function tick(now) {
+  for (const a of anims.slice()) stepPour(a, now);
+  rafId = anims.length ? requestAnimationFrame(tick) : 0;
+}
+function withTop(bands, delta, c) {
+  const out = bands.map((b) => Object.assign({}, b));
+  const top = out[out.length - 1];
+  if (delta < 0) { top.units += delta; if (top.units <= 0.002) out.pop(); }
+  else if (top && !top.hidden && top.c === c) top.units += delta;
+  else out.push({ c, units: delta, hidden: false });
+  return out;
+}
+function stepPour(a, now) {
+  const p = Math.min(1, (now - a.t0) / a.T);
+  const A = 300 / a.T, B = (a.T - 260) / a.T;
+  const el = G.els[a.from], tgt = G.els[a.to];
+  let pos, phi, moved = 0;
+  if (p < A) {
+    const k = ease(p / A);
+    pos = { x: a.start.x + (a.over.x - a.start.x) * k, y: a.start.y + (a.over.y - a.start.y) * k - Math.sin(k * Math.PI) * S.sw * 0.25 };
+    phi = a.phiA * k;
+  } else if (p < B) {
+    const k = (p - A) / (B - A);
+    moved = a.n * ease(k);
+    pos = a.over;
+    phi = Math.min(brimAngle(S, S.vol(a.unitsFrom - moved), a.side), 1.92);
+    if (!a.sound) { a.sound = true; sfx('pour', a.n, (B - A) * a.T / 1000); }
+  } else {
+    const k = ease((p - B) / (1 - B));
+    moved = a.n;
+    pos = { x: a.over.x + (a.home.x - a.over.x) * k, y: a.over.y + (a.home.y - a.over.y) * k };
+    phi = a.phiB * (1 - k);
+  }
+  el.style.transform = 'translate(' + (pos.x - a.home.x).toFixed(2) + 'px,' + (pos.y - a.home.y).toFixed(2) + 'px) rotate(' + (a.side * phi * 180 / Math.PI).toFixed(2) + 'deg)';
+  el.liq.innerHTML = liquidSVG(S, withTop(a.bandsFrom, -moved, a.c), phi, a.side);
+  tgt.liq.innerHTML = liquidSVG(S, moved > 0 ? withTop(a.bandsTo, moved, a.c) : a.bandsTo, 0, 1);
+  /* the stream, from the lip down to the rising surface */
+  const streams = shelf.querySelector('.streams');
+  if (p >= A && p < B) {
+    if (!a.stream) { a.stream = document.createElementNS('http://www.w3.org/2000/svg', 'line'); a.stream.setAttribute('stroke', POTIONS[a.c].col); a.stream.setAttribute('stroke-linecap', 'round'); streams.appendChild(a.stream); }
+    const b0 = homeXY(a.to), k = (p - A) / (B - A);
+    const surf = b0.y + S.bottom - (a.unitsTo + moved) * S.u;
+    const head = Math.min(1, k * 6), tail = Math.max(0, (k - 0.88) / 0.12);
+    const y1 = a.over.y + (surf - a.over.y) * tail, y2 = a.over.y + (surf - a.over.y) * head;
+    a.stream.setAttribute('x1', a.over.x.toFixed(2)); a.stream.setAttribute('x2', a.over.x.toFixed(2));
+    a.stream.setAttribute('y1', y1.toFixed(2)); a.stream.setAttribute('y2', y2.toFixed(2));
+    a.stream.setAttribute('stroke-width', (S.sw * 0.13 * (1 - tail * 0.6)).toFixed(2));
+  } else if (a.stream) { a.stream.remove(); a.stream = null; }
+  if (p >= 1) endPour(a);
+}
+function endPour(a) {
+  const i = anims.indexOf(a);
+  if (i >= 0) anims.splice(i, 1);
+  if (a.stream) a.stream.remove();
+  busy.delete(a.from); busy.delete(a.to);
+  const el = G.els[a.from];
+  if (el) { el.classList.remove('busy'); el.style.transform = ''; el.style.transformOrigin = ''; }
+  if (!G.els[a.from] || !G.els[a.to]) return;
+  drawBottle(a.from); drawBottle(a.to);
+  if (a.revealed) flash(a.from);
+  if (isDone(G.st[a.to]) && !G.corked.has(a.to)) { G.corked.add(a.to); sfx('cork'); haptic(25); sparkleAt(a.to); }
+  if (G.won && !anims.length) celebrate();
+}
+function finishAll() { while (anims.length) endPour(anims[0]); }
+function finishFor(b) { for (const a of anims.slice()) if (a.from === b || a.to === b) endPour(a); }
+
+/* a quick shimmer on a measure that's just been uncovered */
+function flash(b) {
+  const el = G.els[b], s = G.st[b];
+  if (!s.length) return;
+  const y = S.bottom - s.length * S.u;
+  const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  r.setAttribute('class', 'flash');
+  r.setAttribute('x', S.x0); r.setAttribute('y', y.toFixed(2));
+  r.setAttribute('width', (S.x1 - S.x0).toFixed(2)); r.setAttribute('height', S.u.toFixed(2));
+  el.querySelector('svg').appendChild(r);
+  setTimeout(() => r.remove(), 700);
+  sfx('reveal');
+}
+const SPARK = '<svg viewBox="0 0 10 10"><path d="M5 0L6.2 3.8 10 5 6.2 6.2 5 10 3.8 6.2 0 5 3.8 3.8Z" fill="#fff6c8" stroke="#f2b84b" stroke-width=".6"/></svg>';
+function sparkleAt(b) {
+  if (calm()) return;
+  const p = homeXY(b);
+  for (let k = 0; k < 6; k++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.innerHTML = SPARK;
+    s.style.left = (p.x + S.sw / 2 - 7) + 'px'; s.style.top = (p.y - 4) + 'px';
+    const a = -Math.PI / 2 + (k - 2.5) * 0.45;
+    s.style.setProperty('--dx', (Math.cos(a) * S.sw * 0.9).toFixed(1) + 'px');
+    s.style.setProperty('--dy', (Math.sin(a) * S.sw * 0.9).toFixed(1) + 'px');
+    s.style.animationDelay = (k * 0.03) + 's';
+    shelf.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  }
+}
+
+/* ---------- input: tap a bottle to pick it up, tap another to pour into it ---------- */
+function tapBottle(b) {
+  if (!G || G.won || b >= G.st.length) return;
+  clearHint();
+  finishFor(b);
+  const st = G.st;
+  if (G.sel < 0) {
+    if (!st[b].length || isDone(st[b])) { nope(b); return; }
+    G.sel = b; sfx('pick'); render(); return;
+  }
+  if (G.sel === b) { G.sel = -1; sfx('drop'); render(); return; }
+  const from = G.sel;
+  if (!canPour(st, from, b)) { G.sel = -1; render(); nope(b); return; }
+  finishFor(from);
+  G.history.push(snapshot());
+  if (G.history.length > 200) G.history.shift();
+  const bandsFrom = bandsOf(from), bandsTo = bandsOf(b), c = st[from][st[from].length - 1];
+  const n = pourCount(st, from, b);
+  for (let k = 0; k < n; k++) { st[b].push(st[from].pop()); G.hid[b].push(false); G.hid[from].pop(); }
+  /* the measure underneath shows its colour once it's on top */
+  let revealed = false;
+  const h = G.hid[from];
+  if (h.length && h[h.length - 1]) { h[h.length - 1] = false; revealed = true; }
+  if (isDone(st[b])) G.hid[b] = G.hid[b].map(() => false);
+  G.moves++; G.sel = -1;
+  if (allSorted(st)) G.won = true;
+  if (calm()) {
+    sfx('pour', n, 0.3);
+    render();
+    if (revealed) flash(from);
+    if (isDone(st[b]) && !G.corked.has(b)) { G.corked.add(b); setTimeout(() => sfx('cork'), 250); }
+  } else {
+    startPour(from, b, n, c, bandsFrom, bandsTo, true);
+    anims[anims.length - 1].revealed = revealed;
+    render();
+  }
+  queueSave();
+  if (G.won) { if (calm()) celebrate(); }
+  else if (!anyMove()) toast(G.extra ? 'No pours left. Try Undo or Restart.' : 'No pours left. Undo, or add a spare flask.', 2600);
+}
+function nope(b) {
+  const el = G.els[b];
+  el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope');
+  sfx('bonk');
+}
+function anyMove() {
+  for (let i = 0; i < G.st.length; i++) for (let j = 0; j < G.st.length; j++) if (canPour(G.st, i, j) && !pointless(G.st, i, j)) return true;
+  return false;
+}
+/* taps find a bottle by its place on the shelf, so a bottle that's still flying home can be tapped where it lives */
+function bottleAt(x, y) {
+  const r = shelf.getBoundingClientRect();
+  x -= r.left; y -= r.top;
+  for (let b = 0; b < G.st.length; b++) {
+    const p = homeXY(b);
+    if (x >= p.x - geo.gap / 2 && x <= p.x + S.sw + geo.gap / 2 && y >= p.y - geo.lift - 6 && y <= p.y + S.H + 10) return b;
+  }
+  return -1;
+}
+shelf.addEventListener('click', (e) => {
+  if (!G) return;
+  /* clicks from assistive tech have no pointer position: use the bottle they activated */
+  const el = e.target.closest && e.target.closest('.bottle');
+  const b = e.detail === 0 && el ? +el.dataset.b : bottleAt(e.clientX, e.clientY);
+  if (b >= 0) tapBottle(b);
+  else if (G.sel >= 0) { G.sel = -1; render(); }
+});
+shelf.addEventListener('keydown', (e) => {
+  const el = e.target.closest('.bottle');
+  if (!el || !G) return;
+  const b = +el.dataset.b;
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapBottle(b); return; }
+  if (e.key === 'Escape' && G.sel >= 0) { G.sel = -1; render(); return; }
+  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -geo.per, ArrowDown: geo.per }[e.key];
+  if (step === undefined) return;
+  e.preventDefault();
+  const nb = Math.max(0, Math.min(G.st.length - 1, b + step));
+  el.tabIndex = -1; G.els[nb].tabIndex = 0; G.els[nb].focus();
+});
+
+function snapshot() { return { s: G.st.map((x) => x.slice()), h: G.hid.map((x) => x.map((v) => (v ? 1 : 0))) }; }
+function restore(snap) {
+  G.st = snap.s.map((x) => x.slice()); G.hid = snap.h.map((x) => x.map((v) => !!v));
+  while (G.st.length < G.els.length) { G.st.push([]); G.hid.push([]); }
+  G.corked = new Set();
+  for (let b = 0; b < G.st.length; b++) if (isDone(G.st[b])) G.corked.add(b);
+}
+$('#btnUndo').addEventListener('click', () => {
+  if (!G || G.won || !G.history.length) return;
+  finishAll(); clearHint();
+  restore(G.history.pop());
+  G.moves = Math.max(0, G.moves - 1); G.sel = -1;
+  render(true); queueSave(); sfx('drop');
+});
+$('#btnExtra').addEventListener('click', () => {
+  if (!G || G.won || G.extra) return;
+  finishAll(); clearHint();
+  G.extra = true; G.sel = -1;
+  G.st.push([]); G.hid.push([]);
+  G.history = G.history.map((h) => ({ s: h.s.concat([[]]), h: h.h.concat([[]]) }));
+  build(); queueSave(); sfx('whoosh');
+  toast('A spare flask! That caps this level at two stars.');
+});
+$('#btnHint').addEventListener('click', () => {
+  if (!G || G.won) return;
+  finishAll(); clearHint();
+  /* the quick search first; if it misses, the thorough one decides whether the shelf can still be finished */
+  const sol = solveShort(G.st, 120, 90) || solveDFS(G.st, 80000);
+  if (!sol || !sol.length) { toast('This shelf can\'t be finished from here. Undo a few pours' + (G.extra ? '.' : ', or add a spare flask.'), 3200); return; }
+  const [i, j] = sol[0];
+  G.hints++;
+  G.sel = -1; render();
+  G.els[i].classList.add('hint'); G.els[j].classList.add('hint');
+  const c = G.st[i][G.st[i].length - 1];
+  toast('Pour the ' + POTIONS[c].name + ' from the first glowing bottle into the other. Hints cap the level at two stars.', 3400);
+  hintTimer = setTimeout(clearHint, 3200);
+  sfx('hint');
+  queueSave();
+});
+function clearHint() { clearTimeout(hintTimer); if (G && G.els) for (const el of G.els) el.classList.remove('hint'); }
+
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!G || G.won) { if (save.cur) { delete save.cur; persist(); } return; }
+    const snap = snapshot();
+    save.cur = { i: G.idx, s: snap.s, h: snap.h, m: G.moves, e: G.extra, n: G.hints, hist: G.history.slice(-60) };
+    persist();
+  }, 250);
+}
+
+/* ---------- winning ---------- */
+const WIN_TITLES = ['Perfectly brewed!', 'Potion perfect!', 'Bottled beautifully!', 'What a tidy shelf!', 'Simply magical!'];
+function celebrate() {
+  if (!G || !G.won || G.celebrated) return;
+  G.celebrated = true;
+  const stars = starsNow();
+  save.done[G.idx] = Math.max(save.done[G.idx] || 0, stars);
+  if (!save.cols || typeof save.cols !== 'object') save.cols = {};
+  save.cols[G.idx] = G.L.cols.map((c) => c.toString(36)).join('');
+  delete save.cur;
+  persist();
+  $('#restartLabel').textContent = 'Next';
+  $('#restartIcon').innerHTML = ICON.chevR;
+  render();
+  if (!calm()) {
+    G.st.forEach((s, b) => {
+      if (!s.length) return;
+      const p = homeXY(b);
+      for (let k = 0; k < 4; k++) {
+        const d = document.createElement('div');
+        d.className = 'bubble';
+        const r = 5 + Math.random() * 7;
+        d.style.width = d.style.height = r + 'px';
+        d.style.left = (p.x + S.sw / 2 - r / 2 + (Math.random() - 0.5) * S.sw * 0.5) + 'px';
+        d.style.top = (p.y - r) + 'px';
+        d.style.setProperty('--dx', ((Math.random() - 0.5) * 30).toFixed(1) + 'px');
+        d.style.setProperty('--dy', (-60 - Math.random() * 70).toFixed(1) + 'px');
+        d.style.setProperty('--d', (1.1 + Math.random() * 0.7).toFixed(2) + 's');
+        d.style.animationDelay = (b * 0.05 + k * 0.18).toFixed(2) + 's';
+        shelf.appendChild(d);
+      }
+    });
+  }
+  setTimeout(() => sfx('win'), 150);
+  winTimer = setTimeout(() => showWin(stars), calm() ? 600 : 1700);
+}
+function winArt(cols) {
+  const c = (k) => POTIONS[cols[k % cols.length]].col;
+  return '<svg viewBox="0 0 96 96" aria-hidden="true">' +
+    '<ellipse cx="48" cy="88" rx="40" ry="5" fill="rgba(60,30,10,.14)"/>' +
+    '<path d="M14 40h20v38a10 10 0 0 1-20 0z" fill="' + c(0) + '" stroke="#5a4870" stroke-width="2.2"/><rect x="12" y="34" width="24" height="7" rx="3.5" fill="#fff" fill-opacity=".5" stroke="#5a4870" stroke-width="2.2"/><rect x="16" y="26" width="16" height="10" rx="3" fill="#bd8a55" stroke="#8d5f35" stroke-width="2"/>' +
+    '<path d="M42 54c0-6 4-8 4-12V30h12v12c0 4 4 6 4 12v24a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8z" fill="' + c(1) + '" stroke="#5a4870" stroke-width="2.2"/><rect x="44" y="24" width="16" height="7" rx="3.5" fill="#fff" fill-opacity=".5" stroke="#5a4870" stroke-width="2.2"/><rect x="47" y="16" width="10" height="10" rx="3" fill="#bd8a55" stroke="#8d5f35" stroke-width="2"/>' +
+    '<path d="M68 46h18v34a9 9 0 0 1-18 0z" fill="' + c(2) + '" stroke="#5a4870" stroke-width="2.2"/><rect x="66" y="40" width="22" height="7" rx="3.5" fill="#fff" fill-opacity=".5" stroke="#5a4870" stroke-width="2.2"/><rect x="70" y="32" width="14" height="10" rx="3" fill="#bd8a55" stroke="#8d5f35" stroke-width="2"/>' +
+    '<rect x="45" y="58" width="14" height="12" rx="2" fill="#f8eed6" stroke="#c6ad80" stroke-width="1.4"/>' +
+    '<path d="M19 50v20M73 56v16" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>' +
+    '<path d="M30 12l1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5zM80 14l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z" fill="#f6c35b"/></svg>';
+}
+function showWin(stars) {
+  const names = G.L.cols.map((c) => POTIONS[c].name);
+  const some = names.length > 3 ? names.slice(0, 2).join(', ') + ' and ' + (names.length - 2) + ' more' : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+  openModal(
+    '<div class="art">' + winArt(G.L.cols) + '</div>' +
+    '<h2>' + WIN_TITLES[G.idx % WIN_TITLES.length] + '</h2>' +
+    '<p>' + some + ' bottled in ' + G.moves + ' pour' + (G.moves === 1 ? '' : 's') + (G.moves <= G.par ? ', on par!' : '. Par is ' + G.par + '.') + '</p>' +
+    '<div class="badge-row">' + starsHTML(stars) + '</div>' +
+    (stars < 3 && (G.hints || G.extra) ? '<p style="font-size:15px;margin-top:-6px">Finish without a hint or spare flask for three stars.</p>' : '') +
+    '<div class="stack">' +
+    '<button class="btn primary" data-act="next">Next brew</button>' +
+    '<button class="btn" data-act="levels">Your shelf</button>' +
+    '<button class="btn" data-act="retry">Brew it again</button>' +
+    '</div>'
+  );
+}
+
+/* ---------- help ---------- */
+function miniBottle(fills, corked) {
+  let g = '<path d="M7 3.5h10V18a5 5 0 0 1-10 0z" fill="rgba(255,255,255,.35)" stroke="currentColor" stroke-width="1.6"/>';
+  fills.forEach((c, k) => { const y = 19.5 - k * 4.3; g += '<path d="M8 ' + (y - 3.7) + 'h8V' + (k === 0 ? (y - 1.2) + 'a4 4 0 0 1-8 0z' : y + 'H8z') + '" fill="' + POTIONS[c].col + '"/>'; });
+  if (corked) g += '<rect x="8.2" y="1" width="7.6" height="4" rx="1.3" fill="#bd8a55" stroke="#8d5f35" stroke-width=".8"/>';
+  return '<svg viewBox="0 0 24 24">' + g + '</svg>';
+}
+GAME.showHelp = () => {
+  openModal(
+    '<div class="logo">' + '<svg viewBox="0 0 96 96" style="width:52px;height:52px">' + winArt([8, 5, 0]).replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg>' + '<h2>Potion Shelf</h2></div>' +
+    '<p>The herbalist\'s potions have got all mixed up!</p>' +
+    '<ul class="rules">' +
+    '<li><span class="mini">' + miniBottle([7, 0, 8]) + '</span><span>Tap a bottle to pick it up, then tap another bottle to pour into it.</span></li>' +
+    '<li><span class="mini">' + miniBottle([4, 8]) + '</span><span>You can only pour onto the same colour, or into an empty bottle.</span></li>' +
+    '<li><span class="mini">' + miniBottle([5, 5, 5, 5], true) + '</span><span>Four of one colour corks the bottle. Bottle every potion to win.</span></li>' +
+    '<li><span class="mini"><span class="star">' + ICON.star + '</span></span><span>Finish in par pours for three stars. A hint or the spare flask caps it at two.</span></li>' +
+    '</ul>' +
+    '<p style="font-size:15px;margin-top:-4px">Matching colours on top pour together, as much as fits. Each potion has its own sparkles, so you can tell them apart by more than colour. In cloudy brews, the lower measures stay hidden until they\'re uncovered.</p>' +
+    '<div class="stack"><button class="btn primary" data-act="close">Start brewing</button></div>'
+  );
+};
+
+/* ---------- music: a gentle apothecary waltz, with the odd bubble from the cauldron ---------- */
+GAME.music = {
+  tempo: 100,
+  tracks: [
+    { inst: INST.bell, vol: 0.1, seq: track('A4 C5 E5 D5:1.5 C5:.5 B4 G4:2 B4 C5 E5 A5 G5:2 F5 E5 D5 E5 C5:1.5 B4:.5 A4 A4:2 -') },
+    { inst: INST.harp, vol: 0.065, seq: track('A2 E3 A3 D3 F3 A3 G2 D3 B3 C3 G3 C4 F2 C3 A3 E2 B2 G3 D3 A3 F3 A2 E3 A3') },
+    { inst: INST.bass, vol: 0.09, seq: track('A2:3 D2:3 G2:3 C2:3 F2:3 E2:3 D2:3 A2:3') }
+  ],
+  ambient() {
+    let alive = true, timer = 0;
+    const blip = () => {
+      if (!alive || !actx) return;
+      const t = actx.currentTime + 0.02, f = 380 + Math.random() * 520;
+      tone(t, f, { type: 'sine', to: f * 1.9, a: 0.004, dur: 0.07, vol: 0.022, bus: musicBus });
+      if (Math.random() < 0.5) tone(t + 0.09, f * 1.2, { type: 'sine', to: f * 2.2, a: 0.004, dur: 0.05, vol: 0.014, bus: musicBus });
+      timer = setTimeout(blip, 900 + Math.random() * 2200);
+    };
+    timer = setTimeout(blip, 1200);
+    return () => { alive = false; clearTimeout(timer); };
+  }
+};
+GAME.sfx = {
+  pick(t) { tone(t, 1760, { type: 'sine', a: 0.002, dur: 0.12, vol: 0.06 }); tone(t, 2637, { type: 'sine', a: 0.002, dur: 0.08, vol: 0.025 }); },
+  drop(t) { tone(t, 1320, { type: 'sine', to: 1050, a: 0.003, dur: 0.08, vol: 0.05 }); },
+  /* glugs that climb as the bottle fills */
+  pour(t, n, dur) {
+    dur = dur || 0.4;
+    const count = Math.max(3, Math.round(dur * 10));
+    for (let k = 0; k < count; k++) {
+      const tt = t + k * dur / count, f = 260 + (k / count) * 380 + Math.random() * 40;
+      tone(tt, f, { type: 'sine', to: f * 1.7, a: 0.004, dur: 0.055, vol: 0.075 });
+      noise(tt, { f: 700 + k * 50, q: 5, dur: 0.035, vol: 0.018 });
+    }
+  },
+  cork(t) {
+    tone(t, 540, { type: 'sine', to: 150, a: 0.002, dur: 0.1, vol: 0.16 });
+    noise(t, { f: 2600, q: 1.4, dur: 0.03, vol: 0.08 });
+    SFX.chime(t + 0.12, 6); SFX.chime(t + 0.2, 8);
+  },
+  reveal(t) { tone(t, 990, { type: 'sine', to: 1480, a: 0.01, dur: 0.25, vol: 0.04 }); },
+  hint(t) { tone(t, 1320, { type: 'sine', a: 0.004, dur: 0.25, vol: 0.06 }); tone(t + 0.09, 1760, { type: 'sine', a: 0.004, dur: 0.3, vol: 0.05 }); },
+  whoosh(t) { noise(t, { f: 600, to: 3000, q: 0.7, dur: 0.3, vol: 0.06 }); },
+  win(t) {
+    SFX.win(t);
+    [0, 3, 7, 12, 15, 19, 24].forEach((s, k) => tone(t + 0.55 + k * 0.07, noteFreq('A5') * Math.pow(2, s / 12), { type: 'sine', a: 0.003, dur: 0.35, vol: 0.04 }));
+  },
+  bonk: SFX.bonk
+};
+
+/* ---------- boot ---------- */
+$('#undoIcon').innerHTML = ICON.undo;
+$('#restartIcon').innerHTML = ICON.restart;
+$('#btnHint').innerHTML = ICON.hint;
+const disarmRestart = armConfirm($('#btnRestart'), $('#restartLabel'), 'Restart',
+  () => G && !G.won && G.moves > 0,
+  () => {
+    if (G.won) { loadLevel(G.idx + 1); return; }
+    delete save.cur; persist();
+    startLevel(G.idx, G.L);
+  });
+shellBoot();
+loadLevel(save.level || 0);
+if (!save.seenHelp) { GAME.showHelp(); save.seenHelp = true; persist(); }
+</script>
+</body>
+</html>
