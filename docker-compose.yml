@@ -23,4 +23,5 @@ services:
       - ./patchwork:/usr/share/nginx/html/patchwork:ro
       - ./truffle-hunt:/usr/share/nginx/html/truffle-hunt:ro
       - ./fence-line:/usr/share/nginx/html/fence-line:ro
+      - ./potion-shelf:/usr/share/nginx/html/potion-shelf:ro
     restart: unless-stopped

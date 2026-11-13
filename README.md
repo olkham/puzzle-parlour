@@ -1,6 +1,6 @@
 # Puzzle Parlour
 
-Ten cosy, phone-friendly puzzle games, each a single self-contained HTML file in the same spirit as [Whisker Hunt](https://github.com/HamiltonSteff/Whisker-Hunt). Each takes a well-known puzzle format and gives it its own twist and theme.
+Eleven cosy, phone-friendly puzzle games, each a single self-contained HTML file in the same spirit as [Whisker Hunt](https://github.com/HamiltonSteff/Whisker-Hunt). Each takes a well-known puzzle format and gives it its own twist and theme.
 
 **▶️ Play now: <https://olkham.github.io/puzzle-parlour/>**
 
@@ -18,8 +18,9 @@ Ten cosy, phone-friendly puzzle games, each a single self-contained HTML file in
 | [🪡 Patchwork](patchwork/) | Area division | Shikaku | Every patch gets a fabric print, and finished quilts are stitched and bound |
 | [🐷 Truffle Hunt](truffle-hunt/) | Number logic | Minesweeper | Never a guess: every board is solver-checked from the pig's clearing |
 | [🐑 Fence Line](fence-line/) | Loop logic | Slitherlink | Close the fence and the flock hops into a blooming paddock |
+| [🧪 Potion Shelf](potion-shelf/) | Colour sorting | Water sort | Real pours: tip a bottle and the potion streams across; finished potions are corked and labelled |
 
-Every game has hand-tuned or solver-verified levels, a level picker, three-star or three-heart scoring, undo or hints where they fit, light and dark mode, saved progress, and procedural background music and sound effects (no audio files). Every game whose board grows (all but Log Jam and Layer Cake) lets you pinch to zoom in on big boards and drag around them; on desktop, the mouse wheel and the + − 0 keys do the same.
+Every game has hand-tuned or solver-verified levels, a level picker, three-star or three-heart scoring, undo or hints where they fit, light and dark mode, saved progress, and procedural background music and sound effects (no audio files). The games with fine-grained boards (all but Log Jam, Layer Cake and Potion Shelf, whose pieces stay big) let you pinch to zoom in on big boards and drag around them; on desktop, the mouse wheel and the + − 0 keys do the same.
 
 ## Getting started
 
@@ -69,7 +70,7 @@ Two places this won't work: the local server over Wi-Fi (`http://192.168…` isn
 ```
 index.html          the launcher (shows how many levels you've solved in each game)
 manifest.json       app details for installing the launcher
-sw.js               offline support for the launcher (it also keeps all ten games)
+sw.js               offline support for the launcher (it also keeps all eleven games)
 icons/              home-screen icons
 thread-count/       each game: index.html (everything inlined), manifest.json, sw.js, icons/, README.md, screenshot.png
 bee-line/
@@ -81,6 +82,7 @@ sun-catcher/
 patchwork/
 truffle-hunt/
 fence-line/
+potion-shelf/
 serve.py            tiny local web server with a phone QR code
 install.sh/.bat     sets up .venv for serve.py
 run.sh/.bat         starts serve.py

@@ -1,10 +1,10 @@
 /* Offline support for Puzzle Parlour. Once the page has loaded online, it keeps working with no connection,
    including from a home-screen icon. The build stamps a new VERSION whenever the files change. */
 const APP = 'parlour';
-const VERSION = '81787867cb';
+const VERSION = '4ff63c7ba9';
 const CACHE = APP + '-' + VERSION;
 const FONTS = APP + '-fonts';
-const FILES = ["./","index.html","manifest.json","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","icons/apple-touch-icon.png","bee-line/index.html","fair-isle/index.html","fence-line/index.html","green-thumb/index.html","layer-cake/index.html","log-jam/index.html","patchwork/index.html","sun-catcher/index.html","thread-count/index.html","truffle-hunt/index.html"];
+const FILES = ["./","index.html","manifest.json","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","icons/apple-touch-icon.png","bee-line/index.html","fair-isle/index.html","fence-line/index.html","green-thumb/index.html","layer-cake/index.html","log-jam/index.html","patchwork/index.html","potion-shelf/index.html","sun-catcher/index.html","thread-count/index.html","truffle-hunt/index.html"];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
